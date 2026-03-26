@@ -1,0 +1,9 @@
+{
+  "name": "vayuz-signal-engine",
+  "version": "1.0.0",
+  "description": "VAYUZ LinkedIn Signal Engine — Apify + Gemini AI lead intelligence platform",
+  "scripts": {
+    "start": "serve public"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Engine — VAYUZ</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e8eaee;--bg5:#dde0e6;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.11);--border3:rgba(0,0,0,0.18);
+  --text:#0f1419;--text2:#4a5568;--text3:#9aa3b0;
+  --accent:#2563eb;--adim:rgba(37,99,235,0.08);
+  --green:#0d9e72;--gdim:rgba(13,158,114,0.09);
+  --amber:#c07b10;--ydim:rgba(192,123,16,0.09);
+  --red:#dc2626;--rdim:rgba(220,38,38,0.08);
+  --purple:#7c3aed;--pdim:rgba(124,58,237,0.08);
+  --font:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
+
+/* ── Sidebar ── */
+.sb{width:212px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.sb-mark{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:var(--mono)}
+.sb-name{font-size:13px;font-weight:700}
+.sb-tag{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em}
+.sb-nav{padding:10px 8px;flex:1}
+.nl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);padding:0 8px;margin:10px 0 5px}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text2);cursor:pointer;transition:all .13s;margin-bottom:1px;font-weight:500}
+.ni:hover{background:var(--bg3);color:var(--text)}
+.ni.on{background:var(--adim);color:var(--accent)}
+.ni svg{width:14px;height:14px;flex-shrink:0}
+.nb{margin-left:auto;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;font-family:var(--mono);display:none}
+.nb.show{display:block}
+.sb-foot{padding:12px;border-top:1px solid var(--border)}
+.uf{display:flex;align-items:center;gap:9px}
+.uav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono)}
+.un{font-size:12.5px;font-weight:600}
+.ur{font-size:10px;color:var(--text3)}
+.udot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;box-shadow:0 0 5px rgba(13,158,114,.5)}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:12px}
+.tb-info .tb-t{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.tb-info .tb-s{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.tb-right{margin-left:auto;display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .13s;border:1px solid var(--border2);background:var(--bg3);color:var(--text2)}
+.btn:hover{background:var(--bg4);color:var(--text);border-color:var(--border3)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn svg{width:12px;height:12px}
+.bp{background:var(--accent);border-color:var(--accent);color:#fff}
+.bp:hover{background:#3578e5;border-color:#3578e5}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
+.sc{padding:13px 18px;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none}
+.sn{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em;line-height:1}
+.sl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+.sn.bl{color:var(--accent)}.sn.gr{color:var(--green)}.sn.am{color:var(--amber)}.sn.pu{color:var(--purple)}
+
+/* ── Controls ── */
+.ctrl{padding:10px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.sw{flex:1;min-width:160px;display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:7px 11px}
+.sw svg{width:12px;height:12px;color:var(--text3);flex-shrink:0}
+.sw input{background:none;border:none;outline:none;font-family:var(--font);font-size:12.5px;color:var(--text);width:100%}
+.sw input::placeholder{color:var(--text3)}
+.fb{padding:6px 11px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--border2);color:var(--text3);transition:all .13s;white-space:nowrap}
+.fb:hover{color:var(--text);border-color:var(--border3)}
+.fb.on{color:var(--accent);border-color:rgba(37,99,235,.35);background:var(--adim)}
+
+/* ── Table ── */
+.ts{flex:1;overflow-y:auto;overflow-x:auto}
+.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1180px}
+.lt th{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:10px 12px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--bg2);z-index:2}
+.lt th.s{cursor:pointer}.lt th.s:hover{color:var(--text2)}
+.lr td{padding:11px 12px;font-size:12.5px;vertical-align:middle;border-bottom:1px solid var(--border);transition:background .1s}
+.lr:hover td{background:rgba(37,99,235,.03)}
+.lr{cursor:pointer}
+.lc{display:flex;align-items:center;gap:9px}
+.la{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono)}
+.ln{font-size:12.5px;font-weight:600}
+.lsub{font-size:11px;color:var(--text3);margin-top:1px}
+.sp{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.sp.h{background:var(--gdim);color:var(--green);border:1px solid rgba(13,158,114,.22)}
+.sp.m{background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.22)}
+.sp.l{background:var(--rdim);color:var(--red);border:1px solid rgba(220,38,38,.22)}
+.bx{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:600}
+.bd{width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-r{background:var(--gdim);color:var(--green)}.b-n{background:var(--adim);color:var(--accent)}.b-c{background:var(--pdim);color:var(--purple)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;border:1px solid transparent}
+.c-hiring{background:var(--gdim);color:var(--green);border-color:rgba(13,158,114,.2)}
+.c-expansion{background:var(--adim);color:var(--accent);border-color:rgba(37,99,235,.2)}
+.c-pain{background:var(--ydim);color:var(--amber);border-color:rgba(192,123,16,.2)}
+.c-vendor{background:var(--pdim);color:var(--purple);border-color:rgba(124,58,237,.2)}
+.c-funding{background:var(--rdim);color:var(--red);border-color:rgba(220,38,38,.2)}
+.iw{display:flex;align-items:center;gap:7px}
+.it{width:54px;height:3px;background:var(--bg5);border-radius:2px;overflow:hidden;flex-shrink:0}
+.if{height:100%;border-radius:2px;background:var(--green)}
+.iv{font-size:10.5px;font-family:var(--mono);color:var(--text3);min-width:26px}
+.uc{max-width:150px}
+.ul{font-size:11px;color:var(--accent);font-family:var(--mono);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.8;transition:opacity .13s}
+.ul:hover{opacity:1;text-decoration:underline}
+.nu{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+.snp{font-size:11.5px;color:var(--text3);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.snp mark{background:rgba(37,99,235,.12);color:var(--accent);border-radius:2px;padding:0 2px}
+.ac{display:flex;gap:5px}
+.ab{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text3);transition:all .12s;white-space:nowrap}
+.ab:hover{background:var(--bg4);color:var(--text)}
+.ab.p{background:var(--adim);border-color:rgba(37,99,235,.3);color:var(--accent)}
+.ab.p:hover{background:rgba(37,99,235,.15)}
+
+/* ── Empty state ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;gap:10px}
+.ei{width:44px;height:44px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center}
+.ei svg{width:20px;height:20px;color:var(--text3)}
+.et{font-size:14px;font-weight:600}
+.es{font-size:12px;color:var(--text3);text-align:center;max-width:300px;line-height:1.6}
+.setup{margin-top:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;width:380px;text-align:left}
+.step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.step:last-child{border-bottom:none;padding-bottom:0}
+.sno{width:18px;height:18px;border-radius:50%;background:var(--adim);color:var(--accent);font-size:9px;font-weight:700;font-family:var(--mono);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.stxt{color:var(--text2);line-height:1.55}
+.stxt small{color:var(--text3);font-size:10.5px;display:block;margin-top:2px;font-family:var(--mono)}
+.eb{display:flex;gap:8px;margin-top:14px}
+
+/* ── Pipeline modal ── */
+.mb{display:none;position:fixed;inset:0;background:rgba(15,20,25,.45);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.mb.show{display:flex}
+.pc{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px 32px;width:440px;max-width:92vw}
+.pt{font-size:15px;font-weight:700;margin-bottom:3px}
+.ps{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-bottom:20px}
+.stgs{display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
+.stg{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);font-size:12px;transition:all .3s}
+.stg.run{border-color:rgba(79,142,247,.4);background:rgba(79,142,247,.07)}
+.stg.done{border-color:rgba(34,211,160,.3);background:rgba(34,211,160,.06)}
+.sd{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--mono);font-weight:700;color:var(--text3)}
+.stg.run .sd{border-color:var(--accent);animation:gl 1.2s infinite}
+.stg.done .sd{border-color:var(--green);background:var(--gdim);color:var(--green)}
+.stxt2{flex:1;color:var(--text3)}.stg.run .stxt2,.stg.done .stxt2{color:var(--text)}
+.scnt{font-size:10px;font-family:var(--mono);color:var(--text3)}.stg.done .scnt{color:var(--green)}
+.pb{height:3px;background:var(--bg5);border-radius:2px;overflow:hidden;margin-bottom:7px}
+.pf{height:100%;background:var(--accent);border-radius:2px;transition:width .5s ease}
+.pl{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+.er{background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.2);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:12px;line-height:1.6;display:none}
+.er.show{display:block}
+.dn{background:rgba(192,123,16,.07);border:1px solid rgba(192,123,16,.2);border-radius:7px;padding:8px 12px;font-size:11.5px;color:var(--amber);margin-top:10px;display:none}
+.dn.show{display:block}
+@keyframes gl{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.4)}50%{box-shadow:0 0 0 5px rgba(37,99,235,0)}}
+
+/* ── Config modal ── */
+.cc{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:26px 30px;width:520px;max-width:92vw;max-height:88vh;overflow-y:auto}
+.ct{font-size:15px;font-weight:700;margin-bottom:3px}
+.csu{font-size:11.5px;color:var(--text3);margin-bottom:20px}
+.csec{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-family:var(--mono);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.cf{margin-bottom:13px}
+.cl{font-size:11px;font-weight:600;color:var(--text2);font-family:var(--mono);display:block;margin-bottom:5px}
+.ci{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .13s}
+.ci:focus{border-color:rgba(79,142,247,.45)}
+.ci::placeholder{color:var(--text3)}
+select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
+.ch{font-size:10.5px;color:var(--text3);margin-top:5px;line-height:1.55;font-family:var(--mono)}
+.ch a{color:var(--accent);text-decoration:none}.ch a:hover{text-decoration:underline}
+.cr{display:flex;gap:10px;margin-top:20px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{display:flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;background:var(--adim);border:1px solid rgba(37,99,235,.2);color:var(--accent);font-size:11px;font-family:var(--mono)}
+.tx{cursor:pointer;opacity:.6;font-size:13px;line-height:1;margin-left:2px}.tx:hover{opacity:1}
+.ta{display:flex;gap:6px;margin-top:8px}
+.ta input{flex:1;padding:5px 9px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none}
+.ta input:focus{border-color:rgba(79,142,247,.35)}
+.actor-info{background:rgba(13,158,114,.07);border:1px solid rgba(13,158,114,.2);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--green);line-height:1.6;margin-bottom:14px}
+.actor-info strong{color:var(--green)}
+
+/* ── Detail panel ── */
+.dp{width:340px;height:100vh;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
+.dp.show{display:flex}
+.dph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dpclose{width:24px;height:24px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;transition:all .12s;flex-shrink:0}
+.dpclose:hover{color:var(--text);background:var(--bg4)}
+.dpb{padding:14px 16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.dpl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:7px}
+.dpost{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;line-height:1.65;color:var(--text)}
+.dpost mark{background:rgba(37,99,235,.12);color:var(--accent);border-radius:2px;padding:0 2px}
+.ain{font-size:11.5px;color:var(--text2);line-height:1.65;background:var(--bg3);border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:0 7px 7px 0;padding:10px 12px;font-style:italic}
+.kws{display:flex;gap:5px;flex-wrap:wrap}
+.kw{padding:2px 7px;border-radius:3px;font-size:10.5px;background:var(--adim);color:var(--accent);border:1px solid rgba(37,99,235,.2);font-family:var(--mono)}
+.dr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.dr:last-child{border-bottom:none}
+.dl{color:var(--text3)}.dv{font-weight:600;text-align:right;font-family:var(--mono);font-size:11.5px}
+.dpurl{font-size:11px;color:var(--accent);font-family:var(--mono);text-decoration:none;opacity:.85}
+.dpurl:hover{opacity:1;text-decoration:underline}
+.gtag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text3);padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px}
+.gdot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:gl 1.5s infinite}
+.rbtn{width:100%;padding:11px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .14s;margin-top:auto}
+.rbtn:hover{background:#3578e5}
+.cbtn{width:100%;padding:9px;border-radius:8px;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:12px;font-family:var(--font);cursor:pointer;margin-top:7px;transition:all .14s}
+.cbtn:hover{background:var(--bg3);color:var(--text)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:11px 16px;font-size:12.5px;color:var(--text);display:flex;align-items:center;gap:9px;z-index:300;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 24px rgba(0,0,0,.12)}
+.toast.show{transform:translateY(0);opacity:1}
+.td{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.td.e{background:var(--red)}.td.w{background:var(--amber)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="sb-mark">V</div>
+    <div><div class="sb-name">VAYUZ</div><div class="sb-tag">Signal Engine</div></div>
+  </div>
+  <div class="sb-nav">
+    <div class="nl">Navigation</div>
+    <div class="ni on">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3M2 6h8M6 2v8"/></svg>
+      Signals <span class="nb" id="nav-nb">0</span>
+    </div>
+    <div class="ni" onclick="showCfg()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2m0 10v2M1 8h2m10 0h2M3.22 3.22l1.41 1.41m6.74 6.74l1.41 1.41M3.22 12.78l1.41-1.41m6.74-6.74l1.41-1.41"/></svg>
+      Configure
+    </div>
+    <div class="ni">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg>
+      Analytics
+    </div>
+    <div class="nl" style="margin-top:12px">System</div>
+    <div class="ni">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M5 7h6M5 10h4"/></svg>
+      Audit Log
+    </div>
+  </div>
+  <div class="sb-foot">
+    <div class="uf">
+      <div class="uav">GV</div>
+      <div><div class="un">Gaurav</div><div class="ur">VAYUZ · BizDev</div></div>
+      <div class="udot"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div class="tb-info">
+      <div class="tb-t">LinkedIn Signal Feed</div>
+      <div class="tb-s">Apify (no cookies) → Rule Gate → Gemini Score → Outreach Ready</div>
+    </div>
+    <div class="tb-right">
+      <button class="btn" onclick="showCfg()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="2"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13"/></svg>
+        Configure
+      </button>
+      <button class="btn bp" id="run-btn" onclick="runPipeline()">
+        <svg viewBox="0 0 14 14" fill="currentColor"><polygon points="4,2 12,7 4,12"/></svg>
+        Run Pipeline
+      </button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="sc"><div class="sn" id="s0">0</div><div class="sl">Posts Fetched</div></div>
+    <div class="sc"><div class="sn bl" id="s1">0</div><div class="sl">Rule Passed</div></div>
+    <div class="sc"><div class="sn gr" id="s2">0</div><div class="sl">Ready to Reach</div></div>
+    <div class="sc"><div class="sn am" id="s3">—</div><div class="sl">Avg Score</div></div>
+    <div class="sc"><div class="sn pu" id="s4">—</div><div class="sl">Source</div></div>
+  </div>
+
+  <div class="ctrl">
+    <div class="sw">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="6" cy="6" r="4"/><path d="M10 10l2.5 2.5"/></svg>
+      <input id="q" type="text" placeholder="Search name, company, keyword, post URL…" oninput="doFilter()">
+    </div>
+    <div class="fb on" id="f-all" onclick="setF('all',this)">All</div>
+    <div class="fb" id="f-ready" onclick="setF('ready',this)">Ready</div>
+    <div class="fb" id="f-high" onclick="setF('high',this)">Score ≥ 8</div>
+    <div class="fb" id="f-hiring" onclick="setF('hiring',this)">Hiring</div>
+    <div class="fb" id="f-pain" onclick="setF('pain',this)">Pain</div>
+    <div class="fb" id="f-vendor" onclick="setF('vendor',this)">Vendor</div>
+  </div>
+
+  <div class="ts">
+    <div id="emp" class="empty">
+      <div class="ei"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z"/><path d="M13 10l-4-2.5v5L13 10z" fill="currentColor" stroke="none"/></svg></div>
+      <div class="et">No signals yet</div>
+      <div class="es">Set up your Apify API token and search keywords, then run the pipeline to pull live LinkedIn posts.</div>
+      <div class="setup">
+        <div class="step"><div class="sno">1</div><div class="stxt">Get your Apify API token<small>apify.com → Settings → Integrations → API tokens</small></div></div>
+        <div class="step"><div class="sno">2</div><div class="stxt">Enter your search keywords in Configure<small>e.g. "hire developers", "app development", "need tech partner"</small></div></div>
+        <div class="step"><div class="sno">3</div><div class="stxt">Optionally add a Gemini key for AI scoring<small>aistudio.google.com → Get API Key (free tier works)</small></div></div>
+        <div class="step"><div class="sno">4</div><div class="stxt">Click Run Pipeline — real posts load in ~30s<small>Actor: harvestapi/linkedin-post-search · No cookies needed</small></div></div>
+      </div>
+      <div class="eb">
+        <button class="btn bp" onclick="runPipeline()"><svg viewBox="0 0 14 14" fill="currentColor" style="width:11px;height:11px"><polygon points="4,2 12,7 4,12"/></svg> Run Pipeline</button>
+        <button class="btn" onclick="loadDemo()">Load Demo Data</button>
+      </div>
+    </div>
+
+    <table class="lt" id="tbl" style="display:none">
+      <thead>
+        <tr>
+          <th style="width:28px"><input type="checkbox" style="accent-color:var(--accent)" onchange="chkAll(this)"></th>
+          <th class="s" onclick="sortBy('name')">Lead</th>
+          <th class="s" onclick="sortBy('score')">Score ↓</th>
+          <th>Status</th>
+          <th>Signals</th>
+          <th>Intent</th>
+          <th>Post URL</th>
+          <th>Source</th>
+          <th>Post Snippet</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Detail Panel -->
+<div class="dp" id="dpanel">
+  <div class="dph">
+    <div>
+      <div style="font-size:13.5px;font-weight:700" id="dp-name">—</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)" id="dp-co">—</div>
+    </div>
+    <div class="dpclose" onclick="closeDP()">✕</div>
+  </div>
+  <div class="dpb">
+    <div class="gtag"><div class="gdot"></div><span id="dp-gtag">Gemini AI scored</span></div>
+    <div><div class="dpl">LinkedIn Post</div><div class="dpost" id="dp-post">—</div></div>
+    <div><div class="dpl">AI Reasoning</div><div class="ain" id="dp-reason">—</div></div>
+    <div><div class="dpl">Matched Keywords</div><div class="kws" id="dp-kws"></div></div>
+    <div><div class="dpl">Signal Details</div><div id="dp-rows"></div></div>
+    <div>
+      <button class="rbtn" onclick="markReach()">✓ Mark as Reached Out</button>
+      <button class="cbtn" onclick="copyMsg()">Copy Outreach Message</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline Modal -->
+<div class="mb" id="pipe-mb">
+  <div class="pc">
+    <div class="pt">Running Signal Pipeline</div>
+    <div class="ps" id="pipe-src">Apify actor: harvestapi/linkedin-post-search</div>
+    <div class="stgs">
+      <div class="stg" id="st0"><div class="sd" id="sd0">1</div><div class="stxt2">Apify: Fetching posts (no cookies)</div><div class="scnt" id="sc0"></div></div>
+      <div class="stg" id="st1"><div class="sd" id="sd1">2</div><div class="stxt2">Gate 1: Keyword OR title filter (auto-fallback)</div><div class="scnt" id="sc1"></div></div>
+      <div class="stg" id="st2"><div class="sd" id="sd2">3</div><div class="stxt2">Gate 2: Gemini intent + signal scoring</div><div class="scnt" id="sc2"></div></div>
+      <div class="stg" id="st3"><div class="sd" id="sd3">4</div><div class="stxt2">Building outreach-ready list</div><div class="scnt" id="sc3"></div></div>
+    </div>
+    <div class="pb"><div class="pf" id="pf" style="width:0%"></div></div>
+    <div class="pl" id="pl">0 / 4 stages</div>
+    <div class="er" id="er"></div>
+    <div class="dn" id="dn">No Apify token set — loaded demo data for preview.</div>
+  </div>
+</div>
+
+<!-- Config Modal -->
+<div class="mb" id="cfg-mb">
+  <div class="cc">
+    <div class="ct">Pipeline Configuration</div>
+    <div class="csu">All fields except API token are optional. Uses <strong>harvestapi/linkedin-post-search</strong> — no LinkedIn cookies needed.</div>
+
+    <div class="actor-info">
+      ✓ Actor: <strong>harvestapi/linkedin-post-search</strong> — No cookies required · $2 / 1k posts · Takes keywords directly, no LinkedIn URL needed.
+    </div>
+
+    <div class="csec">Apify Settings</div>
+    <div class="cf">
+      <label class="cl">Apify API Token <span style="color:var(--red)">*</span></label>
+      <input class="ci" type="password" id="c-apify" placeholder="apify_api_xxxxxxxxxxxxxxxxxxxx">
+      <div class="ch">Get from → <a href="https://console.apify.com/account/integrations" target="_blank">console.apify.com → Account → Integrations</a></div>
+    </div>
+    <div class="cf">
+      <label class="cl">Max Posts to Fetch</label>
+      <input class="ci" type="number" id="c-max" value="50" min="10" max="200">
+      <div class="ch">Each page = ~50 posts. Recommended: 50–100 for a first run.</div>
+    </div>
+    <div class="cf">
+      <label class="cl">Posts From (recency filter)</label>
+      <select class="ci" id="c-age">
+        <option value="24h">Last 24 hours</option>
+        <option value="week" selected>Last week</option>
+        <option value="month">Last month</option>
+        <option value="3months">Last 3 months</option>
+      </select>
+    </div>
+    <div class="cf">
+      <label class="cl">Sort By</label>
+      <select class="ci" id="c-sort">
+        <option value="date">Date (newest first)</option>
+        <option value="relevance">Relevance</option>
+      </select>
+    </div>
+
+    <div class="csec">Gemini Settings (optional — improves scoring)</div>
+    <div class="cf">
+      <label class="cl">Gemini API Key</label>
+      <input class="ci" type="password" id="c-gemini" placeholder="AIzaSy...">
+      <div class="ch">Get free key → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. If blank, rule-based scoring is used.</div>
+    </div>
+    <div class="cf">
+      <label class="cl">Min Score for "Ready" status (0–10)</label>
+      <input class="ci" type="number" id="c-min" value="7" min="0" max="10" step="0.5">
+    </div>
+
+    <div class="cf" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;margin-top:4px">
+      <input type="checkbox" id="c-skipgate" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Skip Gate 1 (send ALL posts to Gemini)</div>
+        <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:2px">Recommended if you get 0 results. Lets Gemini score every fetched post regardless of keywords.</div>
+      </div>
+    </div>
+
+    <div class="csec">Search Keywords (sent to Apify + used in Gate 1)</div>
+    <div class="ch" style="margin-bottom:8px">Each keyword = one Apify search query. Gate 1 also checks posts contain at least one keyword OR author matches a title. Leave empty to pass all posts.</div>
+    <div class="tags" id="kw-tags"></div>
+    <div class="ta">
+      <input id="kw-inp" type="text" placeholder="Add search keyword…" onkeydown="if(event.key==='Enter')addKw()">
+      <button class="btn" onclick="addKw()">Add</button>
+    </div>
+
+    <div class="csec">Decision-Maker Title Filter (Gate 1 · optional)</div>
+    <div class="ch" style="margin-bottom:8px">Posts pass Gate 1 if they match a keyword OR a title (not both). Leave empty to skip title check entirely.</div>
+    <div class="tags" id="title-tags"></div>
+    <div class="ta">
+      <input id="ti-inp" type="text" placeholder="Add title…" onkeydown="if(event.key==='Enter')addTitle()">
+      <button class="btn" onclick="addTitle()">Add</button>
+    </div>
+
+    <div class="cr">
+      <button class="btn bp" onclick="saveCfg()">Save & Close</button>
+      <button class="btn" onclick="document.getElementById('cfg-mb').classList.remove('show')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="td" id="tdot"></div><span id="tmsg"></span></div>
+
+<script>
+// ── Config ──
+let cfg = {
+  apifyToken: '', maxPosts: 50, postAge: 'week', sortBy: 'date',
+  geminiKey: '', minScore: 7, skipGate: false,
+  keywords: ['app development','mobile app','web development','digital transformation','hire developers','build product','offshore team','tech partner','dedicated team','software development'],
+  titles: ['Founder','Co-Founder','CEO','CTO','CPO','CIO','MD','Director','VP','Head of','President','Partner','Owner','Engineer','Manager','Lead']
+};
+
+let allLeads = [], filtered = [], curFilter = 'all', activeDetail = null;
+
+const COLS = ['#4f8ef7','#22d3a0','#f0a84a','#9d72f5','#f05b5b','#38bdf8','#fb7185','#34d399','#f59e0b','#818cf8'];
+const avc = i => COLS[i % COLS.length];
+const ini = n => (n||'??').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ── Tag UIs ──
+function rTags(arr, cid, fn) {
+  document.getElementById(cid).innerHTML = arr.map((t,i) =>
+    `<div class="tag">${esc(t)}<span class="tx" onclick="${fn}(${i})">×</span></div>`).join('');
+}
+function refreshUI() { rTags(cfg.keywords,'kw-tags','rmKw'); rTags(cfg.titles,'title-tags','rmTitle'); }
+function addKw() { const v=document.getElementById('kw-inp').value.trim(); if(v&&!cfg.keywords.includes(v)){cfg.keywords.push(v);refreshUI();document.getElementById('kw-inp').value='';} }
+function rmKw(i) { cfg.keywords.splice(i,1); refreshUI(); }
+function addTitle() { const v=document.getElementById('ti-inp').value.trim(); if(v&&!cfg.titles.includes(v)){cfg.titles.push(v);refreshUI();document.getElementById('ti-inp').value='';} }
+function rmTitle(i) { cfg.titles.splice(i,1); refreshUI(); }
+
+// ── Config modal ──
+function showCfg() {
+  document.getElementById('c-apify').value = cfg.apifyToken;
+  document.getElementById('c-max').value = cfg.maxPosts;
+  document.getElementById('c-age').value = cfg.postAge;
+  document.getElementById('c-sort').value = cfg.sortBy;
+  document.getElementById('c-gemini').value = cfg.geminiKey;
+  document.getElementById('c-min').value = cfg.minScore;
+  document.getElementById('c-skipgate').checked = cfg.skipGate;
+  refreshUI();
+  document.getElementById('cfg-mb').classList.add('show');
+}
+function saveCfg() {
+  cfg.apifyToken = document.getElementById('c-apify').value.trim();
+  cfg.maxPosts = parseInt(document.getElementById('c-max').value)||50;
+  cfg.postAge = document.getElementById('c-age').value;
+  cfg.sortBy = document.getElementById('c-sort').value;
+  cfg.geminiKey = document.getElementById('c-gemini').value.trim();
+  cfg.minScore = parseFloat(document.getElementById('c-min').value)||7;
+  cfg.skipGate = document.getElementById('c-skipgate').checked;
+  document.getElementById('cfg-mb').classList.remove('show');
+  toast('Configuration saved','ok');
+}
+
+// ── Stage helpers ──
+function stgRun(i) {
+  const el = document.getElementById('st'+i);
+  el.classList.add('run');
+  document.getElementById('sd'+i).innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:gl 1s infinite;box-shadow:0 0 0 0 rgba(37,99,235,.4)"></div>';
+}
+function stgDone(i, txt) {
+  const el = document.getElementById('st'+i);
+  el.classList.remove('run'); el.classList.add('done');
+  document.getElementById('sd'+i).textContent = '✓';
+  document.getElementById('sc'+i).textContent = txt;
+  document.getElementById('pf').style.width = ((i+1)/4*100)+'%';
+  document.getElementById('pl').textContent = (i+1)+' / 4 stages';
+}
+function resetPipe() {
+  [0,1,2,3].forEach(i => {
+    const el = document.getElementById('st'+i);
+    el.classList.remove('run','done');
+    document.getElementById('sd'+i).textContent = i+1;
+    document.getElementById('sc'+i).textContent = '';
+  });
+  document.getElementById('pf').style.width = '0%';
+  document.getElementById('pl').textContent = '0 / 4 stages';
+  document.getElementById('er').classList.remove('show'); document.getElementById('er').textContent = '';
+  document.getElementById('dn').classList.remove('show');
+}
+function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
+
+// ── Gate 1: rule filter ──
+// OR logic: keyword OR title match passes. skipGate bypasses entirely.
+function rulePass(post, headline) {
+  if (cfg.skipGate) return true;
+  const t = (post||'').toLowerCase(), h = (headline||'').toLowerCase();
+  const kwOk = cfg.keywords.length === 0 || cfg.keywords.some(k => t.includes(k.toLowerCase()));
+  const titleOk = cfg.titles.length === 0 || cfg.titles.some(ti => h.includes(ti.toLowerCase()));
+  return kwOk || titleOk;
+}
+function matchKws(post) { return cfg.keywords.filter(k => (post||'').toLowerCase().includes(k.toLowerCase())); }
+
+// ── Gate 2: Gemini ──
+async function geminiScore(post, name, headline, company) {
+  if (!cfg.geminiKey) return ruleScore(post, headline);
+  const prompt = `B2B lead scoring for VAYUZ (India IT company: app dev, web dev, digital transformation).
+Score this LinkedIn post. Return ONLY valid JSON, no markdown, no explanation.
+Post: "${(post||'').replace(/"/g,'\\"').slice(0,700)}"
+Author: ${name}, ${headline}, ${company}
+JSON: {"score":<0-10,1 decimal>,"intent":<0-1,2 decimals>,"signals":<array from: hiring,expansion,pain,vendor,funding>,"reasoning":<max 18 words>}`;
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cfg.geminiKey}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
+    return JSON.parse(txt);
+  } catch(e) { console.warn('Gemini fallback:', e.message); return ruleScore(post, headline); }
+}
+
+function ruleScore(post, headline) {
+  const t = (post||'').toLowerCase();
+  const kwHits = cfg.keywords.filter(k => t.includes(k.toLowerCase())).length;
+  const isBoss = cfg.titles.some(ti => (headline||'').toLowerCase().includes(ti.toLowerCase()));
+  const budget = /budget|ready|asap|urgent|q[1-4]/i.test(t);
+  const pain = /slow|bad experience|frustrat|failing|disappoint/i.test(t);
+  let score = 2.5 + Math.min(kwHits*1.3, 3.5) + (isBoss?1.5:0) + (budget?1:0) + (pain?0.5:0);
+  score = Math.min(10, parseFloat(score.toFixed(1)));
+  const signals = [];
+  if (/hiring|hire|looking for dev|need a dev/i.test(t)) signals.push('hiring');
+  if (/vendor|agency|partner|outsource/i.test(t)) signals.push('vendor');
+  if (pain) signals.push('pain');
+  if (/raised|seed|series|funded|investment/i.test(t)) signals.push('funding');
+  if (/expand|scal|grow/i.test(t)) signals.push('expansion');
+  return { score, intent: parseFloat((score/10).toFixed(2)), signals: signals.length ? signals : ['expansion'], reasoning: 'Rule-based score — add Gemini key for AI reasoning.' };
+}
+
+// ── Apify: harvestapi/linkedin-post-search ──
+// Input: { searchQueries: string[], maxPosts: number, postedLimit: string, sortBy: string }
+// Output fields: text, postUrl, author.name, author.headline/position, author.linkedinUrl, numLikes, numComments, postedAt.date
+async function fetchApify() {
+  if (!cfg.apifyToken) throw new Error('NO_TOKEN');
+  if (!cfg.keywords.length) throw new Error('Add at least one search keyword in Configure.');
+
+  const ACTOR = 'harvestapi~linkedin-post-search';
+  const input = {
+    searchQueries: cfg.keywords.slice(0, 5), // max 5 queries per run to control cost
+    maxPosts: cfg.maxPosts,
+    postedLimit: cfg.postAge,
+    sortBy: cfg.sortBy
+  };
+
+  // Start run
+  const runRes = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/runs?token=${cfg.apifyToken}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input)
+  });
+  const runData = await runRes.json();
+  if (!runRes.ok) throw new Error(runData?.error?.message || 'Apify run failed. Check your API token.');
+  const runId = runData.data?.id;
+  if (!runId) throw new Error('Apify did not return a run ID. Check token permissions.');
+
+  // Poll (max 90s)
+  for (let i = 0; i < 45; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const sr = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${cfg.apifyToken}`);
+    const sd = await sr.json();
+    const status = sd.data?.status;
+    if (status === 'SUCCEEDED') break;
+    if (status === 'FAILED' || status === 'ABORTED') throw new Error('Apify actor run ' + status + '. Check your token balance.');
+    if (i === 44) throw new Error('Apify run timed out. Try fewer keywords or a shorter time range.');
+  }
+
+  // Fetch items
+  const dsId = runData.data?.defaultDatasetId;
+  const dr = await fetch(`https://api.apify.com/v2/datasets/${dsId}/items?token=${cfg.apifyToken}&format=json`);
+  const items = await dr.json();
+  if (!Array.isArray(items) || items.length === 0) throw new Error('Apify returned 0 posts. Try different keywords or a wider date range.');
+  return items;
+}
+
+// ── Map harvestapi output → lead shape ──
+// Supports multiple Apify actor field schemas (harvestapi, curious_coder, etc)
+function mapItem(item, idx) {
+  if (idx === 0) console.log('[SignalEngine] First raw item keys:', Object.keys(item), '| sample:', JSON.stringify(item).slice(0,300));
+  const author = item.author || item.profile || {};
+  const name = author.name || author.fullName || item.authorName || item.firstName + ' ' + item.lastName || 'Unknown';
+  const headline = author.headline || author.position || author.title || author.info || item.authorHeadline || item.authorTitle || '—';
+  const company = author.company || author.companyName || item.authorCompany || '—';
+  const post = item.text || item.postText || item.content || item.commentary || item.description || '';
+  const postUrl = item.postUrl || item.url || item.shareUrl || item.linkedinUrl || item.postLink || '';
+  const profileUrl = author.linkedinUrl || author.profileUrl || author.url || item.authorUrl || item.authorProfileUrl || '';
+  const postedAgo = item.postedAt?.postedAgoText || item.postedAt?.postedAgoShort || item.postedDate || item.date || item.publishedAt || '—';
+  return {
+    id: idx, name, headline, company, post, postUrl, profileUrl,
+    likes: item.numLikes || item.likesCount || 0,
+    comments: item.numComments || item.commentsCount || 0,
+    created: postedAgo,
+    avatar: ini(name), color: avc(idx),
+    score: 0, intent: 0, signals: [], status: 'new', reasoning: '', keywords: []
+  };
+}
+
+// ── Main pipeline ──
+async function runPipeline() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  resetPipe();
+  document.getElementById('pipe-mb').classList.add('show');
+  document.getElementById('pipe-src').textContent = cfg.apifyToken
+    ? 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5)
+    : 'Demo mode (no token set)';
+  let isDemo = false;
+
+  try {
+    // Stage 0: Fetch
+    stgRun(0);
+    let raw = [];
+    if (!cfg.apifyToken) {
+      isDemo = true;
+      await new Promise(r => setTimeout(r, 1000));
+      raw = demoRaw();
+      stgDone(0, raw.length + ' posts (demo)');
+      document.getElementById('dn').classList.add('show');
+    } else {
+      raw = await fetchApify();
+      stgDone(0, raw.length + ' posts fetched');
+    }
+
+    const mapped = raw.map((item, i) => mapItem(item, i));
+
+    // Stage 1: Rule filter
+    stgRun(1);
+    await new Promise(r => setTimeout(r, 400));
+    let gated;
+    if (isDemo) {
+      gated = mapped;
+    } else {
+      gated = mapped.filter(l => rulePass(l.post, l.headline));
+      if (gated.length === 0 && mapped.length > 0) {
+        // Auto-fallback: gate matched nothing, send everything to Gemini
+        gated = mapped;
+        stgDone(1, 'Gate bypassed (' + mapped.length + ' posts) — no keyword match');
+        const erEl = document.getElementById('er');
+        erEl.textContent = '⚠ Gate 1 matched 0 posts. Sending all ' + mapped.length + ' posts to Gemini. Enable "Skip Gate 1" in Configure to always do this.';
+        erEl.classList.add('show');
+      } else {
+        stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate');
+      }
+    }
+
+    // Stage 2: Gemini scoring
+    stgRun(2);
+    let scored = 0;
+    for (const lead of gated) {
+      const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company);
+      lead.score = r.score; lead.intent = r.intent; lead.signals = r.signals || [];
+      lead.status = lead.score >= cfg.minScore ? 'ready' : 'new';
+      lead.reasoning = r.reasoning || ''; lead.keywords = matchKws(lead.post);
+      scored++;
+      document.getElementById('sc2').textContent = scored + ' scored…';
+      await new Promise(r => setTimeout(r, isDemo ? 80 : 150));
+    }
+    gated.sort((a, b) => b.score - a.score);
+    stgDone(2, scored + ' leads scored');
+
+    // Stage 3
+    stgRun(3);
+    await new Promise(r => setTimeout(r, 350));
+    const readyCnt = gated.filter(l => l.status === 'ready').length;
+    stgDone(3, readyCnt + ' ready to reach');
+
+    allLeads = gated;
+    doFilter();
+    updStats(mapped.length, gated.length, isDemo);
+    document.getElementById('emp').style.display = 'none';
+    document.getElementById('tbl').style.display = 'table';
+    const nb = document.getElementById('nav-nb');
+    nb.textContent = allLeads.length; nb.classList.add('show');
+
+    setTimeout(() => {
+      document.getElementById('pipe-mb').classList.remove('show');
+      toast((isDemo ? 'Demo loaded' : 'Pipeline complete') + ' — ' + readyCnt + ' signals ready', 'ok');
+    }, 800);
+  } catch (e) {
+    if (e.message === 'NO_TOKEN') {
+      showErr('No Apify token set. Open Configure and add your token. Or click Cancel and use "Load Demo Data".');
+    } else {
+      showErr(e.message);
+    }
+    toast(e.message.slice(0,80), 'e');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function loadDemo() { cfg.apifyToken = ''; runPipeline(); }
+
+function updStats(total, matched, isDemo) {
+  const ready = allLeads.filter(l => l.status === 'ready').length;
+  const avg = allLeads.length ? (allLeads.reduce((s,l)=>s+l.score,0)/allLeads.length).toFixed(1) : '—';
+  document.getElementById('s0').textContent = total || allLeads.length;
+  document.getElementById('s1').textContent = matched || allLeads.length;
+  document.getElementById('s2').textContent = ready;
+  document.getElementById('s3').textContent = avg;
+  document.getElementById('s4').textContent = isDemo ? 'Demo' : 'Live';
+}
+
+// ── Filter / sort ──
+function setF(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+  el.classList.add('on'); doFilter();
+}
+function doFilter() {
+  const q = (document.getElementById('q').value||'').toLowerCase();
+  filtered = allLeads.filter(l => {
+    let p = true;
+    if (curFilter==='ready') p = l.status==='ready';
+    else if (curFilter==='high') p = l.score>=8;
+    else if (curFilter==='hiring') p = l.signals.includes('hiring');
+    else if (curFilter==='pain') p = l.signals.includes('pain');
+    else if (curFilter==='vendor') p = l.signals.includes('vendor');
+    if (q) p = p && (l.name.toLowerCase().includes(q)||l.company.toLowerCase().includes(q)||l.post.toLowerCase().includes(q)||(l.postUrl||'').toLowerCase().includes(q)||l.headline.toLowerCase().includes(q));
+    return p;
+  });
+  renderTbl();
+}
+function sortBy(f) {
+  if (f==='score') filtered.sort((a,b)=>b.score-a.score);
+  else filtered.sort((a,b)=>a.name.localeCompare(b.name));
+  renderTbl();
+}
+function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
+
+// ── Render ──
+function renderTbl() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+    return;
+  }
+  filtered.forEach(lead => {
+    const sc = lead.score>=8.5?'h':lead.score>=7?'m':'l';
+    const stcls = lead.status==='ready'?'b-r':lead.status==='new'?'b-n':'b-c';
+    const stlbl = lead.status==='ready'?'Ready':lead.status==='new'?'New':'Contacted';
+    const chips = (lead.signals||[]).map(s=>`<span class="chip c-${s}">${s}</span>`).join('');
+    const ipct = Math.round((lead.intent||0)*100);
+    const snip = (lead.post||'').slice(0,72)+((lead.post||'').length>72?'…':'');
+    let urlCell = '<span class="nu">—</span>';
+    if (lead.postUrl) {
+      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,34)+(lead.postUrl.length>48?'…':'');
+      urlCell = `<a class="ul" href="${lead.postUrl}" target="_blank" onclick="event.stopPropagation()" title="${esc(lead.postUrl)}">${disp}</a>`;
+    }
+    const srcLbl = lead.postUrl ? 'LinkedIn' : '—';
+    const tr = document.createElement('tr');
+    tr.className = 'lr';
+    tr.onclick = () => openDP(lead);
+    tr.innerHTML = `
+      <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
+      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
+      <td><span class="sp ${sc}">${lead.score}</span></td>
+      <td><span class="bx ${stcls}"><span class="bd"></span>${stlbl}</span></td>
+      <td><div class="chips">${chips||'<span style="color:var(--text3);font-size:10.5px">—</span>'}</div></td>
+      <td><div class="iw"><div class="it"><div class="if" style="width:${ipct}%"></div></div><div class="iv">${ipct}%</div></div></td>
+      <td class="uc">${urlCell}</td>
+      <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${srcLbl}</span></td>
+      <td><div class="snp">${esc(snip)}</div></td>
+      <td><div class="ac"><button class="ab p" onclick="event.stopPropagation();qReach(${lead.id})">Reach Out</button><button class="ab" onclick="event.stopPropagation();openDP(allLeads[${lead.id}])">Detail</button></div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Detail panel ──
+function openDP(lead) {
+  activeDetail = lead;
+  document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
+  document.getElementById('dp-co').textContent = (lead.company||'—') + ' · Score ' + lead.score + '/10';
+  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI scored' : 'Rule-based scored';
+  let ph = esc(lead.post||'—');
+  (lead.keywords||[]).forEach(k => {
+    const re = new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    ph = ph.replace(re, m => `<mark>${m}</mark>`);
+  });
+  document.getElementById('dp-post').innerHTML = ph;
+  document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
+  document.getElementById('dp-kws').innerHTML = (lead.keywords||[]).length
+    ? lead.keywords.map(k=>`<span class="kw">${esc(k)}</span>`).join('')
+    : '<span style="color:var(--text3);font-size:11px">None matched</span>';
+  document.getElementById('dp-rows').innerHTML = `
+    <div class="dr"><span class="dl">Source</span><span class="dv">LinkedIn${cfg.apifyToken?' (Live)':' (Demo)'}</span></div>
+    <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
+    <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
+    <div class="dr"><span class="dl">Intent</span><span class="dv">${Math.round((lead.intent||0)*100)}%</span></div>
+    <div class="dr"><span class="dl">Signals</span><span class="dv">${(lead.signals||[]).join(', ')||'—'}</span></div>
+    <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not in data</span>'}</div>
+    <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not in data</span>'}</div>
+  `;
+  document.getElementById('dpanel').classList.add('show');
+}
+function closeDP() { document.getElementById('dpanel').classList.remove('show'); activeDetail = null; }
+function markReach() {
+  if (!activeDetail) return;
+  activeDetail.status = 'contacted';
+  doFilter(); updStats(); toast(activeDetail.name+' marked as reached out','ok'); closeDP();
+}
+function qReach(id) { const l=allLeads[id]; if(!l)return; toast('Opening outreach for '+l.name,'ok'); }
+function copyMsg() {
+  if (!activeDetail) return;
+  const l = activeDetail, kw = l.keywords&&l.keywords.length ? l.keywords[0] : 'your tech needs';
+  const msg = `Hi ${l.name.split(' ')[0]}, came across your post about ${kw} — at VAYUZ we've helped companies like yours build reliable products with dedicated dev teams. Would love to share how we can help. Open to a quick 15-min call?`;
+  navigator.clipboard.writeText(msg).then(()=>toast('Outreach message copied','ok'));
+}
+
+// ── Toast ──
+function toast(msg, type='ok') {
+  document.getElementById('tdot').className = 'td'+(type==='e'?' e':type==='w'?' w':'');
+  document.getElementById('tmsg').textContent = msg.slice(0,90);
+  const el = document.getElementById('toast'); el.classList.add('show');
+  clearTimeout(window._tt); window._tt = setTimeout(()=>el.classList.remove('show'), 3500);
+}
+
+// ── Demo data — realistic harvestapi/linkedin-post-search output shape ──
+function demoRaw() {
+  return [
+    { text:"We're scaling fast 🚀 Looking to hire a team of app developers to build our next product. Need React Native + Node.js experience — DM me. Budget is confirmed, timeline is Q2.", postUrl:"https://www.linkedin.com/posts/priya-sharma_mobileapp-activity-7201111001", author:{name:"Priya Sharma",headline:"Co-Founder & CEO at GrowthOS",linkedinUrl:"https://www.linkedin.com/in/priya-sharma"}, numLikes:42, numComments:18, postedAt:{postedAgoText:"7 minutes ago"} },
+    { text:"Our current vendor has been painfully slow. Need a reliable web development partner for our digital transformation. Preferably a team with fintech experience — open to recommendations.", postUrl:"https://www.linkedin.com/posts/rohan-mehta_webdev-activity-7201111002", author:{name:"Rohan Mehta",headline:"CTO at FinTrack India",linkedinUrl:"https://www.linkedin.com/in/rohan-mehta"}, numLikes:29, numComments:11, postedAt:{postedAgoText:"21 minutes ago"} },
+    { text:"Excited — just closed our Seed round! 🎉 Now building out our tech team. Need experienced app developers for our e-commerce platform. If you know good agencies, tag them below!", postUrl:"https://www.linkedin.com/posts/anjali-verma_startup-activity-7201111003", author:{name:"Anjali Verma",headline:"Founder at RetailEdge",linkedinUrl:"https://www.linkedin.com/in/anjali-verma"}, numLikes:87, numComments:34, postedAt:{postedAgoText:"2 hours ago"} },
+    { text:"Digital transformation in logistics is no longer optional. Evaluating dev partners to build our driver & warehouse mobile app. Would love to connect with product-first dev teams.", postUrl:"https://www.linkedin.com/posts/vikram-singh_logistics-activity-7201111004", author:{name:"Vikram Singh",headline:"CPO at LogiSmart",linkedinUrl:"https://www.linkedin.com/in/vikram-singh"}, numLikes:55, numComments:22, postedAt:{postedAgoText:"3 hours ago"} },
+    { text:"Need strong web developers for our EdTech platform. Had bad experiences with offshore teams before — looking for someone who communicates well and delivers on time. Recommendations?", postUrl:"https://www.linkedin.com/posts/neha-kapoor_edtech-activity-7201111005", author:{name:"Neha Kapoor",headline:"CEO at EduTech Pro",linkedinUrl:"https://www.linkedin.com/in/neha-kapoor"}, numLikes:19, numComments:9, postedAt:{postedAgoText:"4 hours ago"} },
+    { text:"PropTech is moving fast — need a solid dev partner to keep up. Launching our tenant app in 3 months. Currently interviewing agencies. DM if your team has PropTech + app development experience!", postUrl:"https://www.linkedin.com/posts/amit-joshi_proptech-activity-7201111006", author:{name:"Amit Joshi",headline:"Founder & MD at PropDesk",linkedinUrl:"https://www.linkedin.com/in/amit-joshi"}, numLikes:63, numComments:27, postedAt:{postedAgoText:"5 hours ago"} },
+  ];
+}
+
+// Init
+refreshUI();
+</script>
+</body>
+</html>
