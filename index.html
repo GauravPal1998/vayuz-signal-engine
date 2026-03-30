@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Signal Engine — VAYUZ</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1111,6 +1112,11 @@ async function runPipeline() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
 
+    // Save to Supabase (only for live scans, not demo)
+    if (!isDemo) {
+      await saveLeadsToSupabase(allLeads);
+    }
+
     setTimeout(() => {
       document.getElementById('pipe-mb').classList.remove('show');
       toast((isDemo ? 'Demo loaded' : 'Pipeline complete') + ' — ' + hotCnt + ' Hot · ' + warmCnt + ' Warm leads', 'ok');
@@ -1269,6 +1275,87 @@ function copyMsg() {
   navigator.clipboard.writeText(msg).then(()=>toast('Outreach message copied','ok'));
 }
 
+// ── Supabase Client ──
+const _sb = supabase.createClient(
+  'https://okiybwzeaesnsdjfqjpp.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9raXlid3plYWVzbnNkamZxanBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NDY3MTAsImV4cCI6MjA5MDQyMjcxMH0.yuWTtJZlcSQrHuUnFUEJr3OYZCGHfV42CU6--it4mw0'
+)
+
+// ── Save leads to Supabase ──
+async function saveLeadsToSupabase(leads) {
+  if (!leads || leads.length === 0) return;
+  const rows = leads.map(l => ({
+    name: l.name || null,
+    title: l.headline || null,
+    company: l.compName || l.company || null,
+    linkedin_url: l.profileUrl || null,
+    post_url: l.postUrl || null,
+    ai_score: l.score || null,
+    hiring_type: l.hiringType || null,
+    category: l.category || null,
+    hiring_for: l.role || null,
+    client_geo: l.geo || null,
+    email: l.email || null,
+    phone: l.phone || null,
+    source: 'LinkedIn (Live)',
+    posted_at: l.created || null,
+    engagement: `${l.likes||0} likes · ${l.comments||0} comments`
+  }));
+  const { error } = await _sb.from('leads').insert(rows);
+  if (error) {
+    console.error('Supabase save error:', error);
+    toast('Failed to save leads to DB', 'e');
+  } else {
+    toast(`${rows.length} leads saved to database ✓`, 'ok');
+  }
+}
+
+// ── Load leads from Supabase ──
+async function loadLeadsFromSupabase() {
+  try {
+    const { data, error } = await _sb
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error || !data || data.length === 0) return;
+    allLeads = data.map((l, i) => ({
+      id: i,
+      name: l.name || '—',
+      headline: l.title || '—',
+      company: l.company || '—',
+      compName: l.company || '—',
+      profileUrl: l.linkedin_url || '',
+      postUrl: l.post_url || '',
+      post: '',
+      score: l.ai_score || 0,
+      label: (l.ai_score||0) >= 7 ? 'Hot' : (l.ai_score||0) >= 4 ? 'Warm' : 'Cold',
+      hiringType: l.hiring_type || '—',
+      category: l.category || '—',
+      role: l.hiring_for || '—',
+      geo: l.client_geo || '—',
+      email: l.email || '',
+      phone: l.phone || '',
+      source: l.source || 'LinkedIn',
+      created: l.posted_at || '—',
+      likes: 0,
+      comments: 0,
+      signals: [],
+      keywords: [],
+      status: (l.ai_score||0) >= 7 ? 'ready' : 'new'
+    }));
+    doFilter();
+    updStats(allLeads.length, allLeads.length, false);
+    document.getElementById('emp').style.display = 'none';
+    document.getElementById('tbl').style.display = 'table';
+    const nb = document.getElementById('nav-nb');
+    nb.textContent = allLeads.length; nb.classList.add('show');
+    toast(`${data.length} leads loaded from database ✓`, 'ok');
+  } catch(e) {
+    console.error('Supabase load error:', e);
+  }
+}
+
 // ── Toast ──
 function toast(msg, type='ok') {
   document.getElementById('tdot').className = 'td'+(type==='e'?' e':type==='w'?' w':'');
@@ -1304,6 +1391,8 @@ function clearKey(inputId, badgeId) {
 // ── Init — load saved config on every page load ──
 loadFromStorage();
 refreshUI();
+// Load leads from Supabase on every page open
+loadLeadsFromSupabase();
 // Show topbar indicator if keys are loaded
 if (cfg.apifyToken || cfg.geminiKey) {
   setTimeout(() => {
