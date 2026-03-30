@@ -581,8 +581,7 @@ function showBulkKw() {
 }
 function applyBulkKw() {
   const raw = document.getElementById('bulk-kw-inp').value;
-  const items = raw.split(/[
-,]+/).map(s=>s.trim()).filter(s=>s.length>0);
+  const items = raw.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s.length>0);
   let added = 0;
   items.forEach(v => { if (!cfg.keywords.includes(v)) { cfg.keywords.push(v); added++; } });
   refreshUI();
@@ -608,8 +607,7 @@ function showBulkTitle() {
 }
 function applyBulkTitle() {
   const raw = document.getElementById('bulk-title-inp').value;
-  const items = raw.split(/[
-,]+/).map(s=>s.trim()).filter(s=>s.length>0);
+  const items = raw.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s.length>0);
   let added = 0;
   items.forEach(v => { if (!cfg.titles.includes(v)) { cfg.titles.push(v); added++; } });
   refreshUI();
