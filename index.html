@@ -74,7 +74,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 
 /* ── Table ── */
 .ts{flex:1;overflow-y:auto;overflow-x:auto}
-.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1180px}
+.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1500px}
 .lt th{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:10px 12px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--bg2);z-index:2}
 .lt th.s{cursor:pointer}.lt th.s:hover{color:var(--text2)}
 .lr td{padding:11px 12px;font-size:12.5px;vertical-align:middle;border-bottom:1px solid var(--border);transition:background .1s}
@@ -270,8 +270,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 
   <div class="stats">
     <div class="sc"><div class="sn" id="s0">0</div><div class="sl">Posts Fetched</div></div>
-    <div class="sc"><div class="sn bl" id="s1">0</div><div class="sl">Rule Passed</div></div>
-    <div class="sc"><div class="sn gr" id="s2">0</div><div class="sl">Ready to Reach</div></div>
+    <div class="sc"><div class="sn" style="color:var(--red)" id="s1">0</div><div class="sl">🔥 Hot Leads</div></div>
+    <div class="sc"><div class="sn am" id="s2">0</div><div class="sl">🟡 Warm Leads</div></div>
     <div class="sc"><div class="sn am" id="s3">—</div><div class="sl">Avg Score</div></div>
     <div class="sc"><div class="sn pu" id="s4">—</div><div class="sl">Source</div></div>
   </div>
@@ -282,11 +282,12 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <input id="q" type="text" placeholder="Search name, company, keyword, post URL…" oninput="doFilter()">
     </div>
     <div class="fb on" id="f-all" onclick="setF('all',this)">All</div>
-    <div class="fb" id="f-ready" onclick="setF('ready',this)">Ready</div>
-    <div class="fb" id="f-high" onclick="setF('high',this)">Score ≥ 8</div>
+    <div class="fb" id="f-hot" onclick="setF('hot',this)">🔥 Hot</div>
+    <div class="fb" id="f-warm" onclick="setF('warm',this)">🟡 Warm</div>
+    <div class="fb" id="f-cold" onclick="setF('cold',this)">🔵 Cold</div>
+    <div class="fb" id="f-remote" onclick="setF('remote',this)">Remote</div>
+    <div class="fb" id="f-india" onclick="setF('india',this)">India</div>
     <div class="fb" id="f-hiring" onclick="setF('hiring',this)">Hiring</div>
-    <div class="fb" id="f-pain" onclick="setF('pain',this)">Pain</div>
-    <div class="fb" id="f-vendor" onclick="setF('vendor',this)">Vendor</div>
   </div>
 
   <div class="ts">
@@ -312,11 +313,13 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
           <th style="width:28px"><input type="checkbox" style="accent-color:var(--accent)" onchange="chkAll(this)"></th>
           <th class="s" onclick="sortBy('name')">Lead</th>
           <th class="s" onclick="sortBy('score')">Score ↓</th>
-          <th>Status</th>
+          <th>Label</th>
+          <th>Category</th>
+          <th>Role</th>
+          <th>Geo</th>
+          <th>Hiring Type</th>
           <th>Signals</th>
-          <th>Intent</th>
           <th>Post URL</th>
-          <th>Source</th>
           <th>Post Snippet</th>
           <th>Actions</th>
         </tr>
@@ -378,8 +381,14 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 
     <div class="csec">Apify Settings</div>
     <div class="cf">
-      <label class="cl">Apify API Token <span style="color:var(--red)">*</span></label>
-      <input class="ci" type="password" id="c-apify" placeholder="apify_api_xxxxxxxxxxxxxxxxxxxx">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label class="cl" style="margin-bottom:0">Apify API Token <span style="color:var(--red)">*</span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="apify-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
+          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-apify','apify-saved')">Clear</button>
+        </div>
+      </div>
+      <input class="ci" type="password" id="c-apify" placeholder="apify_api_xxxxxxxxxxxxxxxxxxxx" oninput="document.getElementById('apify-saved').style.display='none'">
       <div class="ch">Get from → <a href="https://console.apify.com/account/integrations" target="_blank">console.apify.com → Account → Integrations</a></div>
     </div>
     <div class="cf">
@@ -406,8 +415,14 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 
     <div class="csec">Gemini Settings (optional — improves scoring)</div>
     <div class="cf">
-      <label class="cl">Gemini API Key</label>
-      <input class="ci" type="password" id="c-gemini" placeholder="AIzaSy...">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label class="cl" style="margin-bottom:0">Gemini API Key</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="gemini-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
+          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-gemini','gemini-saved')">Clear</button>
+        </div>
+      </div>
+      <input class="ci" type="password" id="c-gemini" placeholder="AIzaSy..." oninput="document.getElementById('gemini-saved').style.display='none'">
       <div class="ch">Get free key → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. If blank, rule-based scoring is used.</div>
     </div>
     <div class="cf">
@@ -424,19 +439,49 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
 
     <div class="csec">Search Keywords (sent to Apify + used in Gate 1)</div>
-    <div class="ch" style="margin-bottom:8px">Each keyword = one Apify search query. Gate 1 also checks posts contain at least one keyword OR author matches a title. Leave empty to pass all posts.</div>
+    <div class="ch" style="margin-bottom:10px">Each keyword = one Apify search query. Gate 1 checks posts contain at least one keyword OR author matches a title.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="kw-count">0 keywords</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="showBulkKw()">+ Bulk Add</button>
+        <button class="btn" style="padding:4px 10px;font-size:11px;color:var(--red);border-color:rgba(220,38,38,.25)" onclick="clearAllKw()">Clear All</button>
+      </div>
+    </div>
     <div class="tags" id="kw-tags"></div>
     <div class="ta">
-      <input id="kw-inp" type="text" placeholder="Add search keyword…" onkeydown="if(event.key==='Enter')addKw()">
+      <input id="kw-inp" type="text" placeholder="Type keyword + press Enter…" onkeydown="if(event.key==='Enter')addKw()">
       <button class="btn" onclick="addKw()">Add</button>
+    </div>
+    <!-- Bulk keyword textarea (hidden by default) -->
+    <div id="bulk-kw-wrap" style="display:none;margin-top:10px">
+      <textarea id="bulk-kw-inp" style="width:100%;height:90px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical" placeholder="Paste keywords one per line or comma-separated:&#10;hire flutter developer&#10;need mobile app&#10;app development, web development&#10;looking for react developer"></textarea>
+      <div style="display:flex;gap:7px;margin-top:7px">
+        <button class="btn bp" style="font-size:11.5px;padding:6px 14px" onclick="applyBulkKw()">Add All</button>
+        <button class="btn" style="font-size:11.5px;padding:6px 14px" onclick="document.getElementById('bulk-kw-wrap').style.display='none'">Cancel</button>
+      </div>
     </div>
 
     <div class="csec">Decision-Maker Title Filter (Gate 1 · optional)</div>
-    <div class="ch" style="margin-bottom:8px">Posts pass Gate 1 if they match a keyword OR a title (not both). Leave empty to skip title check entirely.</div>
+    <div class="ch" style="margin-bottom:10px">Posts pass Gate 1 if they match a keyword OR a title. Leave empty to skip title check.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="title-count">0 titles</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="showBulkTitle()">+ Bulk Add</button>
+        <button class="btn" style="padding:4px 10px;font-size:11px;color:var(--red);border-color:rgba(220,38,38,.25)" onclick="clearAllTitle()">Clear All</button>
+      </div>
+    </div>
     <div class="tags" id="title-tags"></div>
     <div class="ta">
-      <input id="ti-inp" type="text" placeholder="Add title…" onkeydown="if(event.key==='Enter')addTitle()">
+      <input id="ti-inp" type="text" placeholder="Type title + press Enter…" onkeydown="if(event.key==='Enter')addTitle()">
       <button class="btn" onclick="addTitle()">Add</button>
+    </div>
+    <!-- Bulk title textarea (hidden by default) -->
+    <div id="bulk-title-wrap" style="display:none;margin-top:10px">
+      <textarea id="bulk-title-inp" style="width:100%;height:90px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical" placeholder="Paste titles one per line or comma-separated:&#10;Founder&#10;CEO, CTO, CPO&#10;Head of Engineering&#10;VP Product"></textarea>
+      <div style="display:flex;gap:7px;margin-top:7px">
+        <button class="btn bp" style="font-size:11.5px;padding:6px 14px" onclick="applyBulkTitle()">Add All</button>
+        <button class="btn" style="font-size:11.5px;padding:6px 14px" onclick="document.getElementById('bulk-title-wrap').style.display='none'">Cancel</button>
+      </div>
     </div>
 
     <div class="cr">
@@ -465,16 +510,113 @@ const avc = i => COLS[i % COLS.length];
 const ini = n => (n||'??').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+// ── localStorage persistence ──
+const STORE_KEY = 'vayuz_signal_cfg';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      apifyToken: cfg.apifyToken,
+      geminiKey: cfg.geminiKey,
+      maxPosts: cfg.maxPosts,
+      postAge: cfg.postAge,
+      sortBy: cfg.sortBy,
+      minScore: cfg.minScore,
+      skipGate: cfg.skipGate,
+      keywords: cfg.keywords,
+      titles: cfg.titles
+    }));
+  } catch(e) { console.warn('Storage save failed:', e); }
+}
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORE_KEY);
+    if (!saved) return;
+    const d = JSON.parse(saved);
+    if (d.apifyToken) cfg.apifyToken = d.apifyToken;
+    if (d.geminiKey) cfg.geminiKey = d.geminiKey;
+    if (d.maxPosts) cfg.maxPosts = d.maxPosts;
+    if (d.postAge) cfg.postAge = d.postAge;
+    if (d.sortBy) cfg.sortBy = d.sortBy;
+    if (typeof d.minScore === 'number') cfg.minScore = d.minScore;
+    if (typeof d.skipGate === 'boolean') cfg.skipGate = d.skipGate;
+    if (Array.isArray(d.keywords) && d.keywords.length) cfg.keywords = d.keywords;
+    if (Array.isArray(d.titles) && d.titles.length) cfg.titles = d.titles;
+    // Show saved badge on API fields if keys exist
+    if (cfg.apifyToken) showSavedBadge('apify-saved');
+    if (cfg.geminiKey) showSavedBadge('gemini-saved');
+  } catch(e) { console.warn('Storage load failed:', e); }
+}
+
+function showSavedBadge(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'inline-flex';
+}
+
 // ── Tag UIs ──
 function rTags(arr, cid, fn) {
   document.getElementById(cid).innerHTML = arr.map((t,i) =>
     `<div class="tag">${esc(t)}<span class="tx" onclick="${fn}(${i})">×</span></div>`).join('');
+  // Update counts
+  if (cid === 'kw-tags') { const el = document.getElementById('kw-count'); if(el) el.textContent = arr.length + ' keyword' + (arr.length!==1?'s':''); }
+  if (cid === 'title-tags') { const el = document.getElementById('title-count'); if(el) el.textContent = arr.length + ' title' + (arr.length!==1?'s':''); }
 }
 function refreshUI() { rTags(cfg.keywords,'kw-tags','rmKw'); rTags(cfg.titles,'title-tags','rmTitle'); }
-function addKw() { const v=document.getElementById('kw-inp').value.trim(); if(v&&!cfg.keywords.includes(v)){cfg.keywords.push(v);refreshUI();document.getElementById('kw-inp').value='';} }
+
+function addKw() {
+  const v = document.getElementById('kw-inp').value.trim();
+  if (v && !cfg.keywords.includes(v)) { cfg.keywords.push(v); refreshUI(); }
+  document.getElementById('kw-inp').value = '';
+}
 function rmKw(i) { cfg.keywords.splice(i,1); refreshUI(); }
-function addTitle() { const v=document.getElementById('ti-inp').value.trim(); if(v&&!cfg.titles.includes(v)){cfg.titles.push(v);refreshUI();document.getElementById('ti-inp').value='';} }
+function clearAllKw() {
+  if (!confirm('Clear all ' + cfg.keywords.length + ' keywords?')) return;
+  cfg.keywords = []; refreshUI(); toast('All keywords cleared','w');
+}
+function showBulkKw() {
+  const w = document.getElementById('bulk-kw-wrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+  if (w.style.display === 'block') document.getElementById('bulk-kw-inp').focus();
+}
+function applyBulkKw() {
+  const raw = document.getElementById('bulk-kw-inp').value;
+  const items = raw.split(/[
+,]+/).map(s=>s.trim()).filter(s=>s.length>0);
+  let added = 0;
+  items.forEach(v => { if (!cfg.keywords.includes(v)) { cfg.keywords.push(v); added++; } });
+  refreshUI();
+  document.getElementById('bulk-kw-inp').value = '';
+  document.getElementById('bulk-kw-wrap').style.display = 'none';
+  toast(added + ' keywords added', 'ok');
+}
+
+function addTitle() {
+  const v = document.getElementById('ti-inp').value.trim();
+  if (v && !cfg.titles.includes(v)) { cfg.titles.push(v); refreshUI(); }
+  document.getElementById('ti-inp').value = '';
+}
 function rmTitle(i) { cfg.titles.splice(i,1); refreshUI(); }
+function clearAllTitle() {
+  if (!confirm('Clear all ' + cfg.titles.length + ' titles?')) return;
+  cfg.titles = []; refreshUI(); toast('All titles cleared','w');
+}
+function showBulkTitle() {
+  const w = document.getElementById('bulk-title-wrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+  if (w.style.display === 'block') document.getElementById('bulk-title-inp').focus();
+}
+function applyBulkTitle() {
+  const raw = document.getElementById('bulk-title-inp').value;
+  const items = raw.split(/[
+,]+/).map(s=>s.trim()).filter(s=>s.length>0);
+  let added = 0;
+  items.forEach(v => { if (!cfg.titles.includes(v)) { cfg.titles.push(v); added++; } });
+  refreshUI();
+  document.getElementById('bulk-title-inp').value = '';
+  document.getElementById('bulk-title-wrap').style.display = 'none';
+  toast(added + ' titles added', 'ok');
+}
 
 // ── Config modal ──
 function showCfg() {
@@ -485,6 +627,8 @@ function showCfg() {
   document.getElementById('c-gemini').value = cfg.geminiKey;
   document.getElementById('c-min').value = cfg.minScore;
   document.getElementById('c-skipgate').checked = cfg.skipGate;
+  if (cfg.apifyToken) showSavedBadge('apify-saved');
+  if (cfg.geminiKey) showSavedBadge('gemini-saved');
   refreshUI();
   document.getElementById('cfg-mb').classList.add('show');
 }
@@ -496,8 +640,9 @@ function saveCfg() {
   cfg.geminiKey = document.getElementById('c-gemini').value.trim();
   cfg.minScore = parseFloat(document.getElementById('c-min').value)||7;
   cfg.skipGate = document.getElementById('c-skipgate').checked;
+  saveToStorage();
   document.getElementById('cfg-mb').classList.remove('show');
-  toast('Configuration saved','ok');
+  toast('Configuration saved & remembered','ok');
 }
 
 // ── Stage helpers ──
@@ -528,52 +673,288 @@ function resetPipe() {
 }
 function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
 
-// ── Gate 1: rule filter ──
-// OR logic: keyword OR title match passes. skipGate bypasses entirely.
+// ── VAYUZ Lead Qualification Engine ──
+// Gate 1: Fast rule filter — detect hiring/tech intent posts only
 function rulePass(post, headline) {
   if (cfg.skipGate) return true;
-  const t = (post||'').toLowerCase(), h = (headline||'').toLowerCase();
-  const kwOk = cfg.keywords.length === 0 || cfg.keywords.some(k => t.includes(k.toLowerCase()));
-  const titleOk = cfg.titles.length === 0 || cfg.titles.some(ti => h.includes(ti.toLowerCase()));
-  return kwOk || titleOk;
+  const t = (post||'').toLowerCase();
+  const h = (headline||'').toLowerCase();
+  // Must mention a tech role OR hiring intent keyword
+  const techRoles = /flutter|ios|android|react native|react|node|nodejs|\.net|java|python|devops|fullstack|full stack|frontend|backend|wordpress|woocommerce|mobile app|web app|software developer|software engineer|developer|programmer|cto|tech lead/i;
+  const hiringIntent = /hiring|looking for|we need|seeking|urgent|join our team|open role|job opening|opportunity|contract|remote work|freelance|augment|staff aug|dedicated team|build a team|build a product|outsource|tech partner/i;
+  return techRoles.test(t) || hiringIntent.test(t) || techRoles.test(h) || hiringIntent.test(h);
 }
-function matchKws(post) { return cfg.keywords.filter(k => (post||'').toLowerCase().includes(k.toLowerCase())); }
 
-// ── Gate 2: Gemini ──
-async function geminiScore(post, name, headline, company) {
-  if (!cfg.geminiKey) return ruleScore(post, headline);
-  const prompt = `B2B lead scoring for VAYUZ (India IT company: app dev, web dev, digital transformation).
-Score this LinkedIn post. Return ONLY valid JSON, no markdown, no explanation.
-Post: "${(post||'').replace(/"/g,'\\"').slice(0,700)}"
-Author: ${name}, ${headline}, ${company}
-JSON: {"score":<0-10,1 decimal>,"intent":<0-1,2 decimals>,"signals":<array from: hiring,expansion,pain,vendor,funding>,"reasoning":<max 18 words>}`;
+// ── VAYUZ Category Classifier ──
+function classifyCategory(post) {
+  const t = (post||'').toLowerCase();
+  if (/flutter|ios|android|react native|mobile app/i.test(t)) return 'App Development';
+  if (/wordpress|woocommerce/i.test(t)) return 'WordPress Development';
+  if (/frontend|backend|fullstack|full stack|react|node|\.net|java|python|web developer|web app/i.test(t)) return 'Web Development';
+  if (/legacy|migration|re-platform|moderniz/i.test(t)) return 'Legacy System Modernization';
+  if (/cloud|automation|enterprise|digital transform/i.test(t)) return 'Digital Transformation';
+  if (/edtech|education|learning app|lms|e-learning/i.test(t)) return 'EdTech / Education App Development';
+  if (/saas|product|mvp|startup|build a platform/i.test(t)) return 'Product Development';
+  if (/dedicated team|full team|development team/i.test(t)) return 'Dedicated Teams';
+  if (/consulting|advisory|tech strategy|it consulting/i.test(t)) return 'IT Consulting';
+  if (/staff aug|contract developer|extend.*team|remote developer|hire.*developer/i.test(t)) return 'Staff Augmentation';
+  return 'Staff Augmentation';
+}
+
+// ── VAYUZ Hiring Type Classifier ──
+function classifyHiringType(post) {
+  const t = (post||'').toLowerCase();
+  const types = [];
+  if (/remote|work from home|wfh|fully remote/i.test(t)) types.push('Remote');
+  if (/full.?time|permanent/i.test(t)) types.push('Full-Time');
+  if (/contract|freelance|freelancer/i.test(t)) types.push('Contract');
+  if (/part.?time/i.test(t)) types.push('Part-Time');
+  if (/project|milestone|fixed.?price|one.?time/i.test(t)) types.push('Project-Based');
+  return types.length ? types.join(' / ') : 'Not Specified';
+}
+
+// ── VAYUZ Scoring Engine (your exact logic) ──
+function vayuzScore(post, headline, category, hiringType) {
+  const t = (post||'').toLowerCase();
+  let score = 0;
+  const signals = [];
+  const reasons = [];
+
+  // Global service categories (location does NOT disqualify)
+  const globalCats = ['App Development','Web Development','WordPress Development','Product Development','Digital Transformation','EdTech / Education App Development'];
+  const isGlobal = globalCats.includes(category);
+
+  // Staffing-only categories need remote or India
+  const staffCats = ['Staff Augmentation','Dedicated Teams','IT Consulting','Legacy System Modernization'];
+  const isStaffing = staffCats.includes(category);
+
+  const isRemote = /remote|work from home|wfh|fully remote|anywhere/i.test(t);
+  const isInIndia = /india|bengaluru|bangalore|mumbai|delhi|hyderabad|pune|chennai|noida|gurgaon|gurugram|kolkata/i.test(t);
+  const isOnsiteOutsideIndia = /onsite|on-site|on site|must be in|local only|in.office|based in (usa|uk|canada|australia|germany|france|uae|singapore|us |united states|united kingdom)/i.test(t);
+
+  // Service type scoring
+  if (isGlobal) {
+    if (!isOnsiteOutsideIndia) {
+      score += 4;
+      reasons.push('Global service — location not restrictive');
+      signals.push('global');
+    } else {
+      reasons.push('Onsite required outside India — not serviceable');
+      return { score: 0, label: 'Cold', category, hiringType, signals: ['onsite'], reasons, role: extractRole(post), geo: extractGeo(post) };
+    }
+  } else if (isStaffing) {
+    if (isRemote) {
+      score += 4;
+      reasons.push('Remote role — serviceable by VAYUZ globally');
+      signals.push('remote');
+    } else if (isInIndia) {
+      score += 4;
+      reasons.push('India-based role — serviceable by VAYUZ');
+      signals.push('india');
+    } else if (isOnsiteOutsideIndia) {
+      reasons.push('Not serviceable by VAYUZ for staffing outside India');
+      return { score: 0, label: 'Cold', category, hiringType, signals: ['onsite'], reasons, role: extractRole(post), geo: extractGeo(post) };
+    }
+  }
+
+  // Active hiring urgency +3
+  if (/hiring now|urgent|immediately|asap|as soon as possible|deadline|this week|right away|looking now|actively hiring/i.test(t)) {
+    score += 3; signals.push('urgent'); reasons.push('Urgent/active hiring signal');
+  } else if (/hiring|looking for|we need|seeking|open role|join our team/i.test(t)) {
+    score += 2; signals.push('hiring'); reasons.push('Active hiring post');
+  }
+
+  // Project/product engagement +4 (for global cats already scored 4 above, add project bonus separately)
+  if (/build|develop|create|launch|mvp|product|project|platform/i.test(t)) {
+    score += 2; signals.push('project'); reasons.push('Project/product development engagement');
+  }
+
+  // Remote explicit +4 (if not already counted above)
+  if (isRemote && !signals.includes('remote') && !signals.includes('global')) {
+    score += 2; signals.push('remote'); reasons.push('Remote role mentioned');
+  }
+
+  // India hiring +4 (if not already counted)
+  if (isInIndia && !signals.includes('india')) {
+    score += 2; signals.push('india'); reasons.push('India location — VAYUZ home market');
+  }
+
+  // Mid-large company +2
+  if (/enterprise|fortune|series [a-c]|funded|raised|100\+ employees|500\+|1000\+|large team|big company/i.test(t)) {
+    score += 2; signals.push('enterprise'); reasons.push('Mid-to-large company signal');
+  }
+
+  // Project-based +1
+  if (/milestone|fixed price|project.based|deliverable/i.test(t)) {
+    score += 1; signals.push('milestone'); reasons.push('Project/milestone-based engagement');
+  }
+
+  score = Math.min(10, score);
+  const label = score >= 7 ? 'Hot' : score >= 4 ? 'Warm' : 'Cold';
+  return { score: parseFloat(score.toFixed(1)), label, category, hiringType, signals, reasons, role: extractRole(post), geo: extractGeo(post) };
+}
+
+function extractRole(post) {
+  const t = post||'';
+  const roles = ['Flutter','iOS','Android','React Native','React','Node.js','Node','Python','.NET','Java','DevOps','WordPress','WooCommerce','Full Stack','Frontend','Backend','Mobile App','Web Developer','Software Engineer','Software Developer'];
+  const found = roles.filter(r => new RegExp(r,'i').test(t));
+  return found.length ? found.join(', ') : 'Not specified';
+}
+
+function extractGeo(post) {
+  const t = post||'';
+  const geoMatch = t.match(/\b(usa|uk|canada|australia|india|germany|uae|singapore|bengaluru|bangalore|mumbai|delhi|noida|pune|hyderabad|chennai|new york|london|dubai|remote)\b/i);
+  return geoMatch ? geoMatch[0] : '';
+}
+
+// ── Gate 2: Gemini AI (uses your exact VAYUZ prompt) ──
+async function geminiScore(post, name, headline, company, postUrl) {
+  const category = classifyCategory(post);
+  const hiringType = classifyHiringType(post);
+
+  if (!cfg.geminiKey) {
+    // Fallback: use rule-based VAYUZ scoring
+    const result = vayuzScore(post, headline, category, hiringType);
+    return {
+      score: result.score,
+      intent: parseFloat((result.score/10).toFixed(2)),
+      signals: result.signals,
+      label: result.label,
+      category: result.category,
+      hiringType: result.hiringType,
+      role: result.role,
+      geo: result.geo,
+      reasoning: result.reasons.join('. ') || 'Rule-based VAYUZ scoring applied.'
+    };
+  }
+
+  // Your exact VAYUZ Gemini prompt
+  const nameParts = (name||'').split(' ');
+  const firstName = nameParts[0]||'';
+  const lastName = nameParts.slice(1).join(' ')||'';
+  const runDate = new Date().toISOString().split('T')[0];
+
+  const prompt = `You are a lead qualification assistant for VAYUZ Technologies — an India-based IT services company offering Staff Augmentation, Product Development, IT Consulting, and Dedicated Teams. VAYUZ provides remote developers and teams globally, and can also place resources locally in India.
+
+Analyze the following LinkedIn post and extract + qualify the lead for VAYUZ business development.
+
+Run Date: ${runDate}
+Author Name: ${name}
+Author Headline: ${headline}
+Company: ${company}
+Post URL: ${postUrl||''}
+
+Post Content:
+${(post||'').slice(0,1200)}
+
+EXTRACTION RULES:
+lead_date: use Run Date above (YYYY-MM-DD)
+lead_source: always "LinkedIn"
+comp_name: infer company name from post content or Author Info
+first_name / last_name: split from Author Name
+lead_category: choose the most relevant from this list:
+    * App Development (if hiring mobile/Flutter/iOS/Android/React Native developer)
+    * Web Development (if hiring frontend/backend/fullstack web developer)
+    * WordPress Development (if hiring WordPress/WooCommerce developer)
+    * Legacy System Modernization (if modernizing old systems, migration, re-platforming)
+    * Digital Transformation (if cloud, automation, enterprise tech transformation)
+    * EdTech / Education App Development (if education platform or learning app)
+    * Staff Augmentation (if hiring contract/remote developer to extend their team)
+    * Dedicated Teams (if looking for a full dedicated development team)
+    * IT Consulting (if seeking tech advisory or consulting services)
+    * Product Development (if building a new product or SaaS platform)
+client_geo: city and country from post
+role_hiring_for: specific tech role they are hiring
+hiring_type: Remote / Full-Time / Contract / Part-Time / Project-Based
+email: extract email if mentioned, else ""
+phone: extract phone with country code if mentioned, else ""
+post_content: full post content as provided
+post_url: ${postUrl||''}
+linkedin_profile: clean author LinkedIn URL
+
+QUALIFICATION SCORING (total out of 10):
+VAYUZ serves clients GLOBALLY for App Development, Web Development, WordPress, Product Development, Digital Transformation.
+For Staff Augmentation, Dedicated Teams, IT Consulting, Legacy System Modernization — REMOTE worldwide or IN INDIA only.
+
+SERVICE TYPE RULES:
+If lead_category is App Development, Web Development, WordPress Development, Product Development, Digital Transformation, EdTech:
+  * GLOBAL service — location does NOT disqualify
+  * If NOT explicitly mentioning onsite/local: serviceable
+  * If EXPLICITLY mentions "local only", "must be in [city]", "onsite required": score 0
+
+If lead_category is Staff Augmentation, Dedicated Teams, IT Consulting, Legacy System Modernization:
+  * Role explicitly REMOTE: +4 points
+  * Hiring IN INDIA: +4 points
+  * Onsite/hybrid outside India: score 0, not serviceable
+
+SCORING RULES:
+Project or product development engagement: +4 points
+Role explicitly REMOTE or no location restriction: +4 points
+Hiring IN INDIA: +4 points
+Active hiring post (urgency, "hiring now", deadlines): +3 points
+Mid-to-large company OR staffing firm 50+ employees: +2 points
+Project-based or milestone-based engagement: +1 point
+Maximum score: 10
+
+qualification_label: 7-10="Hot", 4-6="Warm", 0-3="Cold"
+qualification_reason: 2-3 sentences explaining score — mention service type, location, urgency, company size, role type.
+
+Return ONLY this JSON, no markdown, no explanation:
+{"lead_date":"","lead_source":"","comp_name":"","first_name":"","last_name":"","lead_category":"","client_geo":"","role_hiring_for":"","hiring_type":"","email":"","phone":"","post_content":"","post_url":"","linkedin_profile":"","qualification_score":0,"qualification_label":"","qualification_reason":""}`;
+
   try {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cfg.geminiKey}`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
     });
     const d = await r.json();
     if (d.error) throw new Error(d.error.message);
     let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
-    return JSON.parse(txt);
-  } catch(e) { console.warn('Gemini fallback:', e.message); return ruleScore(post, headline); }
+    const parsed = JSON.parse(txt);
+    // Map Gemini output → our internal lead shape
+    return {
+      score: parsed.qualification_score||0,
+      intent: parseFloat(((parsed.qualification_score||0)/10).toFixed(2)),
+      signals: detectSignals(post),
+      label: parsed.qualification_label||'Cold',
+      category: parsed.lead_category||category,
+      hiringType: parsed.hiring_type||hiringType,
+      role: parsed.role_hiring_for||extractRole(post),
+      geo: parsed.client_geo||extractGeo(post),
+      email: parsed.email||'',
+      phone: parsed.phone||'',
+      firstName: parsed.first_name||'',
+      lastName: parsed.last_name||'',
+      compName: parsed.comp_name||company,
+      reasoning: parsed.qualification_reason||''
+    };
+  } catch(e) {
+    console.warn('Gemini fallback:', e.message);
+    const result = vayuzScore(post, headline, category, hiringType);
+    return {
+      score: result.score,
+      intent: parseFloat((result.score/10).toFixed(2)),
+      signals: result.signals,
+      label: result.label,
+      category: result.category,
+      hiringType: result.hiringType,
+      role: result.role,
+      geo: result.geo,
+      reasoning: result.reasons.join('. ')
+    };
+  }
 }
 
-function ruleScore(post, headline) {
+function detectSignals(post) {
   const t = (post||'').toLowerCase();
-  const kwHits = cfg.keywords.filter(k => t.includes(k.toLowerCase())).length;
-  const isBoss = cfg.titles.some(ti => (headline||'').toLowerCase().includes(ti.toLowerCase()));
-  const budget = /budget|ready|asap|urgent|q[1-4]/i.test(t);
-  const pain = /slow|bad experience|frustrat|failing|disappoint/i.test(t);
-  let score = 2.5 + Math.min(kwHits*1.3, 3.5) + (isBoss?1.5:0) + (budget?1:0) + (pain?0.5:0);
-  score = Math.min(10, parseFloat(score.toFixed(1)));
-  const signals = [];
-  if (/hiring|hire|looking for dev|need a dev/i.test(t)) signals.push('hiring');
-  if (/vendor|agency|partner|outsource/i.test(t)) signals.push('vendor');
-  if (pain) signals.push('pain');
-  if (/raised|seed|series|funded|investment/i.test(t)) signals.push('funding');
-  if (/expand|scal|grow/i.test(t)) signals.push('expansion');
-  return { score, intent: parseFloat((score/10).toFixed(2)), signals: signals.length ? signals : ['expansion'], reasoning: 'Rule-based score — add Gemini key for AI reasoning.' };
+  const s = [];
+  if (/hiring|hire|looking for|open role/i.test(t)) s.push('hiring');
+  if (/remote|wfh|work from home/i.test(t)) s.push('remote');
+  if (/urgent|asap|immediately|deadline/i.test(t)) s.push('urgent');
+  if (/vendor|agency|partner|outsource/i.test(t)) s.push('vendor');
+  if (/raised|seed|series|funded/i.test(t)) s.push('funding');
+  if (/india|bengaluru|mumbai|delhi|pune/i.test(t)) s.push('india');
+  return s.length ? s : ['tech'];
 }
 
 // ── Apify: harvestapi/linkedin-post-search ──
@@ -691,14 +1072,25 @@ async function runPipeline() {
       }
     }
 
-    // Stage 2: Gemini scoring
+    // Stage 2: VAYUZ Qualification Engine (Gemini AI + Rule-based fallback)
     stgRun(2);
     let scored = 0;
     for (const lead of gated) {
-      const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company);
-      lead.score = r.score; lead.intent = r.intent; lead.signals = r.signals || [];
-      lead.status = lead.score >= cfg.minScore ? 'ready' : 'new';
-      lead.reasoning = r.reasoning || ''; lead.keywords = matchKws(lead.post);
+      const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
+      lead.score = r.score;
+      lead.intent = r.intent;
+      lead.signals = r.signals || [];
+      lead.label = r.label || (r.score>=7?'Hot':r.score>=4?'Warm':'Cold');
+      lead.status = lead.label === 'Hot' ? 'ready' : lead.label === 'Warm' ? 'new' : 'cold';
+      lead.reasoning = r.reasoning || '';
+      lead.category = r.category || '';
+      lead.hiringType = r.hiringType || '';
+      lead.role = r.role || '';
+      lead.geo = r.geo || '';
+      lead.email = r.email || '';
+      lead.phone = r.phone || '';
+      lead.compName = r.compName || lead.company;
+      lead.keywords = detectSignals(lead.post);
       scored++;
       document.getElementById('sc2').textContent = scored + ' scored…';
       await new Promise(r => setTimeout(r, isDemo ? 80 : 150));
@@ -709,8 +1101,9 @@ async function runPipeline() {
     // Stage 3
     stgRun(3);
     await new Promise(r => setTimeout(r, 350));
-    const readyCnt = gated.filter(l => l.status === 'ready').length;
-    stgDone(3, readyCnt + ' ready to reach');
+    const hotCnt = gated.filter(l => l.label === 'Hot').length;
+    const warmCnt = gated.filter(l => l.label === 'Warm').length;
+    stgDone(3, hotCnt + ' Hot · ' + warmCnt + ' Warm');
 
     allLeads = gated;
     doFilter();
@@ -722,7 +1115,7 @@ async function runPipeline() {
 
     setTimeout(() => {
       document.getElementById('pipe-mb').classList.remove('show');
-      toast((isDemo ? 'Demo loaded' : 'Pipeline complete') + ' — ' + readyCnt + ' signals ready', 'ok');
+      toast((isDemo ? 'Demo loaded' : 'Pipeline complete') + ' — ' + hotCnt + ' Hot · ' + warmCnt + ' Warm leads', 'ok');
     }, 800);
   } catch (e) {
     if (e.message === 'NO_TOKEN') {
@@ -739,11 +1132,12 @@ async function runPipeline() {
 function loadDemo() { cfg.apifyToken = ''; runPipeline(); }
 
 function updStats(total, matched, isDemo) {
-  const ready = allLeads.filter(l => l.status === 'ready').length;
+  const hot = allLeads.filter(l => l.label==='Hot').length;
+  const warm = allLeads.filter(l => l.label==='Warm').length;
   const avg = allLeads.length ? (allLeads.reduce((s,l)=>s+l.score,0)/allLeads.length).toFixed(1) : '—';
   document.getElementById('s0').textContent = total || allLeads.length;
-  document.getElementById('s1').textContent = matched || allLeads.length;
-  document.getElementById('s2').textContent = ready;
+  document.getElementById('s1').textContent = hot;
+  document.getElementById('s2').textContent = warm;
   document.getElementById('s3').textContent = avg;
   document.getElementById('s4').textContent = isDemo ? 'Demo' : 'Live';
 }
@@ -758,12 +1152,22 @@ function doFilter() {
   const q = (document.getElementById('q').value||'').toLowerCase();
   filtered = allLeads.filter(l => {
     let p = true;
-    if (curFilter==='ready') p = l.status==='ready';
-    else if (curFilter==='high') p = l.score>=8;
-    else if (curFilter==='hiring') p = l.signals.includes('hiring');
-    else if (curFilter==='pain') p = l.signals.includes('pain');
-    else if (curFilter==='vendor') p = l.signals.includes('vendor');
-    if (q) p = p && (l.name.toLowerCase().includes(q)||l.company.toLowerCase().includes(q)||l.post.toLowerCase().includes(q)||(l.postUrl||'').toLowerCase().includes(q)||l.headline.toLowerCase().includes(q));
+    if (curFilter==='hot') p = l.label==='Hot';
+    else if (curFilter==='warm') p = l.label==='Warm';
+    else if (curFilter==='cold') p = l.label==='Cold';
+    else if (curFilter==='remote') p = (l.signals||[]).includes('remote');
+    else if (curFilter==='india') p = (l.signals||[]).includes('india');
+    else if (curFilter==='hiring') p = (l.signals||[]).includes('hiring');
+    if (q) p = p && (
+      l.name.toLowerCase().includes(q)||
+      l.company.toLowerCase().includes(q)||
+      l.post.toLowerCase().includes(q)||
+      (l.postUrl||'').toLowerCase().includes(q)||
+      l.headline.toLowerCase().includes(q)||
+      (l.category||'').toLowerCase().includes(q)||
+      (l.role||'').toLowerCase().includes(q)||
+      (l.geo||'').toLowerCase().includes(q)
+    );
     return p;
   });
   renderTbl();
@@ -776,38 +1180,48 @@ function sortBy(f) {
 function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
 
 // ── Render ──
+function labelClass(label) {
+  if (label==='Hot') return 'sp h';
+  if (label==='Warm') return 'sp m';
+  return 'sp l';
+}
+function labelIcon(label) {
+  if (label==='Hot') return '🔥';
+  if (label==='Warm') return '🟡';
+  return '🔵';
+}
+
 function renderTbl() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
     return;
   }
   filtered.forEach(lead => {
-    const sc = lead.score>=8.5?'h':lead.score>=7?'m':'l';
-    const stcls = lead.status==='ready'?'b-r':lead.status==='new'?'b-n':'b-c';
-    const stlbl = lead.status==='ready'?'Ready':lead.status==='new'?'New':'Contacted';
-    const chips = (lead.signals||[]).map(s=>`<span class="chip c-${s}">${s}</span>`).join('');
-    const ipct = Math.round((lead.intent||0)*100);
-    const snip = (lead.post||'').slice(0,72)+((lead.post||'').length>72?'…':'');
+    const sc = lead.score>=7?'h':lead.score>=4?'m':'l';
+    const lbl = lead.label || (lead.score>=7?'Hot':lead.score>=4?'Warm':'Cold');
+    const chips = (lead.signals||[]).map(s=>`<span class="chip c-${s==='hiring'?'hiring':s==='remote'?'expansion':s==='urgent'?'pain':s==='india'?'vendor':'funding'}">${s}</span>`).join('');
+    const snip = (lead.post||'').slice(0,65)+((lead.post||'').length>65?'…':'');
     let urlCell = '<span class="nu">—</span>';
     if (lead.postUrl) {
-      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,34)+(lead.postUrl.length>48?'…':'');
+      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,30)+'…';
       urlCell = `<a class="ul" href="${lead.postUrl}" target="_blank" onclick="event.stopPropagation()" title="${esc(lead.postUrl)}">${disp}</a>`;
     }
-    const srcLbl = lead.postUrl ? 'LinkedIn' : '—';
     const tr = document.createElement('tr');
     tr.className = 'lr';
     tr.onclick = () => openDP(lead);
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
       <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
-      <td><span class="sp ${sc}">${lead.score}</span></td>
-      <td><span class="bx ${stcls}"><span class="bd"></span>${stlbl}</span></td>
+      <td><span class="sp ${sc}">${lead.score}/10</span></td>
+      <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
+      <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
+      <td><span style="font-size:11.5px;color:var(--text2)">${esc(lead.role||'—')}</span></td>
+      <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${esc(lead.geo||'—')}</span></td>
+      <td><span style="font-size:11px;color:var(--text3)">${esc(lead.hiringType||'—')}</span></td>
       <td><div class="chips">${chips||'<span style="color:var(--text3);font-size:10.5px">—</span>'}</div></td>
-      <td><div class="iw"><div class="it"><div class="if" style="width:${ipct}%"></div></div><div class="iv">${ipct}%</div></div></td>
       <td class="uc">${urlCell}</td>
-      <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${srcLbl}</span></td>
       <td><div class="snp">${esc(snip)}</div></td>
       <td><div class="ac"><button class="ab p" onclick="event.stopPropagation();qReach(${lead.id})">Reach Out</button><button class="ab" onclick="event.stopPropagation();openDP(allLeads[${lead.id}])">Detail</button></div></td>
     `;
@@ -818,27 +1232,28 @@ function renderTbl() {
 // ── Detail panel ──
 function openDP(lead) {
   activeDetail = lead;
+  const lbl = lead.label || (lead.score>=7?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
-  document.getElementById('dp-co').textContent = (lead.company||'—') + ' · Score ' + lead.score + '/10';
-  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI scored' : 'Rule-based scored';
-  let ph = esc(lead.post||'—');
-  (lead.keywords||[]).forEach(k => {
-    const re = new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
-    ph = ph.replace(re, m => `<mark>${m}</mark>`);
-  });
-  document.getElementById('dp-post').innerHTML = ph;
+  document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
+  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
+  document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
-  document.getElementById('dp-kws').innerHTML = (lead.keywords||[]).length
-    ? lead.keywords.map(k=>`<span class="kw">${esc(k)}</span>`).join('')
-    : '<span style="color:var(--text3);font-size:11px">None matched</span>';
+  document.getElementById('dp-kws').innerHTML = (lead.signals||[]).length
+    ? lead.signals.map(s=>`<span class="kw">${esc(s)}</span>`).join('')
+    : '<span style="color:var(--text3);font-size:11px">None</span>';
   document.getElementById('dp-rows').innerHTML = `
+    <div class="dr"><span class="dl">Qualification</span><span class="dv" style="color:${lbl==='Hot'?'var(--red)':lbl==='Warm'?'var(--amber)':'var(--accent)'}">${lbl==='Hot'?'🔥':lbl==='Warm'?'🟡':'🔵'} ${lbl} (${lead.score}/10)</span></div>
+    <div class="dr"><span class="dl">Category</span><span class="dv">${esc(lead.category||'—')}</span></div>
+    <div class="dr"><span class="dl">Role Hiring For</span><span class="dv">${esc(lead.role||'—')}</span></div>
+    <div class="dr"><span class="dl">Hiring Type</span><span class="dv">${esc(lead.hiringType||'—')}</span></div>
+    <div class="dr"><span class="dl">Client Geo</span><span class="dv">${esc(lead.geo||'—')}</span></div>
+    <div class="dr"><span class="dl">Email</span><span class="dv">${lead.email?`<a class="dpurl" href="mailto:${lead.email}">${esc(lead.email)}</a>`:'—'}</span></div>
+    <div class="dr"><span class="dl">Phone</span><span class="dv">${esc(lead.phone||'—')}</span></div>
     <div class="dr"><span class="dl">Source</span><span class="dv">LinkedIn${cfg.apifyToken?' (Live)':' (Demo)'}</span></div>
     <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
     <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
-    <div class="dr"><span class="dl">Intent</span><span class="dv">${Math.round((lead.intent||0)*100)}%</span></div>
-    <div class="dr"><span class="dl">Signals</span><span class="dv">${(lead.signals||[]).join(', ')||'—'}</span></div>
-    <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not in data</span>'}</div>
-    <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not in data</span>'}</div>
+    <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
+    <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
   `;
   document.getElementById('dpanel').classList.add('show');
 }
@@ -876,8 +1291,27 @@ function demoRaw() {
   ];
 }
 
-// Init
+// ── Clear key helper ──
+function clearKey(inputId, badgeId) {
+  if (!confirm('Clear this API key?')) return;
+  document.getElementById(inputId).value = '';
+  document.getElementById(badgeId).style.display = 'none';
+  // Remove from cfg and storage
+  if (inputId === 'c-apify') cfg.apifyToken = '';
+  if (inputId === 'c-gemini') cfg.geminiKey = '';
+  saveToStorage();
+  toast('API key cleared', 'w');
+}
+
+// ── Init — load saved config on every page load ──
+loadFromStorage();
 refreshUI();
+// Show topbar indicator if keys are loaded
+if (cfg.apifyToken || cfg.geminiKey) {
+  setTimeout(() => {
+    toast('API keys loaded from saved config ✓', 'ok');
+  }, 600);
+}
 </script>
 </body>
 </html>
