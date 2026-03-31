@@ -742,15 +742,32 @@ function resetPipe() {
 function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
 
 // ── VAYUZ Lead Qualification Engine ──
-// Gate 1: Fast rule filter — detect hiring/tech intent posts only
+// Gate 1: Fast rule filter — block obvious junk before Gemini
 function rulePass(post, headline) {
   if (cfg.skipGate) return true;
   const t = (post||'').toLowerCase();
   const h = (headline||'').toLowerCase();
-  // Must mention a tech role OR hiring intent keyword
-  const techRoles = /flutter|ios|android|react native|react|node|nodejs|\.net|java|python|devops|fullstack|full stack|frontend|backend|wordpress|woocommerce|mobile app|web app|software developer|software engineer|developer|programmer|cto|tech lead/i;
-  const hiringIntent = /hiring|looking for|we need|seeking|urgent|join our team|open role|job opening|opportunity|contract|remote work|freelance|augment|staff aug|dedicated team|build a team|build a product|outsource|tech partner/i;
-  return techRoles.test(t) || hiringIntent.test(t) || techRoles.test(h) || hiringIntent.test(h);
+
+  // ── Hard disqualify — wrong audience ──
+  const isRecruiter = /(recruiter|talent acquisition|headhunter|hr manager|hr executive|human resources|staffing consultant|placement officer|talent partner)/i.test(h);
+  if (isRecruiter) return false;
+
+  // ── Hard disqualify — no agency / freelancer only / equity ──
+  const noAgency = /no agenc|agencies don'?t|don'?t contact agenc|no middleman|direct only|freelancer only|looking for a freelancer|equity.based|equity sharing|equity partner|sweat equity|co.founder|cofounder|technical co.founder|cto partner/i.test(t);
+  if (noAgency) return false;
+
+  // ── Hard disqualify — candidate looking for job ──
+  const isCandidate = /open to work|looking for (a job|opportunities|my next role|new role|projects for myself)|available for (hire|projects|freelance)|i am (a developer|a designer|an engineer|available)|my portfolio|send me your (cv|resume)|apply (now|here|below)|submit your (cv|resume|application)/i.test(t);
+  if (isCandidate) return false;
+
+  // ── Hard disqualify — not a requirement post ──
+  const notRequirement = /we are (proud|excited|thrilled|happy|delighted)|check out our (blog|website|services|latest)|our (latest|new) (blog|article|post|case study)|we (help|assist|support|enable) (companies|businesses|startups)|offering (services|solutions|expertise)|our (services|offerings|solutions) include/i.test(t);
+  if (notRequirement) return false;
+
+  // ── Must have tech role OR hiring intent to proceed ──
+  const techRoles = /flutter|ios|android|react native|react|node|nodejs|\.net|java|python|devops|fullstack|full stack|frontend|backend|wordpress|woocommerce|mobile app|web app|software developer|software engineer|developer|programmer|tech lead/i;
+  const hiringIntent = /hiring|looking for|we need|seeking|urgent|join our team|open role|build a (team|product|app|platform)|outsource|tech partner|dedicated team|staff aug/i;
+  return techRoles.test(t) || hiringIntent.test(t) || techRoles.test(h);
 }
 
 // ── VAYUZ Category Classifier ──
@@ -904,7 +921,7 @@ async function geminiScore(post, name, headline, company, postUrl) {
 
   const prompt = `You are a lead qualification assistant for VAYUZ Technologies — an India-based IT services company offering Staff Augmentation, Product Development, IT Consulting, and Dedicated Teams. VAYUZ provides remote developers and teams globally, and can also place resources locally in India.
 
-Analyze the following LinkedIn post and extract + qualify the lead for VAYUZ business development.
+Analyze the following LinkedIn post and qualify it as a VAYUZ business development lead.
 
 Run Date: ${runDate}
 Author Name: ${name}
@@ -915,59 +932,101 @@ Post URL: ${postUrl||''}
 Post Content:
 ${(post||'').slice(0,1200)}
 
-EXTRACTION RULES:
-lead_date: use Run Date above (YYYY-MM-DD)
+══════════════════════════════════
+STEP 1 — HARD DISQUALIFY (score 0, label "Cold")
+Return immediately if ANY one condition matches:
+══════════════════════════════════
+
+NOT A REQUIREMENT POST:
+→ Post is about their company services or offerings
+→ Post is a blog, article, or thought leadership piece
+→ Post is a general industry update or news share
+→ Post is celebrating an achievement, award, or milestone
+→ Post is about their own product launch or company news
+→ No actual hiring or vendor/development requirement mentioned
+
+WRONG VENDOR TYPE — they explicitly don't want agencies:
+→ Post says "no agency", "no agencies please", "agencies don't contact", "direct only"
+→ Looking for a freelancer only — not a team or agency
+→ Equity-based partnership or equity sharing mentioned
+→ Looking for a co-founder or technical co-founder
+→ Looking for a CTO partner on equity/sweat basis
+→ Mentions "no middlemen", "direct applicants only"
+
+WRONG GEOGRAPHY:
+→ Requires onsite presence in USA, UK, Canada, Australia, or Europe
+→ Visa sponsorship required for the role
+→ Looking for developers only from a specific country (e.g. Pakistan, Egypt, Philippines)
+→ Must be physically based in a specific US or European city
+→ Post mentions "local vendor only" or "based in [non-India city]"
+
+WRONG AUDIENCE — they are a vendor not a client:
+→ Author or company is a recruitment or staffing firm posting job vacancies on behalf of clients
+→ Author is from an offshore consulting or outsourcing company (competitor to VAYUZ)
+→ Post is from a job board or hiring platform
+→ They are collecting requirements FROM IT companies — they want to be the vendor, not hire one
+→ Author headline contains any of: Recruiter, HR Manager, Talent Acquisition, Headhunter, Staffing Consultant, Human Resources, Placement Officer, HR Executive
+
+CANDIDATE POSTS — they are looking for a job, not a vendor:
+→ Person is looking for a job or project for themselves
+→ Post is sharing their own skills, resume, or portfolio
+→ Phrases like "open to work", "looking for opportunities", "available for projects"
+→ Freelancer promoting their own services
+
+══════════════════════════════════
+STEP 2 — QUALIFICATION SCORING
+(Only reach here if NOT disqualified above)
+══════════════════════════════════
+
+VAYUZ serves GLOBALLY for:
+App Development, Web Development, WordPress Development, Product Development, Digital Transformation, EdTech
+
+VAYUZ serves REMOTE worldwide or IN INDIA ONLY for:
+Staff Augmentation, Dedicated Teams, IT Consulting, Legacy System Modernization
+
+SERVICE TYPE SCORING:
+If global category AND no onsite restriction mentioned: +4 points
+If global category AND explicitly requires onsite outside India: score 0 (disqualify)
+If staffing/consulting category AND explicitly remote: +4 points
+If staffing/consulting category AND hiring in India: +4 points
+If staffing/consulting category AND onsite outside India: score 0 (disqualify)
+
+ADDITIONAL SCORING:
++3  Urgent or active hiring signal (ASAP, urgent, deadline, hiring now, immediately)
++2  Project or product development engagement (build, develop, launch, create, MVP)
++2  Decision maker is posting (Founder, CEO, CTO, CPO, MD, VP, Director, Head of)
++2  Mid-to-large company signal (funded, Series A/B/C, enterprise, 50+ employees)
++1  Remote work explicitly mentioned and welcomed
++1  Project or milestone based engagement
+
+MAXIMUM SCORE = 10
+
+══════════════════════════════════
+STEP 3 — EXTRACT FIELDS
+══════════════════════════════════
+
+lead_date: use Run Date (YYYY-MM-DD)
 lead_source: always "LinkedIn"
-comp_name: infer company name from post content or Author Info
+comp_name: infer from post or author info
 first_name / last_name: split from Author Name
-lead_category: choose the most relevant from this list:
-    * App Development (if hiring mobile/Flutter/iOS/Android/React Native developer)
-    * Web Development (if hiring frontend/backend/fullstack web developer)
-    * WordPress Development (if hiring WordPress/WooCommerce developer)
-    * Legacy System Modernization (if modernizing old systems, migration, re-platforming)
-    * Digital Transformation (if cloud, automation, enterprise tech transformation)
-    * EdTech / Education App Development (if education platform or learning app)
-    * Staff Augmentation (if hiring contract/remote developer to extend their team)
-    * Dedicated Teams (if looking for a full dedicated development team)
-    * IT Consulting (if seeking tech advisory or consulting services)
-    * Product Development (if building a new product or SaaS platform)
-client_geo: city and country from post
-role_hiring_for: specific tech role they are hiring
+lead_category: pick ONE most relevant:
+  App Development / Web Development / WordPress Development /
+  Legacy System Modernization / Digital Transformation /
+  EdTech / Staff Augmentation / Dedicated Teams /
+  IT Consulting / Product Development
+client_geo: city and country from post content
+role_hiring_for: specific tech role or stack mentioned
 hiring_type: Remote / Full-Time / Contract / Part-Time / Project-Based
-email: extract email if mentioned, else ""
-phone: extract phone with country code if mentioned, else ""
+email: extract if mentioned, else ""
+phone: extract with country code if mentioned, else ""
 post_content: full post content as provided
 post_url: ${postUrl||''}
-linkedin_profile: clean author LinkedIn URL
+linkedin_profile: clean author LinkedIn URL (stop at /in/username)
+qualification_score: number 0-10
+qualification_label: "Hot" (7-10) / "Warm" (4-6) / "Cold" (0-3)
+qualification_reason: 2-3 sentences. If disqualified explain exactly why from Step 1. If qualified explain score factors.
 
-QUALIFICATION SCORING (total out of 10):
-VAYUZ serves clients GLOBALLY for App Development, Web Development, WordPress, Product Development, Digital Transformation.
-For Staff Augmentation, Dedicated Teams, IT Consulting, Legacy System Modernization — REMOTE worldwide or IN INDIA only.
-
-SERVICE TYPE RULES:
-If lead_category is App Development, Web Development, WordPress Development, Product Development, Digital Transformation, EdTech:
-  * GLOBAL service — location does NOT disqualify
-  * If NOT explicitly mentioning onsite/local: serviceable
-  * If EXPLICITLY mentions "local only", "must be in [city]", "onsite required": score 0
-
-If lead_category is Staff Augmentation, Dedicated Teams, IT Consulting, Legacy System Modernization:
-  * Role explicitly REMOTE: +4 points
-  * Hiring IN INDIA: +4 points
-  * Onsite/hybrid outside India: score 0, not serviceable
-
-SCORING RULES:
-Project or product development engagement: +4 points
-Role explicitly REMOTE or no location restriction: +4 points
-Hiring IN INDIA: +4 points
-Active hiring post (urgency, "hiring now", deadlines): +3 points
-Mid-to-large company OR staffing firm 50+ employees: +2 points
-Project-based or milestone-based engagement: +1 point
-Maximum score: 10
-
-qualification_label: 7-10="Hot", 4-6="Warm", 0-3="Cold"
-qualification_reason: 2-3 sentences explaining score — mention service type, location, urgency, company size, role type.
-
-Return ONLY this JSON, no markdown, no explanation:
+Return ONLY this JSON — no markdown, no explanation, no extra text:
 {"lead_date":"","lead_source":"","comp_name":"","first_name":"","last_name":"","lead_category":"","client_geo":"","role_hiring_for":"","hiring_type":"","email":"","phone":"","post_content":"","post_url":"","linkedin_profile":"","qualification_score":0,"qualification_label":"","qualification_reason":""}`;
 
   try {
