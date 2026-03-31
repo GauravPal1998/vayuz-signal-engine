@@ -201,6 +201,34 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .cbtn{width:100%;padding:9px;border-radius:8px;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:12px;font-family:var(--font);cursor:pointer;margin-top:7px;transition:all .14s}
 .cbtn:hover{background:var(--bg3);color:var(--text)}
 
+/* ── Editable field in detail panel ── */
+.dp-edit-sec{border-top:1px solid var(--border);padding-top:12px;margin-top:2px}
+.dp-edit-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:7px}
+.dp-input{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .13s;box-sizing:border-box}
+.dp-input:focus{border-color:rgba(79,142,247,.45)}
+.dp-input::placeholder{color:var(--text3)}
+.dp-textarea{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical;min-height:70px;transition:border-color .13s;box-sizing:border-box;line-height:1.55}
+.dp-textarea:focus{border-color:rgba(79,142,247,.45)}
+.dp-textarea::placeholder{color:var(--text3)}
+.dp-select{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;transition:border-color .13s}
+.dp-select:focus{border-color:rgba(79,142,247,.45)}
+.dp-row{display:flex;gap:8px;margin-bottom:8px}
+.dp-row .dp-input{margin-bottom:0}
+.save-btn{width:100%;padding:9px;border-radius:7px;background:var(--green);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .14s;margin-top:4px}
+.save-btn:hover{background:#0b8a63}
+
+/* ── Stage badge in table ── */
+.stage-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono);white-space:nowrap}
+.stage-meeting{background:rgba(13,158,114,.12);color:var(--green);border:1px solid rgba(13,158,114,.25)}
+.stage-s0{background:var(--adim);color:var(--accent);border:1px solid rgba(37,99,235,.2)}
+.stage-s1{background:var(--adim);color:var(--accent);border:1px solid rgba(37,99,235,.3)}
+.stage-s2{background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.25)}
+.stage-s3{background:var(--pdim);color:var(--purple);border:1px solid rgba(124,58,237,.25)}
+.stage-s4{background:rgba(13,158,114,.15);color:var(--green);border:1px solid rgba(13,158,114,.3)}
+.stage-closed{background:var(--rdim);color:var(--red);border:1px solid rgba(220,38,38,.2)}
+.stage-irrelevant{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+.stage-unable{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+
 /* ── Toast ── */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:11px 16px;font-size:12.5px;color:var(--text);display:flex;align-items:center;gap:9px;z-index:300;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 24px rgba(0,0,0,.12)}
 .toast.show{transform:translateY(0);opacity:1}
@@ -289,6 +317,14 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="fb" id="f-remote" onclick="setF('remote',this)">Remote</div>
     <div class="fb" id="f-india" onclick="setF('india',this)">India</div>
     <div class="fb" id="f-hiring" onclick="setF('hiring',this)">Hiring</div>
+    <div class="fb" id="f-meeting" onclick="setF('meeting',this)">Meeting Booked</div>
+    <div class="fb" id="f-s0" onclick="setF('s0',this)">S0</div>
+    <div class="fb" id="f-s1" onclick="setF('s1',this)">S1</div>
+    <div class="fb" id="f-s2" onclick="setF('s2',this)">S2</div>
+    <div class="fb" id="f-s3" onclick="setF('s3',this)">S3</div>
+    <div class="fb" id="f-s4" onclick="setF('s4',this)">S4</div>
+    <div class="fb" id="f-closed" onclick="setF('closed',this)">Closed</div>
+    <div class="fb" id="f-irrelevant" onclick="setF('irrelevant',this)">Not Relevant</div>
   </div>
 
   <div class="ts">
@@ -315,6 +351,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
           <th class="s" onclick="sortBy('name')">Lead</th>
           <th class="s" onclick="sortBy('score')">Score ↓</th>
           <th>Label</th>
+          <th>Stage</th>
           <th>Category</th>
           <th>Role</th>
           <th>Geo</th>
@@ -345,10 +382,42 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div><div class="dpl">AI Reasoning</div><div class="ain" id="dp-reason">—</div></div>
     <div><div class="dpl">Matched Keywords</div><div class="kws" id="dp-kws"></div></div>
     <div><div class="dpl">Signal Details</div><div id="dp-rows"></div></div>
-    <div>
-      <button class="rbtn" onclick="markReach()">✓ Mark as Reached Out</button>
-      <button class="cbtn" onclick="copyMsg()">Copy Outreach Message</button>
+
+    <!-- Editable Fields -->
+    <div class="dp-edit-sec">
+      <div class="dp-edit-label">Contact Info (Manual)</div>
+      <div class="dp-row">
+        <input class="dp-input" id="dp-email-input" type="email" placeholder="Email address…">
+      </div>
+      <div class="dp-row">
+        <input class="dp-input" id="dp-phone-input" type="tel" placeholder="Phone / WhatsApp number…">
+      </div>
     </div>
+
+    <div class="dp-edit-sec">
+      <div class="dp-edit-label">Lead Stage</div>
+      <select class="dp-select" id="dp-stage-select">
+        <option value="">— Not Set —</option>
+        <option value="Meeting Booked">📅 Meeting Booked</option>
+        <option value="S0 - Connection in Progress">S0 · Connection in Progress</option>
+        <option value="S1 - Connected RPC">S1 · Connected RPC</option>
+        <option value="S2 - Received Requirement">S2 · Received Requirement</option>
+        <option value="S3 - Proposal / EoI / Interviews">S3 · Proposal / EoI / Interviews</option>
+        <option value="S4 - Contract (AWDS) / RAPYD">S4 · Contract (AWDS) / RAPYD</option>
+        <option value="Requirement closed">🔒 Requirement Closed</option>
+        <option value="Not Relevant">❌ Not Relevant</option>
+        <option value="Unable to connect">⚠ Unable to Connect</option>
+      </select>
+    </div>
+
+    <div class="dp-edit-sec">
+      <div class="dp-edit-label">Remarks / Notes</div>
+      <textarea class="dp-textarea" id="dp-remarks-input" placeholder="Add notes, context, or follow-up reminders…"></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveLeadEdits()">💾 Save Changes</button>
+    <button class="rbtn" onclick="markReach()">✓ Mark as Reached Out</button>
+    <button class="cbtn" onclick="copyMsg()">Copy Outreach Message</button>
   </div>
 </div>
 
@@ -915,7 +984,7 @@ Return ONLY this JSON, no markdown, no explanation:
       score: parsed.qualification_score||0,
       intent: parseFloat(((parsed.qualification_score||0)/10).toFixed(2)),
       signals: detectSignals(post),
-      label: parsed.qualification_label||'Cold',
+      label: ['Hot','Warm','Cold'].includes(parsed.qualification_label) ? parsed.qualification_label : (parsed.qualification_score>=7?'Hot':parsed.qualification_score>=4?'Warm':'Cold'),
       category: parsed.lead_category||category,
       hiringType: parsed.hiring_type||hiringType,
       role: parsed.role_hiring_for||extractRole(post),
@@ -1112,10 +1181,8 @@ async function runPipeline() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
 
-    // Save to Supabase (only for live scans, not demo)
-    if (!isDemo) {
-      await saveLeadsToSupabase(allLeads);
-    }
+    // Save to Supabase (live scans only)
+    if (!isDemo) { await saveLeadsToSupabase(allLeads); }
 
     setTimeout(() => {
       document.getElementById('pipe-mb').classList.remove('show');
@@ -1162,6 +1229,14 @@ function doFilter() {
     else if (curFilter==='remote') p = (l.signals||[]).includes('remote');
     else if (curFilter==='india') p = (l.signals||[]).includes('india');
     else if (curFilter==='hiring') p = (l.signals||[]).includes('hiring');
+    else if (curFilter==='meeting') p = (l.leadStage||'').includes('Meeting');
+    else if (curFilter==='s0') p = (l.leadStage||'').includes('S0');
+    else if (curFilter==='s1') p = (l.leadStage||'').includes('S1');
+    else if (curFilter==='s2') p = (l.leadStage||'').includes('S2');
+    else if (curFilter==='s3') p = (l.leadStage||'').includes('S3');
+    else if (curFilter==='s4') p = (l.leadStage||'').includes('S4');
+    else if (curFilter==='closed') p = (l.leadStage||'').toLowerCase().includes('closed');
+    else if (curFilter==='irrelevant') p = (l.leadStage||'').includes('Not Relevant');
     if (q) p = p && (
       l.name.toLowerCase().includes(q)||
       l.company.toLowerCase().includes(q)||
@@ -1195,11 +1270,27 @@ function labelIcon(label) {
   return '🔵';
 }
 
+function stageBadge(stage) {
+  if (!stage) return '<span style="color:var(--text3);font-size:10px">—</span>';
+  let cls = 'stage-irrelevant';
+  if (stage.includes('Meeting')) cls = 'stage-meeting';
+  else if (stage.includes('S0')) cls = 'stage-s0';
+  else if (stage.includes('S1')) cls = 'stage-s1';
+  else if (stage.includes('S2')) cls = 'stage-s2';
+  else if (stage.includes('S3')) cls = 'stage-s3';
+  else if (stage.includes('S4')) cls = 'stage-s4';
+  else if (stage.includes('closed')) cls = 'stage-closed';
+  else if (stage.includes('Not Relevant')) cls = 'stage-irrelevant';
+  else if (stage.includes('Unable')) cls = 'stage-unable';
+  const short = stage.replace(' - ',' · ').replace('Requirement closed','Closed').replace('Not Relevant','Not Relevant').replace('Unable to connect','Unable');
+  return `<span class="stage-badge ${cls}">${esc(short)}</span>`;
+}
+
 function renderTbl() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
     return;
   }
   filtered.forEach(lead => {
@@ -1220,6 +1311,7 @@ function renderTbl() {
       <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
       <td><span class="sp ${sc}">${lead.score}/10</span></td>
       <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
+      <td>${stageBadge(lead.leadStage)}</td>
       <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
       <td><span style="font-size:11.5px;color:var(--text2)">${esc(lead.role||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${esc(lead.geo||'—')}</span></td>
@@ -1251,14 +1343,17 @@ function openDP(lead) {
     <div class="dr"><span class="dl">Role Hiring For</span><span class="dv">${esc(lead.role||'—')}</span></div>
     <div class="dr"><span class="dl">Hiring Type</span><span class="dv">${esc(lead.hiringType||'—')}</span></div>
     <div class="dr"><span class="dl">Client Geo</span><span class="dv">${esc(lead.geo||'—')}</span></div>
-    <div class="dr"><span class="dl">Email</span><span class="dv">${lead.email?`<a class="dpurl" href="mailto:${lead.email}">${esc(lead.email)}</a>`:'—'}</span></div>
-    <div class="dr"><span class="dl">Phone</span><span class="dv">${esc(lead.phone||'—')}</span></div>
     <div class="dr"><span class="dl">Source</span><span class="dv">LinkedIn${cfg.apifyToken?' (Live)':' (Demo)'}</span></div>
     <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
     <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
     <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
     <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
   `;
+  // Populate editable fields
+  document.getElementById('dp-email-input').value = lead.email || '';
+  document.getElementById('dp-phone-input').value = lead.phone || '';
+  document.getElementById('dp-stage-select').value = lead.leadStage || '';
+  document.getElementById('dp-remarks-input').value = lead.remarks || '';
   document.getElementById('dpanel').classList.add('show');
 }
 function closeDP() { document.getElementById('dpanel').classList.remove('show'); activeDetail = null; }
@@ -1276,73 +1371,100 @@ function copyMsg() {
 }
 
 // ── Supabase Client ──
+// ⚠ IMPORTANT: This anon key is public. Make sure Row Level Security (RLS)
+// is ENABLED on the 'leads' table in Supabase → Authentication → Policies.
+// Allow anon: SELECT, INSERT, UPDATE. Without RLS anyone can read your data.
 const _sb = supabase.createClient(
   'https://okiybwzeaesnsdjfqjpp.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9raXlid3plYWVzbnNkamZxanBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NDY3MTAsImV4cCI6MjA5MDQyMjcxMH0.yuWTtJZlcSQrHuUnFUEJr3OYZCGHfV42CU6--it4mw0'
 )
 
-// ── Save leads to Supabase ──
+// ── Save leads to Supabase after scan ──
 async function saveLeadsToSupabase(leads) {
   if (!leads || leads.length === 0) return;
   const rows = leads.map(l => ({
+    // ── Core fields (lowercase columns) ──
     name: l.name || null,
     title: l.headline || null,
     company: l.compName || l.company || null,
     linkedin_url: l.profileUrl || null,
     post_url: l.postUrl || null,
-    ai_score: l.score || null,
-    hiring_type: l.hiringType || null,
+    // ── Scoring (lowercase columns) ──
+    ai_score: l.score ? Math.round(l.score) : null,
     category: l.category || null,
     hiring_for: l.role || null,
+    hiring_type: l.hiringType || null,
     client_geo: l.geo || null,
+    source: 'LinkedIn',
+    // ── Contact ──
     email: l.email || null,
     phone: l.phone || null,
-    source: 'LinkedIn (Live)',
+    // ── Post info ──
     posted_at: l.created || null,
-    engagement: `${l.likes||0} likes · ${l.comments||0} comments`
+    engagement: `${l.likes||0} likes · ${l.comments||0} comments`,
+    // ── Lead tracking ──
+    lead_stage: l.leadStage || null,
+    remarks: l.remarks || null,
+    // ── Qualification label ──
+    qualification_label: l.label || null,
+    qualification_reason: l.reasoning || null
   }));
-  const { error } = await _sb.from('leads').insert(rows);
+  const { error } = await _sb.from('leads').upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false });
   if (error) {
-    console.error('Supabase save error:', error);
-    toast('Failed to save leads to DB', 'e');
+    console.error('Supabase save error:', error.message, error.details);
+    toast('DB save failed: ' + (error.message||'check console'), 'e');
   } else {
     toast(`${rows.length} leads saved to database ✓`, 'ok');
   }
 }
 
-// ── Load leads from Supabase ──
+// ── Load leads from Supabase on page open ──
 async function loadLeadsFromSupabase() {
   try {
-    const { data, error } = await _sb
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
-    if (error || !data || data.length === 0) return;
+    // No limit — load ALL leads sorted newest first
+    const { data, error } = await _sb.from('leads').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Supabase load error:', error.message); return; }
+    if (!data || data.length === 0) return;
     allLeads = data.map((l, i) => ({
       id: i,
+      _dbid: l.id,
+      // ── Identity ──
       name: l.name || '—',
       headline: l.title || '—',
       company: l.company || '—',
       compName: l.company || '—',
-      profileUrl: l.linkedin_url || '',
-      postUrl: l.post_url || '',
+      profileUrl: l.linkedin_url || l.Profile || '',
+      postUrl: l.post_url || l['Post URL'] || '',
       post: '',
-      score: l.ai_score || 0,
-      label: (l.ai_score||0) >= 7 ? 'Hot' : (l.ai_score||0) >= 4 ? 'Warm' : 'Cold',
-      hiringType: l.hiring_type || '—',
-      category: l.category || '—',
-      role: l.hiring_for || '—',
-      geo: l.client_geo || '—',
-      email: l.email || '',
-      phone: l.phone || '',
+      // ── Scoring ──
+      score: parseFloat(l.ai_score || l.Qualification || 0),
+      label: (() => {
+        const s = parseFloat(l.ai_score || l.Qualification || 0);
+        if (l.qualification_label && ['Hot','Warm','Cold'].includes(l.qualification_label)) return l.qualification_label;
+        return s >= 7 ? 'Hot' : s >= 4 ? 'Warm' : 'Cold';
+      })(),
+      // ── Lead details ──
+      category: l.category || l.Category || '—',
+      role: l.hiring_for || l['Role Hiring'] || '—',
+      hiringType: l.hiring_type || l['Hiring Type'] || '—',
+      geo: l.client_geo || l['Client Geo'] || '—',
+      // ── Contact ──
+      email: l.email || l.Email || '',
+      phone: l.phone || (l.Phone ? String(l.Phone) : ''),
+      // ── Meta ──
       source: l.source || 'LinkedIn',
-      created: l.posted_at || '—',
-      likes: 0,
-      comments: 0,
+      created: l.posted_at || l.Posted || '—',
+      reasoning: l.qualification_reason || '',
+      // ── UI ──
+      avatar: ini(l.name || '—'),
+      color: avc(i),
+      likes: 0, comments: 0,
       signals: [],
       keywords: [],
-      status: (l.ai_score||0) >= 7 ? 'ready' : 'new'
+      // ── CRM ──
+      status: parseFloat(l.ai_score || l.Qualification || 0) >= 7 ? 'ready' : 'new',
+      leadStage: l.lead_stage || '',
+      remarks: l.remarks || ''
     }));
     doFilter();
     updStats(allLeads.length, allLeads.length, false);
@@ -1351,9 +1473,35 @@ async function loadLeadsFromSupabase() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
     toast(`${data.length} leads loaded from database ✓`, 'ok');
-  } catch(e) {
-    console.error('Supabase load error:', e);
-  }
+  } catch(e) { console.error('Supabase load error:', e); }
+}
+
+// ── Save manual edits (email, phone, stage, remarks) ──
+async function saveLeadEdits() {
+  if (!activeDetail) return;
+  const email = document.getElementById('dp-email-input').value.trim();
+  const phone = document.getElementById('dp-phone-input').value.trim();
+  const stage = document.getElementById('dp-stage-select').value;
+  const remarks = document.getElementById('dp-remarks-input').value.trim();
+
+  // Update in-memory
+  activeDetail.email = email;
+  activeDetail.phone = phone;
+  activeDetail.leadStage = stage;
+  activeDetail.remarks = remarks;
+
+  // Update in Supabase by matching name + linkedin_url
+  const { error } = await _sb.from('leads')
+    .update({
+      email: email || null,
+      phone: phone || null,
+      lead_stage: stage || null,
+      remarks: remarks || null
+    })
+    .eq('id', activeDetail._dbid);
+
+  if (error) { toast('Save failed — check console', 'e'); console.error(error); }
+  else { toast('Lead updated ✓', 'ok'); doFilter(); }
 }
 
 // ── Toast ──
