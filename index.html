@@ -229,6 +229,13 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .stage-irrelevant{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 .stage-unable{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 
+/* ── Posted time badge ── */
+.pt-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:600;font-family:var(--mono);white-space:nowrap}
+.pt-fresh{background:rgba(13,158,114,.1);color:var(--green);border:1px solid rgba(13,158,114,.2)}
+.pt-recent{background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.2)}
+.pt-old{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
+.pt-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
 /* ── Toast ── */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:11px 16px;font-size:12.5px;color:var(--text);display:flex;align-items:center;gap:9px;z-index:300;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 24px rgba(0,0,0,.12)}
 .toast.show{transform:translateY(0);opacity:1}
@@ -348,6 +355,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <thead>
         <tr>
           <th style="width:28px"><input type="checkbox" style="accent-color:var(--accent)" onchange="chkAll(this)"></th>
+          <th class="s" onclick="sortBy('fresh')" title="Sort by freshness">Posted ↓</th>
           <th class="s" onclick="sortBy('name')">Lead</th>
           <th class="s" onclick="sortBy('score')">Score ↓</th>
           <th>Label</th>
@@ -1308,12 +1316,54 @@ function doFilter() {
     );
     return p;
   });
+  // Default sort: Hot first, then freshest within each label
+  filtered.sort((a, b) => {
+    const lo = { 'Hot': 0, 'Warm': 1, 'Cold': 2 };
+    const la = lo[a.label] ?? 2, lb = lo[b.label] ?? 2;
+    if (la !== lb) return la - lb;
+    return parsePostedTime(a.created) - parsePostedTime(b.created);
+  });
   renderTbl();
 }
-function sortBy(f) {
   if (f==='score') filtered.sort((a,b)=>b.score-a.score);
+  else if (f==='fresh') filtered.sort((a,b)=>parsePostedTime(a.created)-parsePostedTime(b.created));
   else filtered.sort((a,b)=>a.name.localeCompare(b.name));
   renderTbl();
+}
+
+// ── Parse "posted ago" text → minutes (for sorting) ──
+function parsePostedTime(str) {
+  if (!str || str === '—') return 99999;
+  const s = str.toLowerCase();
+  const num = parseFloat(s);
+  if (isNaN(num)) {
+    if (s.includes('just') || s.includes('now') || s.includes('moment')) return 1;
+    if (s.includes('second')) return 1;
+    return 99999;
+  }
+  if (s.includes('min')) return num;
+  if (s.includes('hour') || s.includes('hr')) return num * 60;
+  if (s.includes('day')) return num * 1440;
+  if (s.includes('week')) return num * 10080;
+  if (s.includes('month')) return num * 43200;
+  return 99999;
+}
+
+// ── Color-coded posted time badge ──
+function postedBadge(str) {
+  if (!str || str === '—') return `<span style="color:var(--text3);font-size:10.5px;font-family:var(--mono)">—</span>`;
+  const mins = parsePostedTime(str);
+  let cls = 'pt-old';
+  if (mins <= 120) cls = 'pt-fresh';
+  else if (mins <= 1440) cls = 'pt-recent';
+  // Shorten display text
+  const display = str.replace(' minutes ago','m').replace(' minute ago','m')
+    .replace(' hours ago','h').replace(' hour ago','h')
+    .replace(' days ago','d').replace(' day ago','d')
+    .replace(' weeks ago','w').replace(' week ago','w')
+    .replace(' months ago','mo').replace(' month ago','mo')
+    .replace(' ago','');
+  return `<span class="pt-badge ${cls}"><span class="pt-dot"></span>${esc(display)}</span>`;
 }
 function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
 
@@ -1349,7 +1399,7 @@ function renderTbl() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
     return;
   }
   filtered.forEach(lead => {
@@ -1367,6 +1417,7 @@ function renderTbl() {
     tr.onclick = () => openDP(lead);
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
+      <td style="white-space:nowrap">${postedBadge(lead.created)}</td>
       <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
       <td><span class="sp ${sc}">${lead.score}/10</span></td>
       <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
