@@ -1148,7 +1148,12 @@ function mapItem(item, idx) {
   const post = item.text || item.postText || item.content || item.commentary || item.description || '';
   const postUrl = item.postUrl || item.url || item.shareUrl || item.linkedinUrl || item.postLink || '';
   const profileUrl = author.linkedinUrl || author.profileUrl || author.url || item.authorUrl || item.authorProfileUrl || '';
-  const postedAgo = item.postedAt?.postedAgoText || item.postedAt?.postedAgoShort || item.postedDate || item.date || item.publishedAt || '—';
+  const postedRaw = item.postedAt?.postedAgoText || item.postedAt?.postedAgoShort || item.postedDate || item.date || item.publishedAt || '—';
+  // Extract only the time portion e.g. "22 minutes ago" from "22 minutes ago • Visible to anyone..."
+  const postedAgo = (() => {
+    const m = postedRaw.match(/(\d+\s*(?:second|minute|hour|day|week|month)s?\s*ago)/i);
+    return m ? m[1] : postedRaw.split('•')[0].trim() || '—';
+  })();
   return {
     id: idx, name, headline, company, post, postUrl, profileUrl,
     likes: item.numLikes || item.likesCount || 0,
@@ -1325,6 +1330,7 @@ function doFilter() {
   });
   renderTbl();
 }
+function sortBy(f) {
   if (f==='score') filtered.sort((a,b)=>b.score-a.score);
   else if (f==='fresh') filtered.sort((a,b)=>parsePostedTime(a.created)-parsePostedTime(b.created));
   else filtered.sort((a,b)=>a.name.localeCompare(b.name));
@@ -1352,17 +1358,34 @@ function parsePostedTime(str) {
 // ── Color-coded posted time badge ──
 function postedBadge(str) {
   if (!str || str === '—') return `<span style="color:var(--text3);font-size:10.5px;font-family:var(--mono)">—</span>`;
-  const mins = parsePostedTime(str);
+  
+  // Extract only the time part — strip "Visible to anyone..." and similar noise
+  const timeMatch = str.match(/(\d+\s*(?:second|sec|minute|min|hour|hr|day|week|month|mo)s?\s*ago)/i)
+    || str.match(/(\d+[mhdw])\b/i)
+    || str.match(/(just now|moments? ago)/i);
+  
+  const raw = timeMatch ? timeMatch[1] : str.split('•')[0].trim();
+  const mins = parsePostedTime(raw || str);
+  
   let cls = 'pt-old';
   if (mins <= 120) cls = 'pt-fresh';
   else if (mins <= 1440) cls = 'pt-recent';
-  // Shorten display text
-  const display = str.replace(' minutes ago','m').replace(' minute ago','m')
-    .replace(' hours ago','h').replace(' hour ago','h')
-    .replace(' days ago','d').replace(' day ago','d')
-    .replace(' weeks ago','w').replace(' week ago','w')
-    .replace(' months ago','mo').replace(' month ago','mo')
-    .replace(' ago','');
+
+  // Shorten to compact format
+  let display = raw || str;
+  display = display
+    .replace(/seconds? ago/i, 's ago')
+    .replace(/minutes? ago/i, 'm ago')
+    .replace(/hours? ago/i, 'h ago')
+    .replace(/days? ago/i, 'd ago')
+    .replace(/weeks? ago/i, 'w ago')
+    .replace(/months? ago/i, 'mo ago')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Hard cap display length
+  if (display.length > 12) display = display.slice(0, 12);
+
   return `<span class="pt-badge ${cls}"><span class="pt-dot"></span>${esc(display)}</span>`;
 }
 function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
