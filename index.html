@@ -355,7 +355,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <thead>
         <tr>
           <th style="width:28px"><input type="checkbox" style="accent-color:var(--accent)" onchange="chkAll(this)"></th>
-          <th class="s" onclick="sortBy('fresh')" title="Sort by freshness">Posted ↓</th>
+          <th class="s" onclick="sortBy('fresh')" style="white-space:nowrap">Posted ↓</th>
           <th class="s" onclick="sortBy('name')">Lead</th>
           <th class="s" onclick="sortBy('score')">Score ↓</th>
           <th>Label</th>
@@ -1149,16 +1149,18 @@ function mapItem(item, idx) {
   const postUrl = item.postUrl || item.url || item.shareUrl || item.linkedinUrl || item.postLink || '';
   const profileUrl = author.linkedinUrl || author.profileUrl || author.url || item.authorUrl || item.authorProfileUrl || '';
   const postedRaw = item.postedAt?.postedAgoText || item.postedAt?.postedAgoShort || item.postedDate || item.date || item.publishedAt || '—';
-  // Extract only the time portion e.g. "22 minutes ago" from "22 minutes ago • Visible to anyone..."
-  const postedAgo = (() => {
+  // Extract only "X minutes/hours/days ago" — strip LinkedIn noise like "Visible to anyone..."
+  const postedClean = (() => {
     const m = postedRaw.match(/(\d+\s*(?:second|minute|hour|day|week|month)s?\s*ago)/i);
-    return m ? m[1] : postedRaw.split('•')[0].trim() || '—';
+    if (m) return m[1];
+    const p = postedRaw.split('•')[0].trim();
+    return p || '—';
   })();
   return {
     id: idx, name, headline, company, post, postUrl, profileUrl,
     likes: item.numLikes || item.likesCount || 0,
     comments: item.numComments || item.commentsCount || 0,
-    created: postedAgo,
+    created: postedClean,
     avatar: ini(name), color: avc(idx),
     score: 0, intent: 0, signals: [], status: 'new', reasoning: '', keywords: []
   };
@@ -1323,8 +1325,8 @@ function doFilter() {
   });
   // Default sort: Hot first, then freshest within each label
   filtered.sort((a, b) => {
-    const lo = { 'Hot': 0, 'Warm': 1, 'Cold': 2 };
-    const la = lo[a.label] ?? 2, lb = lo[b.label] ?? 2;
+    const lo = {'Hot':0,'Warm':1,'Cold':2};
+    const la = lo[a.label]??2, lb = lo[b.label]??2;
     if (la !== lb) return la - lb;
     return parsePostedTime(a.created) - parsePostedTime(b.created);
   });
@@ -1336,59 +1338,38 @@ function sortBy(f) {
   else filtered.sort((a,b)=>a.name.localeCompare(b.name));
   renderTbl();
 }
+function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
 
-// ── Parse "posted ago" text → minutes (for sorting) ──
+// ── Parse posted ago text → minutes ──
 function parsePostedTime(str) {
-  if (!str || str === '—') return 99999;
+  if (!str || str==='—') return 99999;
   const s = str.toLowerCase();
-  const num = parseFloat(s);
-  if (isNaN(num)) {
-    if (s.includes('just') || s.includes('now') || s.includes('moment')) return 1;
-    if (s.includes('second')) return 1;
-    return 99999;
-  }
-  if (s.includes('min')) return num;
-  if (s.includes('hour') || s.includes('hr')) return num * 60;
-  if (s.includes('day')) return num * 1440;
-  if (s.includes('week')) return num * 10080;
-  if (s.includes('month')) return num * 43200;
+  if (/just now|moment|second/.test(s)) return 1;
+  const m = s.match(/(\d+)\s*(min|hour|hr|day|week|month)/);
+  if (!m) return 99999;
+  const n = parseInt(m[1]);
+  if (m[2].startsWith('min')) return n;
+  if (m[2].startsWith('hour')||m[2]==='hr') return n*60;
+  if (m[2].startsWith('day')) return n*1440;
+  if (m[2].startsWith('week')) return n*10080;
+  if (m[2].startsWith('month')) return n*43200;
   return 99999;
 }
 
-// ── Color-coded posted time badge ──
+// ── Posted time badge ──
 function postedBadge(str) {
-  if (!str || str === '—') return `<span style="color:var(--text3);font-size:10.5px;font-family:var(--mono)">—</span>`;
-  
-  // Extract only the time part — strip "Visible to anyone..." and similar noise
-  const timeMatch = str.match(/(\d+\s*(?:second|sec|minute|min|hour|hr|day|week|month|mo)s?\s*ago)/i)
-    || str.match(/(\d+[mhdw])\b/i)
-    || str.match(/(just now|moments? ago)/i);
-  
-  const raw = timeMatch ? timeMatch[1] : str.split('•')[0].trim();
-  const mins = parsePostedTime(raw || str);
-  
-  let cls = 'pt-old';
-  if (mins <= 120) cls = 'pt-fresh';
-  else if (mins <= 1440) cls = 'pt-recent';
-
-  // Shorten to compact format
-  let display = raw || str;
-  display = display
-    .replace(/seconds? ago/i, 's ago')
-    .replace(/minutes? ago/i, 'm ago')
-    .replace(/hours? ago/i, 'h ago')
-    .replace(/days? ago/i, 'd ago')
-    .replace(/weeks? ago/i, 'w ago')
-    .replace(/months? ago/i, 'mo ago')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  // Hard cap display length
-  if (display.length > 12) display = display.slice(0, 12);
-
-  return `<span class="pt-badge ${cls}"><span class="pt-dot"></span>${esc(display)}</span>`;
+  if (!str || str==='—') return `<span style="color:var(--text3);font-size:10.5px;font-family:var(--mono)">—</span>`;
+  const mins = parsePostedTime(str);
+  const cls = mins<=120 ? 'pt-fresh' : mins<=1440 ? 'pt-recent' : 'pt-old';
+  // Compact display
+  let d = str.toLowerCase()
+    .replace(/minutes? ago/,'m ago').replace(/hours? ago/,'h ago')
+    .replace(/days? ago/,'d ago').replace(/weeks? ago/,'w ago')
+    .replace(/months? ago/,'mo ago').replace(/seconds? ago/,'s ago')
+    .replace('just now','now').trim();
+  if (d.length > 10) d = d.slice(0,10);
+  return `<span class="pt-badge ${cls}"><span class="pt-dot"></span>${esc(d)}</span>`;
 }
-function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
 
 // ── Render ──
 function labelClass(label) {
