@@ -229,6 +229,13 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .stage-irrelevant{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 .stage-unable{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 
+/* ── Posted time badge ── */
+.pt-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:600;font-family:var(--mono);white-space:nowrap}
+.pt-fresh{background:rgba(13,158,114,.1);color:var(--green);border:1px solid rgba(13,158,114,.2)}
+.pt-recent{background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.2)}
+.pt-old{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
+.pt-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
 /* ── Toast ── */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:11px 16px;font-size:12.5px;color:var(--text);display:flex;align-items:center;gap:9px;z-index:300;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 24px rgba(0,0,0,.12)}
 .toast.show{transform:translateY(0);opacity:1}
@@ -348,6 +355,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <thead>
         <tr>
           <th style="width:28px"><input type="checkbox" style="accent-color:var(--accent)" onchange="chkAll(this)"></th>
+          <th class="s" onclick="sortBy('fresh')" style="white-space:nowrap">Posted ↓</th>
           <th class="s" onclick="sortBy('name')">Lead</th>
           <th class="s" onclick="sortBy('score')">Score ↓</th>
           <th>Label</th>
@@ -1140,12 +1148,19 @@ function mapItem(item, idx) {
   const post = item.text || item.postText || item.content || item.commentary || item.description || '';
   const postUrl = item.postUrl || item.url || item.shareUrl || item.linkedinUrl || item.postLink || '';
   const profileUrl = author.linkedinUrl || author.profileUrl || author.url || item.authorUrl || item.authorProfileUrl || '';
-  const postedAgo = item.postedAt?.postedAgoText || item.postedAt?.postedAgoShort || item.postedDate || item.date || item.publishedAt || '—';
+  const postedRaw = item.postedAt?.postedAgoText || item.postedAt?.postedAgoShort || item.postedDate || item.date || item.publishedAt || '—';
+  // Extract only "X minutes/hours/days ago" — strip LinkedIn noise like "Visible to anyone..."
+  const postedClean = (() => {
+    const m = postedRaw.match(/(\d+\s*(?:second|minute|hour|day|week|month)s?\s*ago)/i);
+    if (m) return m[1];
+    const p = postedRaw.split('•')[0].trim();
+    return p || '—';
+  })();
   return {
     id: idx, name, headline, company, post, postUrl, profileUrl,
     likes: item.numLikes || item.likesCount || 0,
     comments: item.numComments || item.commentsCount || 0,
-    created: postedAgo,
+    created: postedClean,
     avatar: ini(name), color: avc(idx),
     score: 0, intent: 0, signals: [], status: 'new', reasoning: '', keywords: []
   };
@@ -1308,14 +1323,53 @@ function doFilter() {
     );
     return p;
   });
+  // Default sort: Hot first, then freshest within each label
+  filtered.sort((a, b) => {
+    const lo = {'Hot':0,'Warm':1,'Cold':2};
+    const la = lo[a.label]??2, lb = lo[b.label]??2;
+    if (la !== lb) return la - lb;
+    return parsePostedTime(a.created) - parsePostedTime(b.created);
+  });
   renderTbl();
 }
 function sortBy(f) {
   if (f==='score') filtered.sort((a,b)=>b.score-a.score);
+  else if (f==='fresh') filtered.sort((a,b)=>parsePostedTime(a.created)-parsePostedTime(b.created));
   else filtered.sort((a,b)=>a.name.localeCompare(b.name));
   renderTbl();
 }
 function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
+
+// ── Parse posted ago text → minutes ──
+function parsePostedTime(str) {
+  if (!str || str==='—') return 99999;
+  const s = str.toLowerCase();
+  if (/just now|moment|second/.test(s)) return 1;
+  const m = s.match(/(\d+)\s*(min|hour|hr|day|week|month)/);
+  if (!m) return 99999;
+  const n = parseInt(m[1]);
+  if (m[2].startsWith('min')) return n;
+  if (m[2].startsWith('hour')||m[2]==='hr') return n*60;
+  if (m[2].startsWith('day')) return n*1440;
+  if (m[2].startsWith('week')) return n*10080;
+  if (m[2].startsWith('month')) return n*43200;
+  return 99999;
+}
+
+// ── Posted time badge ──
+function postedBadge(str) {
+  if (!str || str==='—') return `<span style="color:var(--text3);font-size:10.5px;font-family:var(--mono)">—</span>`;
+  const mins = parsePostedTime(str);
+  const cls = mins<=120 ? 'pt-fresh' : mins<=1440 ? 'pt-recent' : 'pt-old';
+  // Compact display
+  let d = str.toLowerCase()
+    .replace(/minutes? ago/,'m ago').replace(/hours? ago/,'h ago')
+    .replace(/days? ago/,'d ago').replace(/weeks? ago/,'w ago')
+    .replace(/months? ago/,'mo ago').replace(/seconds? ago/,'s ago')
+    .replace('just now','now').trim();
+  if (d.length > 10) d = d.slice(0,10);
+  return `<span class="pt-badge ${cls}"><span class="pt-dot"></span>${esc(d)}</span>`;
+}
 
 // ── Render ──
 function labelClass(label) {
@@ -1349,7 +1403,7 @@ function renderTbl() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
     return;
   }
   filtered.forEach(lead => {
@@ -1367,6 +1421,7 @@ function renderTbl() {
     tr.onclick = () => openDP(lead);
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
+      <td style="white-space:nowrap">${postedBadge(lead.created)}</td>
       <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
       <td><span class="sp ${sc}">${lead.score}/10</span></td>
       <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
@@ -1441,7 +1496,6 @@ const _sb = supabase.createClient(
 // ── Save leads to Supabase after scan ──
 async function saveLeadsToSupabase(leads) {
   if (!leads || leads.length === 0) return;
-  const nowISO = new Date().toISOString();
   const rows = leads.map(l => ({
     // ── Core fields (lowercase columns) ──
     name: l.name || null,
@@ -1467,9 +1521,7 @@ async function saveLeadsToSupabase(leads) {
     remarks: l.remarks || null,
     // ── Qualification label ──
     qualification_label: l.label || null,
-    qualification_reason: l.reasoning || null,
-    // ── Track when this lead last appeared in a scan ──
-    scanned_at: nowISO
+    qualification_reason: l.reasoning || null
   }));
   const { error } = await _sb.from('leads').upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false });
   if (error) {
@@ -1483,8 +1535,8 @@ async function saveLeadsToSupabase(leads) {
 // ── Load leads from Supabase on page open ──
 async function loadLeadsFromSupabase() {
   try {
-    // Sort by scanned_at — latest scan batch always comes first
-    const { data, error } = await _sb.from('leads').select('*').order('scanned_at', { ascending: false });
+    // No limit — load ALL leads sorted newest first
+    const { data, error } = await _sb.from('leads').select('*').order('created_at', { ascending: false });
     if (error) { console.error('Supabase load error:', error.message); return; }
     if (!data || data.length === 0) return;
     allLeads = data.map((l, i) => ({
