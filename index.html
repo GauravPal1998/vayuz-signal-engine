@@ -742,31 +742,33 @@ function resetPipe() {
 function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
 
 // ── VAYUZ Lead Qualification Engine ──
-// Gate 1: Fast rule filter — block obvious junk before Gemini
+
+// Hard disqualify — always runs, even during fallback
+function isHardDisqualified(post, headline) {
+  const t = (post||'').toLowerCase();
+  const h = (headline||'').toLowerCase();
+  // Wrong audience — recruiter / HR in headline
+  if (/(recruiter|talent acquisition|headhunter|hr manager|hr executive|human resources|staffing consultant|placement officer|talent partner)/i.test(h)) return true;
+  // Wrong vendor type — no agency / equity / co-founder
+  if (/no agenc|agencies don|don.t contact agenc|no middleman|direct only|freelancer only|looking for a freelancer|equity.based|equity sharing|equity partner|sweat equity|co.founder|cofounder|technical co.founder|cto partner/i.test(t)) return true;
+  // Candidate looking for a job themselves
+  if (/open to work|looking for a job|looking for opportunities|my next role|available for hire|available for projects|my portfolio|apply now|apply here|submit your cv|submit your resume/i.test(t)) return true;
+  // Not a requirement post — just company content
+  if (/we are proud|we are excited|we are thrilled|check out our blog|check out our services|our latest blog|our latest article|we help companies|we assist businesses|offering services|our services include|our offerings include/i.test(t)) return true;
+  return false;
+}
+
+// Gate 1: Full filter — hard disqualify + keyword/intent check
 function rulePass(post, headline) {
+  // Hard disqualify always applies regardless of skipGate
+  if (isHardDisqualified(post, headline)) return false;
+  // Skip keyword/intent check if skipGate is on
   if (cfg.skipGate) return true;
   const t = (post||'').toLowerCase();
   const h = (headline||'').toLowerCase();
-
-  // ── Hard disqualify — wrong audience ──
-  const isRecruiter = /(recruiter|talent acquisition|headhunter|hr manager|hr executive|human resources|staffing consultant|placement officer|talent partner)/i.test(h);
-  if (isRecruiter) return false;
-
-  // ── Hard disqualify — no agency / freelancer only / equity ──
-  const noAgency = /no agenc|agencies don'?t|don'?t contact agenc|no middleman|direct only|freelancer only|looking for a freelancer|equity.based|equity sharing|equity partner|sweat equity|co.founder|cofounder|technical co.founder|cto partner/i.test(t);
-  if (noAgency) return false;
-
-  // ── Hard disqualify — candidate looking for job ──
-  const isCandidate = /open to work|looking for (a job|opportunities|my next role|new role|projects for myself)|available for (hire|projects|freelance)|i am (a developer|a designer|an engineer|available)|my portfolio|send me your (cv|resume)|apply (now|here|below)|submit your (cv|resume|application)/i.test(t);
-  if (isCandidate) return false;
-
-  // ── Hard disqualify — not a requirement post ──
-  const notRequirement = /we are (proud|excited|thrilled|happy|delighted)|check out our (blog|website|services|latest)|our (latest|new) (blog|article|post|case study)|we (help|assist|support|enable) (companies|businesses|startups)|offering (services|solutions|expertise)|our (services|offerings|solutions) include/i.test(t);
-  if (notRequirement) return false;
-
-  // ── Must have tech role OR hiring intent to proceed ──
-  const techRoles = /flutter|ios|android|react native|react|node|nodejs|\.net|java|python|devops|fullstack|full stack|frontend|backend|wordpress|woocommerce|mobile app|web app|software developer|software engineer|developer|programmer|tech lead/i;
-  const hiringIntent = /hiring|looking for|we need|seeking|urgent|join our team|open role|build a (team|product|app|platform)|outsource|tech partner|dedicated team|staff aug/i;
+  // Must have tech role OR hiring intent to proceed to Gemini
+  const techRoles = /flutter|ios|android|react native|react|nodejs|node\.js|\.net|java|python|devops|fullstack|full stack|frontend|backend|wordpress|woocommerce|mobile app|web app|software developer|software engineer|developer|programmer|tech lead/i;
+  const hiringIntent = /hiring|looking for|we need|seeking|urgent|join our team|open role|build a team|build a product|build an app|outsource|tech partner|dedicated team|staff aug/i;
   return techRoles.test(t) || hiringIntent.test(t) || techRoles.test(h);
 }
 
@@ -1188,11 +1190,11 @@ async function runPipeline() {
     } else {
       gated = mapped.filter(l => rulePass(l.post, l.headline));
       if (gated.length === 0 && mapped.length > 0) {
-        // Auto-fallback: gate matched nothing, send everything to Gemini
-        gated = mapped;
-        stgDone(1, 'Gate bypassed (' + mapped.length + ' posts) — no keyword match');
+        // Auto-fallback: keyword/intent matched nothing — but still apply hard disqualify
+        gated = mapped.filter(l => !isHardDisqualified(l.post, l.headline));
+        stgDone(1, 'Keyword gate bypassed — ' + gated.length + ' / ' + mapped.length + ' passed hard filter');
         const erEl = document.getElementById('er');
-        erEl.textContent = '⚠ Gate 1 matched 0 posts. Sending all ' + mapped.length + ' posts to Gemini. Enable "Skip Gate 1" in Configure to always do this.';
+        erEl.textContent = '⚠ No keyword matches found. Hard disqualify rules still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
         erEl.classList.add('show');
       } else {
         stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate');
@@ -1473,8 +1475,16 @@ async function saveLeadsToSupabase(leads) {
   }));
   const { error } = await _sb.from('leads').upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false });
   if (error) {
-    console.error('Supabase save error:', error.message, error.details);
-    toast('DB save failed: ' + (error.message||'check console'), 'e');
+    console.error('Supabase save error:', error.message, error.details, error.hint);
+    // Try without scanned_at in case column doesn't exist yet
+    if (error.message && error.message.includes('scanned_at')) {
+      const rowsNoScan = rows.map(r => { const {scanned_at, ...rest} = r; return rest; });
+      const { error: e2 } = await _sb.from('leads').upsert(rowsNoScan, { onConflict: 'post_url', ignoreDuplicates: false });
+      if (e2) { toast('DB save failed: ' + (e2.message||'check console'), 'e'); console.error('Retry error:', e2); }
+      else { toast(`${rows.length} leads saved (without scanned_at) ✓`, 'ok'); }
+    } else {
+      toast('DB save failed: ' + (error.message||'check console'), 'e');
+    }
   } else {
     toast(`${rows.length} leads saved to database ✓`, 'ok');
   }
@@ -1483,9 +1493,13 @@ async function saveLeadsToSupabase(leads) {
 // ── Load leads from Supabase on page open ──
 async function loadLeadsFromSupabase() {
   try {
-    // Sort by scanned_at — latest scan batch always comes first
-    const { data, error } = await _sb.from('leads').select('*').order('scanned_at', { ascending: false });
-    if (error) { console.error('Supabase load error:', error.message); return; }
+    // Sort by created_at — newest rows first (scanned_at may not exist yet)
+    const { data, error } = await _sb.from('leads').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('Supabase load error:', error.message, error.details, error.hint);
+      toast('Load failed: ' + (error.message||'check console'), 'e');
+      return;
+    }
     if (!data || data.length === 0) return;
     allLeads = data.map((l, i) => ({
       id: i,
@@ -1601,14 +1615,29 @@ function clearKey(inputId, badgeId) {
 // ── Init — load saved config on every page load ──
 loadFromStorage();
 refreshUI();
-// Load leads from Supabase on every page open
-loadLeadsFromSupabase();
-// Show topbar indicator if keys are loaded
-if (cfg.apifyToken || cfg.geminiKey) {
-  setTimeout(() => {
-    toast('API keys loaded from saved config ✓', 'ok');
-  }, 600);
+
+// Load leads from Supabase with connection test
+async function initLoad() {
+  try {
+    // Quick connection test first
+    const { error: pingErr } = await _sb.from('leads').select('id').limit(1);
+    if (pingErr) {
+      console.error('Supabase connection failed:', pingErr.message);
+      toast('Supabase connection failed — check console', 'e');
+      return;
+    }
+    // Connection OK — load all leads
+    await loadLeadsFromSupabase();
+  } catch(e) {
+    console.error('Init load error:', e);
+    toast('Failed to connect to database', 'e');
+  }
+  // Show key loaded toast
+  if (cfg.apifyToken || cfg.geminiKey) {
+    setTimeout(() => { toast('API keys loaded from saved config ✓', 'ok'); }, 1200);
+  }
 }
+initLoad();
 </script>
 </body>
 </html>
