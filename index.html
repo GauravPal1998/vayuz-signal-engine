@@ -61,7 +61,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .sc:last-child{border-right:none}
 .sn{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em;line-height:1}
 .sl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
-.sn.bl{color:var(--accent)}.sn.gr{color:var(--green)}.sn.am{color:var(--amber)}.sn.pu{color:var(--purple)}
+.ss{font-size:9px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.sn.bl{color:var(--accent)}.sn.gr{color:var(--green)}.sn.am{color:var(--amber)}.sn.pu{color:var(--purple)}.sn.rd{color:var(--red)}
+
+/* ── Pipeline row ── */
+.pipe-row{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.pc-wrap{padding:10px 18px;border-right:1px solid var(--border);cursor:pointer;transition:background .12s}
+.pc-wrap:last-child{border-right:none}
+.pc-wrap:hover{background:var(--bg3)}
+.pc-wrap.active{background:var(--adim)}
+.pc-stage{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:3px}
+.pc-num{font-size:20px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;line-height:1}
+.pc-desc{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* ── Health row ── */
+.health-row{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.hc{padding:9px 18px;border-right:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.hc:last-child{border-right:none}
+.hc-num{font-size:16px;font-weight:700;font-family:var(--mono);min-width:28px}
+.hc-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
 
 /* ── Controls ── */
 .ctrl{padding:10px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
@@ -303,12 +321,62 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
   </div>
 
+  <!-- Row 1: Today's scan -->
   <div class="stats">
-    <div class="sc"><div class="sn" id="s0">0</div><div class="sl">Posts Fetched</div></div>
-    <div class="sc"><div class="sn" style="color:var(--red)" id="s1">0</div><div class="sl">🔥 Hot Leads</div></div>
+    <div class="sc"><div class="sn bl" id="s0">0</div><div class="sl">Posts Fetched</div></div>
+    <div class="sc"><div class="sn rd" id="s1">0</div><div class="sl">🔥 Hot Leads</div></div>
     <div class="sc"><div class="sn am" id="s2">0</div><div class="sl">🟡 Warm Leads</div></div>
-    <div class="sc"><div class="sn am" id="s3">—</div><div class="sl">Avg Score</div></div>
+    <div class="sc">
+      <div class="sn gr" id="s3">—</div>
+      <div class="sl">SNR</div>
+      <div class="ss" id="s3-sub">actioned ÷ fetched</div>
+    </div>
     <div class="sc"><div class="sn pu" id="s4">—</div><div class="sl">Source</div></div>
+  </div>
+
+  <!-- Row 2: Live pipeline stages -->
+  <div class="pipe-row">
+    <div class="pc-wrap" onclick="setF('meeting',document.getElementById('f-meeting'))">
+      <div class="pc-stage">Meeting</div>
+      <div class="pc-num gr" id="p-meeting">0</div>
+      <div class="pc-desc">Booked</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s0',document.getElementById('f-s0'))">
+      <div class="pc-stage">S0</div>
+      <div class="pc-num bl" id="p-s0">0</div>
+      <div class="pc-desc">Connection in progress</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s1',document.getElementById('f-s1'))">
+      <div class="pc-stage">S1</div>
+      <div class="pc-num bl" id="p-s1">0</div>
+      <div class="pc-desc">Connected RPC</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s2',document.getElementById('f-s2'))">
+      <div class="pc-stage" style="color:var(--amber)">S2 ★</div>
+      <div class="pc-num am" id="p-s2">0</div>
+      <div class="pc-desc">Requirement received</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s3',document.getElementById('f-s3'))">
+      <div class="pc-stage">S3</div>
+      <div class="pc-num pu" id="p-s3">0</div>
+      <div class="pc-desc">Proposal / EoI</div>
+    </div>
+  </div>
+
+  <!-- Row 3: Pipeline health -->
+  <div class="health-row">
+    <div class="hc">
+      <div class="hc-num" style="color:var(--green)" id="h-s4">0</div>
+      <div class="hc-label">S4 Contract / AWDS</div>
+    </div>
+    <div class="hc">
+      <div class="hc-num" style="color:var(--amber)" id="h-enrichment">0</div>
+      <div class="hc-label">Needs enrichment</div>
+    </div>
+    <div class="hc">
+      <div class="hc-num" style="color:var(--text3)" id="h-noise">0</div>
+      <div class="hc-label">Not relevant / closed</div>
+    </div>
   </div>
 
   <div class="ctrl">
@@ -748,35 +816,100 @@ function resetPipe() {
 }
 function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
 
-// ── VAYUZ Lead Qualification Engine ──
+// ══════════════════════════════════════════════════════════
+// VAYUZ SIGNAL ENGINE v2.1 — Lead Qualification System
+// ══════════════════════════════════════════════════════════
 
-// Hard disqualify — always runs, even during fallback
-function isHardDisqualified(post, headline) {
+// ── Gate 1: Hard Disqualification (DQ-1 to DQ-11) ──
+// Any single DQ match = score 0, label Cold, no further processing
+// AGENCY_BUYER flag (set in Gate 0.5) skips DQ-1, DQ-2, DQ-6
+function isHardDisqualified(post, headline, company, isAgencyBuyer) {
   const t = (post||'').toLowerCase();
   const h = (headline||'').toLowerCase();
-  // Wrong audience — recruiter / HR in headline
-  if (/(recruiter|talent acquisition|headhunter|hr manager|hr executive|human resources|staffing consultant|placement officer|talent partner)/i.test(h)) return true;
-  // Wrong vendor type — no agency / equity / co-founder
-  if (/no agenc|agencies don|don.t contact agenc|no middleman|direct only|freelancer only|looking for a freelancer|equity.based|equity sharing|equity partner|sweat equity|co.founder|cofounder|technical co.founder|cto partner/i.test(t)) return true;
-  // Candidate looking for a job themselves
-  if (/open to work|looking for a job|looking for opportunities|my next role|available for hire|available for projects|my portfolio|apply now|apply here|submit your cv|submit your resume/i.test(t)) return true;
-  // Not a requirement post — just company content
-  if (/we are proud|we are excited|we are thrilled|check out our blog|check out our services|our latest blog|our latest article|we help companies|we assist businesses|offering services|our services include|our offerings include/i.test(t)) return true;
-  return false;
+  const c = (company||'').toLowerCase();
+
+  // ── Exclusion block list (Apify-level equivalent) ──
+  if (/comment interested|drop your cv|drop your resume|comment your cv/i.test(t)) return 'DQ-2 Fake post — CV drop format';
+  if (/freshers only|0-2 years|fresher|intern |trainee|campus hire|entry.level candidates/i.test(t)) return 'DQ-7 Fresher/intern requirement';
+  if (/individual freelancer|one.time task|gig work|small task|cheapest|lowest budget|budget is very tight|minimum budget/i.test(t)) return 'DQ-11 Budget floor — micro-task or budget too low';
+
+  // DQ-4: Unsupported geo — Pakistan or Bangladesh
+  if (/pakistan|bangladesh|karachi|lahore|dhaka/i.test(t) || /pakistan|bangladesh/i.test(h)) return 'DQ-4 Unsupported geo — Pakistan/Bangladesh';
+
+  // DQ-7: Fresher / intern
+  if (/\bfresher\b|fresh graduate|0 to 1 year|0-1 year|entry.level only|internship opportunity|hiring intern/i.test(t)) return 'DQ-7 Fresher/intern requirement';
+
+  // DQ-8: Staffing middleman — recruiter posting client requirement
+  if (/our client is looking|on behalf of our client|sharing a requirement|please share (your |candidate |)profile|profiles? (may |can |)apply|c2c|corp to corp|w2 only|w-2 only/i.test(t)) return 'DQ-8 Middleman — recruiter forwarding client JD';
+  // HR at staffing firm (not end-client)
+  if (/(recruiter|talent acquisition|headhunter|staffing consultant|placement officer|hr executive|rpo|hr at .*(staffing|recruitment|talent|manpower|resource))/i.test(h)) return 'DQ-8 Middleman — staffing/recruitment firm HR';
+
+  // DQ-9: Paid subscription requirement
+  if (/paid (group|community|subscribers only|members only)|subscribe to (view|see|access)/i.test(t)) return 'DQ-9 Paid subscription gate';
+
+  // DQ-10: Visa / work auth required with no remote
+  if (/(h1b|green card|usc only|us citizen only|work authorization required|must have work permit|ead only)/i.test(t) && !/remote/i.test(t)) return 'DQ-10 Visa/work auth required — no remote option';
+
+  // DQ-11: Budget floor signals
+  if (/budget is tight|very low budget|affordable rates only|cheapest developer|minimum cost|no budget|pro bono|volunteer|unpaid/i.test(t)) return 'DQ-11 Budget floor — below VAYUZ minimum';
+
+  // Skip DQ-1, DQ-2, DQ-6 for Agency Buyers
+  if (!isAgencyBuyer) {
+    // DQ-1: Company too small
+    if (/1.person|solo founder|just me|self.employed|freelancer|solopreneur/i.test(t) && !/funded|raised|series|investors/i.test(t)) return 'DQ-1 Company too small — solo/unfunded';
+
+    // DQ-2: Invalid/fake post — skip (too broad to rule-match reliably)
+    // DQ-6: Freelancer seeking freelancer
+    if (/looking for a freelancer|need a freelancer|hire a freelancer|freelance (basis|only|project)|gig basis/i.test(t) && !/team|agency|company|partner/i.test(t)) return 'DQ-6 Freelancer-to-freelancer requirement';
+  }
+
+  // DQ-3: Referral / third-party post
+  if (/posting (this |on behalf|for a friend)|friend.s company|colleague.s company|sharing (this |for )|referred by/i.test(t)) return 'DQ-3 Referral post — no budget authority';
+
+  // Candidate posts — looking for work themselves
+  if (/open to work|looking for a job|looking for (my |a |new )role|available for hire|available for (new |)opportunities|my next (role|opportunity)|seeking (job|employment|position)|job (change|switch)|currently unemployed|notice period|immediate joiner/i.test(t)) return 'Candidate post — person seeking job';
+  if (/my (portfolio|resume|cv|profile|skills)|hire me|i am available|i can build|i specialize in|my expertise|my experience includes|i have \d+ years/i.test(t)) return 'Self-promotion — developer/freelancer marketing themselves';
+
+  // Not a requirement post
+  if (/we are (proud|excited|thrilled|delighted|happy) to (announce|share|introduce|launch|present)/i.test(t)) return 'Company announcement — not a requirement';
+  if (/(complete guide|ultimate guide|top \d+ |how to |everything you need|\d+ ways to|tips for |best practices)/i.test(t)) return 'Blog/article — thought leadership content';
+  if (/no (agenc|agencies|middleman|vendor)|agencies don.t|direct (applicants|candidates) only|no third.party/i.test(t)) return 'DQ — explicitly excludes agencies';
+  if (/(co.founder|cofounder|technical co.founder|cto partner).*(equity|sweat|stake)|equity.based (partnership|deal|collaboration)/i.test(t)) return 'DQ — equity/co-founder ask, not client';
+
+  return false; // passes Gate 1
 }
 
-// Gate 1: Full filter — hard disqualify + keyword/intent check
-function rulePass(post, headline) {
-  // Hard disqualify always applies regardless of skipGate
-  if (isHardDisqualified(post, headline)) return false;
-  // Skip keyword/intent check if skipGate is on
+// ── Gate 0.5: Buyer Persona Check ──
+// Determines AGENCY_BUYER flag and authority level
+function buyerPersonaCheck(post, headline, company) {
+  const t = (post||'').toLowerCase();
+  const h = (headline||'').toLowerCase();
+
+  // Decision maker titles — highest authority
+  const isDecisionMaker = /(founder|co-founder|ceo|cto|cpo|vp|vice president|director|head of|md |managing director|president|owner|principal|chief)/i.test(h);
+
+  // HR at genuine end-client company (valid, max score 7)
+  const isHRAtEndClient = /(hr|human resources|talent acquisition|people ops|recruiter)/i.test(h) &&
+    !/(staffing|recruitment|rpo|manpower|headhunter|placement|hiring firm|search firm)/i.test(h + ' ' + company);
+
+  // Agency buyer signals — skips DQ-1, DQ-2, DQ-6
+  const isAgencyBuyer = /(looking for (a |an )?(software development company|tech partner|development agency|product engineering)|outsource|hire a team|development partner|technology partner)/i.test(t);
+
+  return { isDecisionMaker, isHRAtEndClient, isAgencyBuyer };
+}
+
+// ── Gate 1 entry point ──
+function rulePass(post, headline, company) {
+  const { isAgencyBuyer } = buyerPersonaCheck(post, headline, company);
+  const dqResult = isHardDisqualified(post, headline, company, isAgencyBuyer);
+  if (dqResult) return false;
   if (cfg.skipGate) return true;
   const t = (post||'').toLowerCase();
   const h = (headline||'').toLowerCase();
-  // Must have tech role OR hiring intent to proceed to Gemini
-  const techRoles = /flutter|ios|android|react native|react|nodejs|node\.js|\.net|java|python|devops|fullstack|full stack|frontend|backend|wordpress|woocommerce|mobile app|web app|software developer|software engineer|developer|programmer|tech lead/i;
-  const hiringIntent = /hiring|looking for|we need|seeking|urgent|join our team|open role|build a team|build a product|build an app|outsource|tech partner|dedicated team|staff aug/i;
-  return techRoles.test(t) || hiringIntent.test(t) || techRoles.test(h);
+  // Must have tech role OR hiring intent keyword
+  const techRoles = /flutter|ios|android|react native|react|node\.?js|\.net|java\b|python|devops|fullstack|full.?stack|frontend|back.?end|wordpress|woocommerce|mobile app|web app|software dev|software eng|developer|programmer|tech lead|vue|angular|next\.?js|django|fastapi|spring|kubernetes|aws|azure|gcp|flutter|swift|kotlin|genai|llm|ml engineer|data engineer/i;
+  const hiringIntent = /hiring|looking for|we need|seeking|open role|build a team|build a product|build an app|outsource|tech partner|dedicated team|staff aug|augment|extend.*team|scale.*team|need.*developer|need.*engineer/i;
+  return techRoles.test(t) || hiringIntent.test(t) || techRoles.test(h) || isAgencyBuyer;
 }
 
 // ── VAYUZ Category Classifier ──
@@ -901,182 +1034,184 @@ function extractGeo(post) {
   return geoMatch ? geoMatch[0] : '';
 }
 
-// ── Gate 2: Gemini AI (uses your exact VAYUZ prompt) ──
+// ── Gate 2: Gemini AI Scoring (v2.1 Full Production Prompt) ──
 async function geminiScore(post, name, headline, company, postUrl) {
   const category = classifyCategory(post);
   const hiringType = classifyHiringType(post);
+  const { isDecisionMaker, isHRAtEndClient, isAgencyBuyer } = buyerPersonaCheck(post, headline, company);
 
   if (!cfg.geminiKey) {
-    // Fallback: use rule-based VAYUZ scoring
     const result = vayuzScore(post, headline, category, hiringType);
     return {
-      score: result.score,
-      intent: parseFloat((result.score/10).toFixed(2)),
-      signals: result.signals,
-      label: result.label,
-      category: result.category,
-      hiringType: result.hiringType,
-      role: result.role,
-      geo: result.geo,
-      reasoning: result.reasons.join('. ') || 'Rule-based VAYUZ scoring applied.'
+      score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
+      signals: result.signals, label: result.label, category: result.category,
+      hiringType: result.hiringType, role: result.role, geo: result.geo,
+      reasoning: result.reasons.join('. ') || 'Rule-based VAYUZ scoring applied.',
+      buyerType: isDecisionMaker ? 'Decision Maker' : isHRAtEndClient ? 'HR at End-Client' : 'Unknown',
+      urgency: 'Medium', companySize: 'Unknown', painPoints: [], lowOutreachContext: false,
+      recommendedAction: result.score >= 8 ? 'Reach Out Now' : result.score >= 4 ? 'Monitor' : 'Skip'
     };
   }
 
-  // Your exact VAYUZ Gemini prompt
-  const nameParts = (name||'').split(' ');
-  const firstName = nameParts[0]||'';
-  const lastName = nameParts.slice(1).join(' ')||'';
   const runDate = new Date().toISOString().split('T')[0];
 
-  const prompt = `You are a lead qualification assistant for VAYUZ Technologies — an India-based IT services company offering Staff Augmentation, Product Development, IT Consulting, and Dedicated Teams. VAYUZ provides remote developers and teams globally, and can also place resources locally in India.
+  const prompt = `You are a lead qualification engine for VAYUZ Technologies.
 
-Analyze the following LinkedIn post and qualify it as a VAYUZ business development lead.
+═══ ABOUT VAYUZ ═══
+VAYUZ is a 10-year-old AI-inclusive digital engineering company based in India.
+We serve funded startups, enterprises, and high-growth businesses globally.
+We build software products, enterprise platforms, AI-integrated systems, and provide senior remote engineering talent through Staff Augmentation and Dedicated Team models.
 
+VAYUZ full tech stack:
+Frontend: React, Vue.js, Angular, Next.js, TypeScript
+Backend: Node.js, Python (Django/FastAPI), Java (Spring Boot), .NET/C#
+Mobile: Flutter, React Native, iOS (Swift), Android (Kotlin)
+DevOps/Cloud: AWS, Azure, GCP, Kubernetes, Docker, CI/CD
+AI/ML: LLM Engineering, GenAI, ML Pipelines, AI Integration
+Data: Data Engineering, Analytics, ETL, Data Science
+CMS: WordPress, WooCommerce, PHP
+
+Minimum engagement: ₹5-10 Lakhs / $5,000-10,000 USD per project.
+Primary geography: India (domestic). Also serves USA, UK, GCC, APAC remotely.
+
+═══ IDEAL CLIENT PROFILE ═══
+- Founder, CTO, VP Engineering, Product Head, or HR at an end-client company
+- At a funded startup (any series), bootstrapped product company, mid-market enterprise, large enterprise, digital agency, or SaaS company
+- Looking to BUILD (app/platform/product/AI system) OR SCALE tech team with senior remote developers
+- Open to India-based engineering partner (remote-first delivery)
+- NOT seeking a single freelancer, intern, or sub-₹5L one-off task
+
+═══ HIGH-VALUE PAIN POINT SIGNALS ═══
+Award +1 bonus point (up to +3 total bonus) for each present in post:
++1 'team is overwhelmed' / 'need more hands' / 'bandwidth issues'
++1 'non-tech founder' / 'no CTO' / 'looking to build my idea'
++1 'just raised funding' / 'series A/B/C' / 'seed funded' / 'post-funding'
++1 'legacy system' / 'tech debt' / 'need to modernize' / 'old platform'
++1 'integrate AI' / 'add AI features' / 'build AI into product' / 'GenAI'
++1 'tried an agency' / 'agency failed us' / 'bad experience with vendor'
+
+═══ BASE SCORING RULES ═══
++4 App / Web / Product / Digital Transformation / AI engagement
++4 Explicitly REMOTE or no location restriction mentioned
++4 India-based company OR open to India-based engineering team
++3 Active urgency: clear JD, deadline, 'hiring now', 'immediate start', 'ASAP'
++2 Company 50+ employees or visible enterprise signals
++1 Project / milestone-based engagement model
+Up to +3 bonus from pain point signals above.
+Cap total score at 10.
+
+═══ DEDUCTIONS ═══
+-3 No identifiable company (anonymous post, no company name or website)
+-3 Post reads like a recruiter forwarding a JD (not company's own need)
+-2 No urgency signals and no timeline mentioned
+
+═══ HARD FLOOR RULES ═══
+Score MAXIMUM 3 (Cold) if ANY of:
+- Post signals budget below ₹5L / $5K ('cheap', 'tight budget', 'affordable')
+- Solo founder / 1-person company with no visible funding
+- 2-5 person startup with no funding signals
+- Zero company information in post or author profile
+These override all positive scoring. Hard floor = 3.
+
+═══ GEO RULES ═══
+India-based company or India-open post: apply full +4 geo bonus
+USA / UK / GCC / APAC remote-open: apply full +4 remote bonus
+Onsite required outside India (Staff Aug / Dedicated / Consulting): score = 0
+
+═══ HR AUTHOR RULE ═══
+HR / Recruiter at genuine product company or enterprise:
+→ VALID lead — restrict lead_category to Staff Augmentation, Dedicated Teams, or IT Consulting ONLY
+→ Maximum score = 7
+HR / Recruiter at staffing / recruitment / RPO firm:
+→ score = 0, label = Cold, disqualify_reason = "DQ-8 Middleman"
+
+═══ HARD DISQUALIFY — score 0, Cold ═══
+Return score=0, label="Cold" immediately if ANY match:
+- Post is a blog, article, guide, thought leadership, or company news
+- Person is looking for a job themselves (open to work, job seeker)
+- Post is from a staffing/recruitment firm posting client vacancy
+- Company is in Pakistan or Bangladesh
+- Requires onsite presence outside India with no remote option
+- Looking for a co-founder or equity partner
+- Explicitly says 'no agencies', 'direct only', 'no middlemen'
+- Budget clearly below VAYUZ minimum (free, cheapest, no budget)
+- Posting on behalf of someone else (referral post, no budget authority)
+- Post is a job application form or candidate profile
+
+═══ ROLE-LEVEL SEARCH POSTS ═══
+If post searches for a specific tech role (e.g. 'looking for a React developer'):
+→ Always classify as Staff Augmentation or Dedicated Teams
+→ Never classify as Product Development
+→ Score normally using base rules above
+→ If no company context: apply -3 deduction
+
+═══ SERVICE CATEGORIES ═══
+App Development | Web Development | WordPress Development |
+Legacy System Modernization | Digital Transformation |
+EdTech / Education App Development | Staff Augmentation |
+Dedicated Teams | IT Consulting | Product Development
+
+LABELS: 8-10 = "Hot" | 4-7 = "Warm" | 0-3 = "Cold"
+
+═══ OUTREACH CONTEXT ═══
+VAYUZ sends templated outreach first, personalises on reply.
+A good lead must have enough publicly visible context for a meaningful template.
+If the post has no stack, no project type, and no company info, flag low_outreach_context = true.
+
+═══ INPUT ═══
 Run Date: ${runDate}
 Author Name: ${name}
 Author Headline: ${headline}
 Company: ${company}
 Post URL: ${postUrl||''}
+Post Content: ${(post||'').slice(0,1500)}
 
-Post Content:
-${(post||'').slice(0,1200)}
-
-══════════════════════════════════
-STEP 1 — HARD DISQUALIFY (score 0, label "Cold")
-Return immediately if ANY one condition matches:
-══════════════════════════════════
-
-NOT A REQUIREMENT POST:
-→ Post is about their company services or offerings
-→ Post is a blog, article, or thought leadership piece
-→ Post is a general industry update or news share
-→ Post is celebrating an achievement, award, or milestone
-→ Post is about their own product launch or company news
-→ No actual hiring or vendor/development requirement mentioned
-
-WRONG VENDOR TYPE — they explicitly don't want agencies:
-→ Post says "no agency", "no agencies please", "agencies don't contact", "direct only"
-→ Looking for a freelancer only — not a team or agency
-→ Equity-based partnership or equity sharing mentioned
-→ Looking for a co-founder or technical co-founder
-→ Looking for a CTO partner on equity/sweat basis
-→ Mentions "no middlemen", "direct applicants only"
-
-WRONG GEOGRAPHY:
-→ Requires onsite presence in USA, UK, Canada, Australia, or Europe
-→ Visa sponsorship required for the role
-→ Looking for developers only from a specific country (e.g. Pakistan, Egypt, Philippines)
-→ Must be physically based in a specific US or European city
-→ Post mentions "local vendor only" or "based in [non-India city]"
-
-WRONG AUDIENCE — they are a vendor not a client:
-→ Author or company is a recruitment or staffing firm posting job vacancies on behalf of clients
-→ Author is from an offshore consulting or outsourcing company (competitor to VAYUZ)
-→ Post is from a job board or hiring platform
-→ They are collecting requirements FROM IT companies — they want to be the vendor, not hire one
-→ Author headline contains any of: Recruiter, HR Manager, Talent Acquisition, Headhunter, Staffing Consultant, Human Resources, Placement Officer, HR Executive
-
-CANDIDATE POSTS — they are looking for a job, not a vendor:
-→ Person is looking for a job or project for themselves
-→ Post is sharing their own skills, resume, or portfolio
-→ Phrases like "open to work", "looking for opportunities", "available for projects"
-→ Freelancer promoting their own services
-
-══════════════════════════════════
-STEP 2 — QUALIFICATION SCORING
-(Only reach here if NOT disqualified above)
-══════════════════════════════════
-
-VAYUZ serves GLOBALLY for:
-App Development, Web Development, WordPress Development, Product Development, Digital Transformation, EdTech
-
-VAYUZ serves REMOTE worldwide or IN INDIA ONLY for:
-Staff Augmentation, Dedicated Teams, IT Consulting, Legacy System Modernization
-
-SERVICE TYPE SCORING:
-If global category AND no onsite restriction mentioned: +4 points
-If global category AND explicitly requires onsite outside India: score 0 (disqualify)
-If staffing/consulting category AND explicitly remote: +4 points
-If staffing/consulting category AND hiring in India: +4 points
-If staffing/consulting category AND onsite outside India: score 0 (disqualify)
-
-ADDITIONAL SCORING:
-+3  Urgent or active hiring signal (ASAP, urgent, deadline, hiring now, immediately)
-+2  Project or product development engagement (build, develop, launch, create, MVP)
-+2  Decision maker is posting (Founder, CEO, CTO, CPO, MD, VP, Director, Head of)
-+2  Mid-to-large company signal (funded, Series A/B/C, enterprise, 50+ employees)
-+1  Remote work explicitly mentioned and welcomed
-+1  Project or milestone based engagement
-
-MAXIMUM SCORE = 10
-
-══════════════════════════════════
-STEP 3 — EXTRACT FIELDS
-══════════════════════════════════
-
-lead_date: use Run Date (YYYY-MM-DD)
-lead_source: always "LinkedIn"
-comp_name: infer from post or author info
-first_name / last_name: split from Author Name
-lead_category: pick ONE most relevant:
-  App Development / Web Development / WordPress Development /
-  Legacy System Modernization / Digital Transformation /
-  EdTech / Staff Augmentation / Dedicated Teams /
-  IT Consulting / Product Development
-client_geo: city and country from post content
-role_hiring_for: specific tech role or stack mentioned
-hiring_type: Remote / Full-Time / Contract / Part-Time / Project-Based
-email: extract if mentioned, else ""
-phone: extract with country code if mentioned, else ""
-post_content: full post content as provided
-post_url: ${postUrl||''}
-linkedin_profile: clean author LinkedIn URL (stop at /in/username)
-qualification_score: number 0-10
-qualification_label: "Hot" (7-10) / "Warm" (4-6) / "Cold" (0-3)
-qualification_reason: 2-3 sentences. If disqualified explain exactly why from Step 1. If qualified explain score factors.
-
-Return ONLY this JSON — no markdown, no explanation, no extra text:
-{"lead_date":"","lead_source":"","comp_name":"","first_name":"","last_name":"","lead_category":"","client_geo":"","role_hiring_for":"","hiring_type":"","email":"","phone":"","post_content":"","post_url":"","linkedin_profile":"","qualification_score":0,"qualification_label":"","qualification_reason":""}`;
+═══ OUTPUT — return valid JSON only, no preamble, no markdown ═══
+{"score":0,"label":"Hot|Warm|Cold","lead_category":"","buyer_type":"Decision Maker|HR at End-Client|Middleman|Unknown","hiring_type":"Remote|Contract|Full-Time|Project-Based|Mixed","urgency":"High|Medium|Low","company_size_signal":"Enterprise|Mid-Market|SMB|Unknown","client_geo":"","role_hiring_for":"","email":"","phone":"","comp_name":"","first_name":"","last_name":"","pain_points_detected":[],"low_outreach_context":false,"disqualify_reason":"","qualification_reason":"","detected_signals":[],"recommended_action":"Reach Out Now|Monitor|Skip"}`;
 
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cfg.geminiKey}`, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${cfg.geminiKey}`, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
     });
     const d = await r.json();
     if (d.error) throw new Error(d.error.message);
     let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(txt);
-    // Map Gemini output → our internal lead shape
+    const p = JSON.parse(txt);
     return {
-      score: parsed.qualification_score||0,
-      intent: parseFloat(((parsed.qualification_score||0)/10).toFixed(2)),
+      score: p.score||0,
+      intent: parseFloat(((p.score||0)/10).toFixed(2)),
       signals: detectSignals(post),
-      label: ['Hot','Warm','Cold'].includes(parsed.qualification_label) ? parsed.qualification_label : (parsed.qualification_score>=7?'Hot':parsed.qualification_score>=4?'Warm':'Cold'),
-      category: parsed.lead_category||category,
-      hiringType: parsed.hiring_type||hiringType,
-      role: parsed.role_hiring_for||extractRole(post),
-      geo: parsed.client_geo||extractGeo(post),
-      email: parsed.email||'',
-      phone: parsed.phone||'',
-      firstName: parsed.first_name||'',
-      lastName: parsed.last_name||'',
-      compName: parsed.comp_name||company,
-      reasoning: parsed.qualification_reason||''
+      label: ['Hot','Warm','Cold'].includes(p.label) ? p.label : (p.score>=8?'Hot':p.score>=4?'Warm':'Cold'),
+      category: p.lead_category||category,
+      hiringType: p.hiring_type||hiringType,
+      role: p.role_hiring_for||extractRole(post),
+      geo: p.client_geo||extractGeo(post),
+      email: p.email||'',
+      phone: p.phone||'',
+      firstName: p.first_name||'',
+      lastName: p.last_name||'',
+      compName: p.comp_name||company,
+      reasoning: p.qualification_reason||'',
+      disqualifyReason: p.disqualify_reason||'',
+      buyerType: p.buyer_type||'Unknown',
+      urgency: p.urgency||'Medium',
+      companySize: p.company_size_signal||'Unknown',
+      painPoints: p.pain_points_detected||[],
+      lowOutreachContext: p.low_outreach_context||false,
+      recommendedAction: p.recommended_action||'Monitor'
     };
   } catch(e) {
     console.warn('Gemini fallback:', e.message);
     const result = vayuzScore(post, headline, category, hiringType);
     return {
-      score: result.score,
-      intent: parseFloat((result.score/10).toFixed(2)),
-      signals: result.signals,
-      label: result.label,
-      category: result.category,
-      hiringType: result.hiringType,
-      role: result.role,
-      geo: result.geo,
-      reasoning: result.reasons.join('. ')
+      score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
+      signals: result.signals, label: result.label, category: result.category,
+      hiringType: result.hiringType, role: result.role, geo: result.geo,
+      reasoning: result.reasons.join('. '),
+      buyerType: isDecisionMaker ? 'Decision Maker' : isHRAtEndClient ? 'HR at End-Client' : 'Unknown',
+      urgency: 'Medium', companySize: 'Unknown', painPoints: [], lowOutreachContext: false,
+      recommendedAction: result.score >= 8 ? 'Reach Out Now' : result.score >= 4 ? 'Monitor' : 'Skip'
     };
   }
 }
@@ -1211,10 +1346,11 @@ async function runPipeline() {
     if (isDemo) {
       gated = mapped;
     } else {
-      gated = mapped.filter(l => rulePass(l.post, l.headline));
+      gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
       if (gated.length === 0 && mapped.length > 0) {
-        // Auto-fallback: keyword/intent matched nothing — but still apply hard disqualify
-        gated = mapped.filter(l => !isHardDisqualified(l.post, l.headline));
+        // Auto-fallback — still apply hard disqualify
+        const { isAgencyBuyer } = buyerPersonaCheck('','','');
+        gated = mapped.filter(l => !isHardDisqualified(l.post, l.headline, l.company, false));
         stgDone(1, 'Keyword gate bypassed — ' + gated.length + ' / ' + mapped.length + ' passed hard filter');
         const erEl = document.getElementById('er');
         erEl.textContent = '⚠ No keyword matches found. Hard disqualify rules still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
@@ -1232,7 +1368,7 @@ async function runPipeline() {
       lead.score = r.score;
       lead.intent = r.intent;
       lead.signals = r.signals || [];
-      lead.label = r.label || (r.score>=7?'Hot':r.score>=4?'Warm':'Cold');
+      lead.label = r.label || (r.score>=8?'Hot':r.score>=4?'Warm':'Cold');
       lead.status = lead.label === 'Hot' ? 'ready' : lead.label === 'Warm' ? 'new' : 'cold';
       lead.reasoning = r.reasoning || '';
       lead.category = r.category || '';
@@ -1242,10 +1378,18 @@ async function runPipeline() {
       lead.email = r.email || '';
       lead.phone = r.phone || '';
       lead.compName = r.compName || lead.company;
+      lead.buyerType = r.buyerType || 'Unknown';
+      lead.urgency = r.urgency || 'Medium';
+      lead.companySize = r.companySize || 'Unknown';
+      lead.painPoints = r.painPoints || [];
+      lead.lowOutreachContext = r.lowOutreachContext || false;
+      lead.recommendedAction = r.recommendedAction || 'Monitor';
+      lead.disqualifyReason = r.disqualifyReason || '';
       lead.keywords = detectSignals(lead.post);
       scored++;
       document.getElementById('sc2').textContent = scored + ' scored…';
-      await new Promise(r => setTimeout(r, isDemo ? 80 : 150));
+      // Rate limit: 4.1s delay between Gemini calls to stay under 15 RPM free tier
+      await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
     }
     gated.sort((a, b) => b.score - a.score);
     stgDone(2, scored + ' leads scored');
@@ -1265,8 +1409,12 @@ async function runPipeline() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
 
-    // Save to Supabase (live scans only)
-    if (!isDemo) { await saveLeadsToSupabase(allLeads); }
+    // Save only leads scoring 4+ to Supabase (Warm & Hot only — keeps DB clean)
+    if (!isDemo) {
+      const qualifiedLeads = allLeads.filter(l => l.score >= 4);
+      await saveLeadsToSupabase(qualifiedLeads);
+      await loadLeadsFromSupabase();
+    }
 
     setTimeout(() => {
       document.getElementById('pipe-mb').classList.remove('show');
@@ -1289,12 +1437,29 @@ function loadDemo() { cfg.apifyToken = ''; runPipeline(); }
 function updStats(total, matched, isDemo) {
   const hot = allLeads.filter(l => l.label==='Hot').length;
   const warm = allLeads.filter(l => l.label==='Warm').length;
-  const avg = allLeads.length ? (allLeads.reduce((s,l)=>s+l.score,0)/allLeads.length).toFixed(1) : '—';
-  document.getElementById('s0').textContent = total || allLeads.length;
+  // SNR = leads actioned by human (S0-S4 + Meeting) ÷ total fetched
+  const actioned = allLeads.filter(l => l.leadStage && !['Not Relevant','Requirement closed','Unable to connect'].includes(l.leadStage)).length;
+  const fetchedTotal = total || allLeads.length;
+  const snr = fetchedTotal > 0 ? Math.round((actioned / fetchedTotal) * 100) : 0;
+  document.getElementById('s0').textContent = fetchedTotal;
   document.getElementById('s1').textContent = hot;
   document.getElementById('s2').textContent = warm;
-  document.getElementById('s3').textContent = avg;
+  document.getElementById('s3').textContent = snr + '%';
+  document.getElementById('s3-sub').textContent = actioned + ' actioned of ' + fetchedTotal + ' fetched';
   document.getElementById('s4').textContent = isDemo ? 'Demo' : 'Live';
+  updPipeline();
+}
+
+function updPipeline() {
+  const count = stage => allLeads.filter(l => (l.leadStage||'').includes(stage)).length;
+  document.getElementById('p-meeting').textContent = count('Meeting');
+  document.getElementById('p-s0').textContent = count('S0');
+  document.getElementById('p-s1').textContent = count('S1');
+  document.getElementById('p-s2').textContent = count('S2');
+  document.getElementById('p-s3').textContent = count('S3');
+  document.getElementById('h-s4').textContent = count('S4');
+  document.getElementById('h-enrichment').textContent = allLeads.filter(l => l.lowOutreachContext).length;
+  document.getElementById('h-noise').textContent = allLeads.filter(l => ['Not Relevant','Requirement closed','Unable to connect'].includes(l.leadStage)).length;
 }
 
 // ── Filter / sort ──
@@ -1451,27 +1616,45 @@ function renderTbl() {
 // ── Detail panel ──
 function openDP(lead) {
   activeDetail = lead;
-  const lbl = lead.label || (lead.score>=7?'Hot':lead.score>=4?'Warm':'Cold');
+  const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
   document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
-  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
+  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
   document.getElementById('dp-kws').innerHTML = (lead.signals||[]).length
     ? lead.signals.map(s=>`<span class="kw">${esc(s)}</span>`).join('')
     : '<span style="color:var(--text3);font-size:11px">None</span>';
+
+  const actionColor = lead.recommendedAction === 'Reach Out Now' ? 'var(--green)' : lead.recommendedAction === 'Monitor' ? 'var(--amber)' : 'var(--text3)';
+  const painPointsHtml = (lead.painPoints||[]).length
+    ? (lead.painPoints).map(p=>`<span class="kw" style="background:rgba(220,38,38,.08);color:var(--red);border-color:rgba(220,38,38,.2)">${esc(p)}</span>`).join('')
+    : '<span style="color:var(--text3);font-size:11px">None detected</span>';
+
   document.getElementById('dp-rows').innerHTML = `
     <div class="dr"><span class="dl">Qualification</span><span class="dv" style="color:${lbl==='Hot'?'var(--red)':lbl==='Warm'?'var(--amber)':'var(--accent)'}">${lbl==='Hot'?'🔥':lbl==='Warm'?'🟡':'🔵'} ${lbl} (${lead.score}/10)</span></div>
+    <div class="dr"><span class="dl">Recommended Action</span><span class="dv" style="color:${actionColor}">${esc(lead.recommendedAction||'—')}</span></div>
+    <div class="dr"><span class="dl">Buyer Type</span><span class="dv">${esc(lead.buyerType||'—')}</span></div>
+    <div class="dr"><span class="dl">Urgency</span><span class="dv">${esc(lead.urgency||'—')}</span></div>
+    <div class="dr"><span class="dl">Company Size</span><span class="dv">${esc(lead.companySize||'—')}</span></div>
     <div class="dr"><span class="dl">Category</span><span class="dv">${esc(lead.category||'—')}</span></div>
     <div class="dr"><span class="dl">Role Hiring For</span><span class="dv">${esc(lead.role||'—')}</span></div>
     <div class="dr"><span class="dl">Hiring Type</span><span class="dv">${esc(lead.hiringType||'—')}</span></div>
     <div class="dr"><span class="dl">Client Geo</span><span class="dv">${esc(lead.geo||'—')}</span></div>
+    <div class="dr"><span class="dl">Low Outreach Context</span><span class="dv" style="color:${lead.lowOutreachContext?'var(--amber)':'var(--green)'}">${lead.lowOutreachContext?'⚠ Yes — needs enrichment':'✓ Good context'}</span></div>
+    ${lead.disqualifyReason?`<div class="dr"><span class="dl">DQ Reason</span><span class="dv" style="color:var(--red);font-size:10.5px">${esc(lead.disqualifyReason)}</span></div>`:''}
     <div class="dr"><span class="dl">Source</span><span class="dv">LinkedIn${cfg.apifyToken?' (Live)':' (Demo)'}</span></div>
     <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
     <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
     <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
     <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
   `;
+  // Pain points section
+  if (document.getElementById('dp-kws').parentElement) {
+    document.getElementById('dp-kws').parentElement.insertAdjacentHTML('afterend',
+      `<div><div class="dpl">Pain Point Signals</div><div class="kws" id="dp-pain">${painPointsHtml}</div></div>`
+    );
+  }
   // Populate editable fields
   document.getElementById('dp-email-input').value = lead.email || '';
   document.getElementById('dp-phone-input').value = lead.phone || '';
@@ -1635,7 +1818,7 @@ async function saveLeadEdits() {
     .eq('id', activeDetail._dbid);
 
   if (error) { toast('Save failed — check console', 'e'); console.error(error); }
-  else { toast('Lead updated ✓', 'ok'); doFilter(); }
+  else { toast('Lead updated ✓', 'ok'); doFilter(); updPipeline(); }
 }
 
 // ── Toast ──
