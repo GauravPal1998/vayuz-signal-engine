@@ -558,17 +558,17 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </select>
     </div>
 
-    <div class="csec">Gemini Settings (optional — improves scoring)</div>
+    <div class="csec">Claude AI Settings (optional — improves scoring)</div>
     <div class="cf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label class="cl" style="margin-bottom:0">Gemini API Key</label>
+        <label class="cl" style="margin-bottom:0">Claude API Key</label>
         <div style="display:flex;align-items:center;gap:6px">
-          <span id="gemini-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
-          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-gemini','gemini-saved')">Clear</button>
+          <span id="claude-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
+          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-claude','claude-saved')">Clear</button>
         </div>
       </div>
-      <input class="ci" type="password" id="c-gemini" placeholder="AIzaSy..." oninput="document.getElementById('gemini-saved').style.display='none'">
-      <div class="ch">Get free key → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. If blank, rule-based scoring is used.</div>
+      <input class="ci" type="password" id="c-claude" placeholder="sk-ant-..." oninput="document.getElementById('claude-saved').style.display='none'">
+      <div class="ch">Get free key → <a href="https://console.anthropic.com/api-keys" target="_blank">console.anthropic.com/api-keys</a>. If blank, rule-based scoring is used.</div>
     </div>
     <div class="cf">
       <label class="cl">Min Score for "Ready" status (0–10)</label>
@@ -643,7 +643,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 // ── Config ──
 let cfg = {
   apifyToken: '', maxPosts: 50, postAge: 'week', sortBy: 'date',
-  geminiKey: '', minScore: 7, skipGate: false,
+  claudeKey: '', minScore: 7, skipGate: false,
   keywords: ['app development','mobile app','web development','digital transformation','hire developers','build product','offshore team','tech partner','dedicated team','software development'],
   titles: ['Founder','Co-Founder','CEO','CTO','CPO','CIO','MD','Director','VP','Head of','President','Partner','Owner','Engineer','Manager','Lead']
 };
@@ -662,7 +662,7 @@ function saveToStorage() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({
       apifyToken: cfg.apifyToken,
-      geminiKey: cfg.geminiKey,
+      claudeKey: cfg.claudeKey,
       maxPosts: cfg.maxPosts,
       postAge: cfg.postAge,
       sortBy: cfg.sortBy,
@@ -680,7 +680,7 @@ function loadFromStorage() {
     if (!saved) return;
     const d = JSON.parse(saved);
     if (d.apifyToken) cfg.apifyToken = d.apifyToken;
-    if (d.geminiKey) cfg.geminiKey = d.geminiKey;
+    if (d.claudeKey) cfg.claudeKey = d.claudeKey;
     if (d.maxPosts) cfg.maxPosts = d.maxPosts;
     if (d.postAge) cfg.postAge = d.postAge;
     if (d.sortBy) cfg.sortBy = d.sortBy;
@@ -690,7 +690,7 @@ function loadFromStorage() {
     if (Array.isArray(d.titles) && d.titles.length) cfg.titles = d.titles;
     // Show saved badge on API fields if keys exist
     if (cfg.apifyToken) showSavedBadge('apify-saved');
-    if (cfg.geminiKey) showSavedBadge('gemini-saved');
+    if (cfg.claudeKey) showSavedBadge('claude-saved');
   } catch(e) { console.warn('Storage load failed:', e); }
 }
 
@@ -767,11 +767,11 @@ function showCfg() {
   document.getElementById('c-max').value = cfg.maxPosts;
   document.getElementById('c-age').value = cfg.postAge;
   document.getElementById('c-sort').value = cfg.sortBy;
-  document.getElementById('c-gemini').value = cfg.geminiKey;
+  document.getElementById('c-claude').value = cfg.claudeKey;
   document.getElementById('c-min').value = cfg.minScore;
   document.getElementById('c-skipgate').checked = cfg.skipGate;
   if (cfg.apifyToken) showSavedBadge('apify-saved');
-  if (cfg.geminiKey) showSavedBadge('gemini-saved');
+  if (cfg.claudeKey) showSavedBadge('claude-saved');
   refreshUI();
   document.getElementById('cfg-mb').classList.add('show');
 }
@@ -780,7 +780,7 @@ function saveCfg() {
   cfg.maxPosts = parseInt(document.getElementById('c-max').value)||50;
   cfg.postAge = document.getElementById('c-age').value;
   cfg.sortBy = document.getElementById('c-sort').value;
-  cfg.geminiKey = document.getElementById('c-gemini').value.trim();
+  cfg.claudeKey = document.getElementById('c-claude').value.trim();
   cfg.minScore = parseFloat(document.getElementById('c-min').value)||7;
   cfg.skipGate = document.getElementById('c-skipgate').checked;
   saveToStorage();
@@ -1040,7 +1040,7 @@ async function geminiScore(post, name, headline, company, postUrl) {
   const hiringType = classifyHiringType(post);
   const { isDecisionMaker, isHRAtEndClient, isAgencyBuyer } = buyerPersonaCheck(post, headline, company);
 
-  if (!cfg.geminiKey) {
+  if (!cfg.claudeKey) {
     const result = vayuzScore(post, headline, category, hiringType);
     return {
       score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
@@ -1170,30 +1170,60 @@ Post Content: ${(post||'').slice(0,1500)}
 {"score":0,"label":"Hot|Warm|Cold","lead_category":"","buyer_type":"Decision Maker|HR at End-Client|Middleman|Unknown","hiring_type":"Remote|Contract|Full-Time|Project-Based|Mixed","urgency":"High|Medium|Low","company_size_signal":"Enterprise|Mid-Market|SMB|Unknown","client_geo":"","role_hiring_for":"","email":"","phone":"","comp_name":"","first_name":"","last_name":"","pain_points_detected":[],"low_outreach_context":false,"disqualify_reason":"","qualification_reason":"","detected_signals":[],"recommended_action":"Reach Out Now|Monitor|Skip"}`;
 
   try {
-    // ⚠️ CRITICAL FIX: Changed gemini-2.0-flash (deprecated) to gemini-1.5-flash
-    if (!cfg.geminiKey) {
-      console.warn('Gemini API key not configured');
-      return { score: 0, intent: 0, signals: [], label: 'Cold' };
+    // ✅ FIXED: Using Claude API (works from Vercel frontend)
+    if (!cfg.claudeKey) {
+      console.warn('Claude API key not configured, using fallback scoring');
+      const result = vayuzScore(post, headline, category, hiringType);
+      return {
+        score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
+        signals: result.signals, label: result.label, category: result.category,
+        hiringType: result.hiringType, role: result.role, geo: result.geo,
+        email: '', phone: '', firstName: '', lastName: '', compName: company,
+        reasoning: 'Fallback score (no API key)', disqualifyReason: '',
+        buyerType: 'Unknown', urgency: result.urgency, companySize: 'Unknown',
+        painPoints: result.painPoints, lowOutreachContext: false, recommendedAction: 'Monitor'
+      };
     }
 
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${cfg.geminiKey}`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+    const r = await fetch(`https://api.anthropic.com/v1/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.claudeKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 600,
+        messages: [{
+          role: 'user',
+          content: prompt
+        }]
+      })
     });
 
-    // ⚠️ CRITICAL FIX: Added proper status code checking
     if (!r.ok) {
       const errorText = await r.text();
-      console.error(`Gemini API HTTP ${r.status}:`, errorText);
-      return { score: 0, intent: 0, signals: [], label: 'Cold' };
+      console.error(`Claude API HTTP ${r.status}:`, errorText);
+      // Fallback to keyword scoring
+      const result = vayuzScore(post, headline, category, hiringType);
+      return {
+        score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
+        signals: result.signals, label: result.label, category: result.category,
+        hiringType: result.hiringType, role: result.role, geo: result.geo,
+        email: '', phone: '', firstName: '', lastName: '', compName: company,
+        reasoning: 'API error - using fallback', disqualifyReason: '',
+        buyerType: 'Unknown', urgency: result.urgency, companySize: 'Unknown',
+        painPoints: result.painPoints, lowOutreachContext: false, recommendedAction: 'Monitor'
+      };
     }
 
     const d = await r.json();
     if (d.error) {
-      console.error('Gemini API error response:', d.error);
+      console.error('Claude API error response:', d.error);
       throw new Error(d.error.message);
     }
-    let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
+    let txt = (d.content?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
     const p = JSON.parse(txt);
     return {
       score: p.score||0,
@@ -1219,7 +1249,7 @@ Post Content: ${(post||'').slice(0,1500)}
       recommendedAction: p.recommended_action||'Monitor'
     };
   } catch(e) {
-    console.warn('Gemini fallback:', e.message);
+    console.warn('Claude fallback (using keyword scoring):', e.message);
     const result = vayuzScore(post, headline, category, hiringType);
     return {
       score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
@@ -1636,7 +1666,7 @@ function openDP(lead) {
   const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
   document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
-  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
+  document.getElementById('dp-gtag').textContent = cfg.claudeKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
   document.getElementById('dp-kws').innerHTML = (lead.signals||[]).length
@@ -1865,7 +1895,7 @@ function clearKey(inputId, badgeId) {
   document.getElementById(badgeId).style.display = 'none';
   // Remove from cfg and storage
   if (inputId === 'c-apify') cfg.apifyToken = '';
-  if (inputId === 'c-gemini') cfg.geminiKey = '';
+  if (inputId === 'c-claude') cfg.claudeKey = '';
   saveToStorage();
   toast('API key cleared', 'w');
 }
@@ -1891,7 +1921,7 @@ async function initLoad() {
     toast('Failed to connect to database', 'e');
   }
   // Show key loaded toast
-  if (cfg.apifyToken || cfg.geminiKey) {
+  if (cfg.apifyToken || cfg.claudeKey) {
     setTimeout(() => { toast('API keys loaded from saved config ✓', 'ok'); }, 1200);
   }
 }
