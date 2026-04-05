@@ -1170,7 +1170,7 @@ Post Content: ${(post||'').slice(0,1500)}
 {"score":0,"label":"Hot|Warm|Cold","lead_category":"","buyer_type":"Decision Maker|HR at End-Client|Middleman|Unknown","hiring_type":"Remote|Contract|Full-Time|Project-Based|Mixed","urgency":"High|Medium|Low","company_size_signal":"Enterprise|Mid-Market|SMB|Unknown","client_geo":"","role_hiring_for":"","email":"","phone":"","comp_name":"","first_name":"","last_name":"","pain_points_detected":[],"low_outreach_context":false,"disqualify_reason":"","qualification_reason":"","detected_signals":[],"recommended_action":"Reach Out Now|Monitor|Skip"}`;
 
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${cfg.geminiKey}`, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cfg.geminiKey}`, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
     });
