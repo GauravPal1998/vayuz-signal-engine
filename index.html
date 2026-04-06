@@ -1423,10 +1423,11 @@ async function runPipeline() {
       gated = mapped;
     } else {
       gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
+      console.log('[Gate1] Mapped:', mapped.length, '→ Passed:', gated.length, '→ Filtered out:', mapped.length - gated.length);
       if (gated.length === 0 && mapped.length > 0) {
         // Auto-fallback — still apply hard disqualify
-        const { isAgencyBuyer } = buyerPersonaCheck('','','');
         gated = mapped.filter(l => !isHardDisqualified(l.post, l.headline, l.company, false));
+        console.log('[Gate1 fallback] After hard-DQ only:', gated.length);
         stgDone(1, 'Keyword gate bypassed — ' + gated.length + ' / ' + mapped.length + ' passed hard filter');
         const erEl = document.getElementById('er');
         erEl.textContent = '⚠ No keyword matches found. Hard disqualify rules still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
@@ -1468,6 +1469,9 @@ async function runPipeline() {
       await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
     }
     gated.sort((a, b) => b.score - a.score);
+    console.log('[Gate2] Scores:', gated.map(l => l.name + ':' + l.score + '(' + l.label + ')'));
+    const qualified4plus = gated.filter(l => l.score >= 4).length;
+    console.log('[Gate2] Qualified (4+):', qualified4plus, '/ Cold (0-3):', gated.length - qualified4plus);
     stgDone(2, scored + ' leads scored');
 
     // Stage 3
@@ -1485,11 +1489,16 @@ async function runPipeline() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
 
-    // Save only leads scoring 4+ to Supabase (Warm & Hot only — keeps DB clean)
+    // Save qualified leads to Supabase then reload — but only replace allLeads if DB has more
     if (!isDemo) {
       const qualifiedLeads = allLeads.filter(l => l.score >= 4);
-      await saveLeadsToSupabase(qualifiedLeads);
-      await loadLeadsFromSupabase();
+      if (qualifiedLeads.length > 0) {
+        await saveLeadsToSupabase(qualifiedLeads);
+        await loadLeadsFromSupabase();
+      } else {
+        // All leads scored Cold — still show them in session, just don't save
+        toast('Pipeline complete — all leads scored Cold (not saved to DB)', 'w');
+      }
     }
 
     setTimeout(() => {
