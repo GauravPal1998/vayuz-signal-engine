@@ -558,18 +558,48 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </select>
     </div>
 
-    <div class="csec">Claude AI Settings (optional — improves scoring)</div>
+    <div class="csec">AI Scoring Engine</div>
+
+    <!-- Provider Toggle -->
+    <div class="cf" style="margin-bottom:14px">
+      <label class="cl" style="margin-bottom:8px">Active AI Provider</label>
+      <div style="display:flex;gap:8px">
+        <button id="toggle-gemini" class="btn bp" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('gemini');saveToStorage()">
+          ✦ Gemini (Google)
+        </button>
+        <button id="toggle-claude" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('claude');saveToStorage()">
+          ◆ Claude (Anthropic)
+        </button>
+      </div>
+      <div class="ch" style="margin-top:6px">Selected provider is used for Gate 2 AI scoring. Falls back to rule-based if key is missing.</div>
+    </div>
+
+    <!-- Gemini Key -->
     <div class="cf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label class="cl" style="margin-bottom:0">Claude API Key</label>
+        <label class="cl" style="margin-bottom:0">Gemini API Key <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(Google)</span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="gemini-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
+          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-gemini','gemini-saved')">Clear</button>
+        </div>
+      </div>
+      <input class="ci" type="password" id="c-gemini" placeholder="AIzaSy..." oninput="document.getElementById('gemini-saved').style.display='none'">
+      <div class="ch">Get free key → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> · Free tier: 1,500 req/day</div>
+    </div>
+
+    <!-- Claude Key -->
+    <div class="cf">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label class="cl" style="margin-bottom:0">Claude API Key <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(Anthropic)</span></label>
         <div style="display:flex;align-items:center;gap:6px">
           <span id="claude-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
           <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-claude','claude-saved')">Clear</button>
         </div>
       </div>
-      <input class="ci" type="password" id="c-claude" placeholder="sk-ant-..." oninput="document.getElementById('claude-saved').style.display='none'">
-      <div class="ch">Get free key → <a href="https://console.anthropic.com/api-keys" target="_blank">console.anthropic.com/api-keys</a>. If blank, rule-based scoring is used.</div>
+      <input class="ci" type="password" id="c-claude" placeholder="sk-ant-api03-..." oninput="document.getElementById('claude-saved').style.display='none'">
+      <div class="ch">Get key → <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> · Uses claude-haiku-4-5 · ~₹1 per 50-post scan</div>
     </div>
+
     <div class="cf">
       <label class="cl">Min Score for "Ready" status (0–10)</label>
       <input class="ci" type="number" id="c-min" value="7" min="0" max="10" step="0.5">
@@ -578,8 +608,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="cf" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;margin-top:4px">
       <input type="checkbox" id="c-skipgate" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer">
       <div>
-        <div style="font-size:12px;font-weight:600;color:var(--text)">Skip Gate 1 (send ALL posts to Gemini)</div>
-        <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:2px">Recommended if you get 0 results. Lets Gemini score every fetched post regardless of keywords.</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Skip Gate 1 (send ALL posts to AI scoring)</div>
+        <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:2px">Recommended if you get 0 results. Sends every fetched post to the active AI provider regardless of keywords.</div>
       </div>
     </div>
 
@@ -643,7 +673,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 // ── Config ──
 let cfg = {
   apifyToken: '', maxPosts: 50, postAge: 'week', sortBy: 'date',
-  claudeKey: '', minScore: 7, skipGate: false,
+  geminiKey: '', claudeKey: '', aiProvider: 'gemini', minScore: 7, skipGate: false,
   keywords: ['app development','mobile app','web development','digital transformation','hire developers','build product','offshore team','tech partner','dedicated team','software development'],
   titles: ['Founder','Co-Founder','CEO','CTO','CPO','CIO','MD','Director','VP','Head of','President','Partner','Owner','Engineer','Manager','Lead']
 };
@@ -662,7 +692,9 @@ function saveToStorage() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({
       apifyToken: cfg.apifyToken,
+      geminiKey: cfg.geminiKey,
       claudeKey: cfg.claudeKey,
+      aiProvider: cfg.aiProvider,
       maxPosts: cfg.maxPosts,
       postAge: cfg.postAge,
       sortBy: cfg.sortBy,
@@ -680,7 +712,9 @@ function loadFromStorage() {
     if (!saved) return;
     const d = JSON.parse(saved);
     if (d.apifyToken) cfg.apifyToken = d.apifyToken;
+    if (d.geminiKey) cfg.geminiKey = d.geminiKey;
     if (d.claudeKey) cfg.claudeKey = d.claudeKey;
+    if (d.aiProvider) cfg.aiProvider = d.aiProvider;
     if (d.maxPosts) cfg.maxPosts = d.maxPosts;
     if (d.postAge) cfg.postAge = d.postAge;
     if (d.sortBy) cfg.sortBy = d.sortBy;
@@ -688,8 +722,8 @@ function loadFromStorage() {
     if (typeof d.skipGate === 'boolean') cfg.skipGate = d.skipGate;
     if (Array.isArray(d.keywords) && d.keywords.length) cfg.keywords = d.keywords;
     if (Array.isArray(d.titles) && d.titles.length) cfg.titles = d.titles;
-    // Show saved badge on API fields if keys exist
     if (cfg.apifyToken) showSavedBadge('apify-saved');
+    if (cfg.geminiKey) showSavedBadge('gemini-saved');
     if (cfg.claudeKey) showSavedBadge('claude-saved');
   } catch(e) { console.warn('Storage load failed:', e); }
 }
@@ -767,11 +801,14 @@ function showCfg() {
   document.getElementById('c-max').value = cfg.maxPosts;
   document.getElementById('c-age').value = cfg.postAge;
   document.getElementById('c-sort').value = cfg.sortBy;
+  document.getElementById('c-gemini').value = cfg.geminiKey;
   document.getElementById('c-claude').value = cfg.claudeKey;
   document.getElementById('c-min').value = cfg.minScore;
   document.getElementById('c-skipgate').checked = cfg.skipGate;
   if (cfg.apifyToken) showSavedBadge('apify-saved');
+  if (cfg.geminiKey) showSavedBadge('gemini-saved');
   if (cfg.claudeKey) showSavedBadge('claude-saved');
+  setProviderToggle(cfg.aiProvider);
   refreshUI();
   document.getElementById('cfg-mb').classList.add('show');
 }
@@ -780,12 +817,26 @@ function saveCfg() {
   cfg.maxPosts = parseInt(document.getElementById('c-max').value)||50;
   cfg.postAge = document.getElementById('c-age').value;
   cfg.sortBy = document.getElementById('c-sort').value;
+  cfg.geminiKey = document.getElementById('c-gemini').value.trim();
   cfg.claudeKey = document.getElementById('c-claude').value.trim();
   cfg.minScore = parseFloat(document.getElementById('c-min').value)||7;
   cfg.skipGate = document.getElementById('c-skipgate').checked;
   saveToStorage();
   document.getElementById('cfg-mb').classList.remove('show');
-  toast('Configuration saved & remembered','ok');
+  toast('Configuration saved · AI: ' + cfg.aiProvider.toUpperCase(), 'ok');
+}
+function setProviderToggle(provider) {
+  cfg.aiProvider = provider;
+  const gBtn = document.getElementById('toggle-gemini');
+  const cBtn = document.getElementById('toggle-claude');
+  if (!gBtn || !cBtn) return;
+  if (provider === 'gemini') {
+    gBtn.style.background = 'var(--accent)'; gBtn.style.color = '#fff'; gBtn.style.borderColor = 'var(--accent)';
+    cBtn.style.background = 'var(--bg3)'; cBtn.style.color = 'var(--text2)'; cBtn.style.borderColor = 'var(--border2)';
+  } else {
+    cBtn.style.background = 'var(--purple)'; cBtn.style.color = '#fff'; cBtn.style.borderColor = 'var(--purple)';
+    gBtn.style.background = 'var(--bg3)'; gBtn.style.color = 'var(--text2)'; gBtn.style.borderColor = 'var(--border2)';
+  }
 }
 
 // ── Stage helpers ──
@@ -1034,13 +1085,13 @@ function extractGeo(post) {
   return geoMatch ? geoMatch[0] : '';
 }
 
-// ── Gate 2: Gemini AI Scoring (v2.1 Full Production Prompt) ──
+// ── Gate 2: AI Scoring Router — routes to Gemini or Claude based on cfg.aiProvider ──
 async function geminiScore(post, name, headline, company, postUrl) {
   const category = classifyCategory(post);
   const hiringType = classifyHiringType(post);
   const { isDecisionMaker, isHRAtEndClient, isAgencyBuyer } = buyerPersonaCheck(post, headline, company);
 
-  if (!cfg.claudeKey) {
+  const ruleBasedFallback = () => {
     const result = vayuzScore(post, headline, category, hiringType);
     return {
       score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
@@ -1051,11 +1102,73 @@ async function geminiScore(post, name, headline, company, postUrl) {
       urgency: 'Medium', companySize: 'Unknown', painPoints: [], lowOutreachContext: false,
       recommendedAction: result.score >= 8 ? 'Reach Out Now' : result.score >= 4 ? 'Monitor' : 'Skip'
     };
+  };
+
+  // Route to Claude if selected and key exists
+  if (cfg.aiProvider === 'claude' && cfg.claudeKey) {
+    return await claudeScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
   }
 
-  const runDate = new Date().toISOString().split('T')[0];
+  // Route to Gemini if selected and key exists
+  if (cfg.aiProvider === 'gemini' && cfg.geminiKey) {
+    return await geminiScoreAPI(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
+  }
 
-  const prompt = `You are a lead qualification engine for VAYUZ Technologies.
+  // No key set — use rule-based fallback
+  return ruleBasedFallback();
+}
+
+// ── Claude Scoring (Anthropic API) ──
+async function claudeScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, fallback) {
+  const runDate = new Date().toISOString().split('T')[0];
+  const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.claudeKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    let txt = (d.content?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
+    return parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback);
+  } catch(e) {
+    console.warn('Claude fallback:', e.message);
+    return fallback();
+  }
+}
+
+// ── Gemini Scoring (Google API) ──
+async function geminiScoreAPI(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, fallback) {
+  const runDate = new Date().toISOString().split('T')[0];
+  const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cfg.geminiKey}`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
+    return parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback);
+  } catch(e) {
+    console.warn('Gemini fallback:', e.message);
+    return fallback();
+  }
+}
+
+// ── Shared prompt builder ──
+function buildScoringPrompt(post, name, headline, company, postUrl, runDate) {
+  return `You are a lead qualification engine for VAYUZ Technologies.
 
 ═══ ABOUT VAYUZ ═══
 VAYUZ is a 10-year-old AI-inclusive digital engineering company based in India.
@@ -1097,8 +1210,7 @@ Award +1 bonus point (up to +3 total bonus) for each present in post:
 +3 Active urgency: clear JD, deadline, 'hiring now', 'immediate start', 'ASAP'
 +2 Company 50+ employees or visible enterprise signals
 +1 Project / milestone-based engagement model
-Up to +3 bonus from pain point signals above.
-Cap total score at 10.
+Up to +3 bonus from pain point signals above. Cap total score at 10.
 
 ═══ DEDUCTIONS ═══
 -3 No identifiable company (anonymous post, no company name or website)
@@ -1111,7 +1223,6 @@ Score MAXIMUM 3 (Cold) if ANY of:
 - Solo founder / 1-person company with no visible funding
 - 2-5 person startup with no funding signals
 - Zero company information in post or author profile
-These override all positive scoring. Hard floor = 3.
 
 ═══ GEO RULES ═══
 India-based company or India-open post: apply full +4 geo bonus
@@ -1119,14 +1230,10 @@ USA / UK / GCC / APAC remote-open: apply full +4 remote bonus
 Onsite required outside India (Staff Aug / Dedicated / Consulting): score = 0
 
 ═══ HR AUTHOR RULE ═══
-HR / Recruiter at genuine product company or enterprise:
-→ VALID lead — restrict lead_category to Staff Augmentation, Dedicated Teams, or IT Consulting ONLY
-→ Maximum score = 7
-HR / Recruiter at staffing / recruitment / RPO firm:
-→ score = 0, label = Cold, disqualify_reason = "DQ-8 Middleman"
+HR / Recruiter at genuine product company: VALID, restrict to Staff Aug/Dedicated/IT Consulting, max score 7
+HR / Recruiter at staffing/recruitment/RPO firm: score = 0, label = Cold, DQ-8 Middleman
 
 ═══ HARD DISQUALIFY — score 0, Cold ═══
-Return score=0, label="Cold" immediately if ANY match:
 - Post is a blog, article, guide, thought leadership, or company news
 - Person is looking for a job themselves (open to work, job seeker)
 - Post is from a staffing/recruitment firm posting client vacancy
@@ -1134,29 +1241,11 @@ Return score=0, label="Cold" immediately if ANY match:
 - Requires onsite presence outside India with no remote option
 - Looking for a co-founder or equity partner
 - Explicitly says 'no agencies', 'direct only', 'no middlemen'
-- Budget clearly below VAYUZ minimum (free, cheapest, no budget)
-- Posting on behalf of someone else (referral post, no budget authority)
+- Budget clearly below VAYUZ minimum
+- Posting on behalf of someone else (referral post)
 - Post is a job application form or candidate profile
 
-═══ ROLE-LEVEL SEARCH POSTS ═══
-If post searches for a specific tech role (e.g. 'looking for a React developer'):
-→ Always classify as Staff Augmentation or Dedicated Teams
-→ Never classify as Product Development
-→ Score normally using base rules above
-→ If no company context: apply -3 deduction
-
-═══ SERVICE CATEGORIES ═══
-App Development | Web Development | WordPress Development |
-Legacy System Modernization | Digital Transformation |
-EdTech / Education App Development | Staff Augmentation |
-Dedicated Teams | IT Consulting | Product Development
-
 LABELS: 8-10 = "Hot" | 4-7 = "Warm" | 0-3 = "Cold"
-
-═══ OUTREACH CONTEXT ═══
-VAYUZ sends templated outreach first, personalises on reply.
-A good lead must have enough publicly visible context for a meaningful template.
-If the post has no stack, no project type, and no company info, flag low_outreach_context = true.
 
 ═══ INPUT ═══
 Run Date: ${runDate}
@@ -1168,62 +1257,11 @@ Post Content: ${(post||'').slice(0,1500)}
 
 ═══ OUTPUT — return valid JSON only, no preamble, no markdown ═══
 {"score":0,"label":"Hot|Warm|Cold","lead_category":"","buyer_type":"Decision Maker|HR at End-Client|Middleman|Unknown","hiring_type":"Remote|Contract|Full-Time|Project-Based|Mixed","urgency":"High|Medium|Low","company_size_signal":"Enterprise|Mid-Market|SMB|Unknown","client_geo":"","role_hiring_for":"","email":"","phone":"","comp_name":"","first_name":"","last_name":"","pain_points_detected":[],"low_outreach_context":false,"disqualify_reason":"","qualification_reason":"","detected_signals":[],"recommended_action":"Reach Out Now|Monitor|Skip"}`;
+}
 
+// ── Shared response parser ──
+function parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback) {
   try {
-    // ✅ FIXED: Using Claude API (works from Vercel frontend)
-    if (!cfg.claudeKey) {
-      console.warn('Claude API key not configured, using fallback scoring');
-      const result = vayuzScore(post, headline, category, hiringType);
-      return {
-        score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
-        signals: result.signals, label: result.label, category: result.category,
-        hiringType: result.hiringType, role: result.role, geo: result.geo,
-        email: '', phone: '', firstName: '', lastName: '', compName: company,
-        reasoning: 'Fallback score (no API key)', disqualifyReason: '',
-        buyerType: 'Unknown', urgency: result.urgency, companySize: 'Unknown',
-        painPoints: result.painPoints, lowOutreachContext: false, recommendedAction: 'Monitor'
-      };
-    }
-
-    const r = await fetch(`https://api.anthropic.com/v1/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': cfg.claudeKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 600,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
-      })
-    });
-
-    if (!r.ok) {
-      const errorText = await r.text();
-      console.error(`Claude API HTTP ${r.status}:`, errorText);
-      // Fallback to keyword scoring
-      const result = vayuzScore(post, headline, category, hiringType);
-      return {
-        score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
-        signals: result.signals, label: result.label, category: result.category,
-        hiringType: result.hiringType, role: result.role, geo: result.geo,
-        email: '', phone: '', firstName: '', lastName: '', compName: company,
-        reasoning: 'API error - using fallback', disqualifyReason: '',
-        buyerType: 'Unknown', urgency: result.urgency, companySize: 'Unknown',
-        painPoints: result.painPoints, lowOutreachContext: false, recommendedAction: 'Monitor'
-      };
-    }
-
-    const d = await r.json();
-    if (d.error) {
-      console.error('Claude API error response:', d.error);
-      throw new Error(d.error.message);
-    }
-    let txt = (d.content?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
     const p = JSON.parse(txt);
     return {
       score: p.score||0,
@@ -1249,17 +1287,8 @@ Post Content: ${(post||'').slice(0,1500)}
       recommendedAction: p.recommended_action||'Monitor'
     };
   } catch(e) {
-    console.warn('Claude fallback (using keyword scoring):', e.message);
-    const result = vayuzScore(post, headline, category, hiringType);
-    return {
-      score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
-      signals: result.signals, label: result.label, category: result.category,
-      hiringType: result.hiringType, role: result.role, geo: result.geo,
-      reasoning: result.reasons.join('. '),
-      buyerType: isDecisionMaker ? 'Decision Maker' : isHRAtEndClient ? 'HR at End-Client' : 'Unknown',
-      urgency: 'Medium', companySize: 'Unknown', painPoints: [], lowOutreachContext: false,
-      recommendedAction: result.score >= 8 ? 'Reach Out Now' : result.score >= 4 ? 'Monitor' : 'Skip'
-    };
+    console.warn('JSON parse failed:', e.message);
+    return fallback();
   }
 }
 
@@ -1666,7 +1695,7 @@ function openDP(lead) {
   const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
   document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
-  document.getElementById('dp-gtag').textContent = cfg.claudeKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
+  document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
   document.getElementById('dp-kws').innerHTML = (lead.signals||[]).length
@@ -1893,8 +1922,8 @@ function clearKey(inputId, badgeId) {
   if (!confirm('Clear this API key?')) return;
   document.getElementById(inputId).value = '';
   document.getElementById(badgeId).style.display = 'none';
-  // Remove from cfg and storage
   if (inputId === 'c-apify') cfg.apifyToken = '';
+  if (inputId === 'c-gemini') cfg.geminiKey = '';
   if (inputId === 'c-claude') cfg.claudeKey = '';
   saveToStorage();
   toast('API key cleared', 'w');
@@ -1921,8 +1950,9 @@ async function initLoad() {
     toast('Failed to connect to database', 'e');
   }
   // Show key loaded toast
-  if (cfg.apifyToken || cfg.claudeKey) {
-    setTimeout(() => { toast('API keys loaded from saved config ✓', 'ok'); }, 1200);
+  if (cfg.apifyToken || cfg.geminiKey || cfg.claudeKey) {
+    const provider = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude' : cfg.geminiKey ? 'Gemini' : 'Rule-based';
+    setTimeout(() => { toast('API keys loaded · AI: ' + provider + ' ✓', 'ok'); }, 1200);
   }
 }
 initLoad();
