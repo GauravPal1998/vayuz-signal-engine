@@ -248,6 +248,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .stage-unable{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 /* ── Posted time badge ── */
 .pt-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:600;font-family:var(--mono);white-space:nowrap}
+/* ── NEW lead badge ── */
+.new-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;background:rgba(220,38,38,.12);color:var(--red);border:1px solid rgba(220,38,38,.3);margin-left:5px;vertical-align:middle;animation:pulse-new 2s ease-in-out 3}
+@keyframes pulse-new{0%,100%{opacity:1}50%{opacity:.5}}
 .pt-fresh{background:rgba(13,158,114,.1);color:var(--green);border:1px solid rgba(13,158,114,.2)}
 .pt-recent{background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.2)}
 .pt-old{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
@@ -385,6 +388,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <input id="q" type="text" placeholder="Search name, company, keyword, post URL…" oninput="doFilter()">
     </div>
     <div class="fb on" id="f-all" onclick="setF('all',this)">All</div>
+    <div class="fb" id="f-new" onclick="setF('new',this)" style="color:var(--red);border-color:rgba(220,38,38,.3)">🆕 New</div>
+    <div class="fb" id="f-action" onclick="setF('action',this)" style="color:var(--amber);border-color:rgba(192,123,16,.3)">⚡ Action Required</div>
     <div class="fb" id="f-hot" onclick="setF('hot',this)">🔥 Hot</div>
     <div class="fb" id="f-warm" onclick="setF('warm',this)">🟡 Warm</div>
     <div class="fb" id="f-cold" onclick="setF('cold',this)">🔵 Cold</div>
@@ -679,6 +684,7 @@ let cfg = {
 };
 
 let allLeads = [], filtered = [], curFilter = 'all', activeDetail = null;
+let currentScanUrls = new Set(); // tracks post URLs from current pipeline run
 
 const COLS = ['#4f8ef7','#22d3a0','#f0a84a','#9d72f5','#f05b5b','#38bdf8','#fb7185','#34d399','#f59e0b','#818cf8'];
 const avc = i => COLS[i % COLS.length];
@@ -1391,6 +1397,7 @@ function mapItem(item, idx) {
 async function runPipeline() {
   const btn = document.getElementById('run-btn');
   btn.disabled = true;
+  currentScanUrls = new Set(); // reset new-lead tracking for this scan
   resetPipe();
   document.getElementById('pipe-mb').classList.add('show');
   document.getElementById('pipe-src').textContent = cfg.apifyToken
@@ -1472,6 +1479,13 @@ async function runPipeline() {
     console.log('[Gate2] Scores:', gated.map(l => l.name + ':' + l.score + '(' + l.label + ')'));
     const qualified4plus = gated.filter(l => l.score >= 4).length;
     console.log('[Gate2] Qualified (4+):', qualified4plus, '/ Cold (0-3):', gated.length - qualified4plus);
+
+    // Mark all leads from this scan as NEW
+    gated.forEach(l => {
+      l.isNew = true;
+      if (l.postUrl) currentScanUrls.add(l.postUrl);
+    });
+
     stgDone(2, scored + ' leads scored');
 
     // Stage 3
@@ -1557,7 +1571,9 @@ function doFilter() {
   const q = (document.getElementById('q').value||'').toLowerCase();
   filtered = allLeads.filter(l => {
     let p = true;
-    if (curFilter==='hot') p = l.label==='Hot';
+    if (curFilter==='new') p = l.isNew === true;
+    else if (curFilter==='action') p = !l.leadStage && !l.isNew && (l.label==='Hot'||l.label==='Warm');
+    else if (curFilter==='hot') p = l.label==='Hot';
     else if (curFilter==='warm') p = l.label==='Warm';
     else if (curFilter==='cold') p = l.label==='Cold';
     else if (curFilter==='remote') p = (l.signals||[]).includes('remote');
@@ -1583,13 +1599,25 @@ function doFilter() {
     );
     return p;
   });
-  // Default: Hot first, then freshest within each label
+  // Smart sort: NEW leads first (Hot→Warm→Cold by freshness), then old leads
   filtered.sort((a, b) => {
+    // New leads always on top
+    if (a.isNew && !b.isNew) return -1;
+    if (!a.isNew && b.isNew) return 1;
+    // Within same group: Hot first, then by freshness
     const lo = {'Hot':0,'Warm':1,'Cold':2};
     const la = lo[a.label]??2, lb = lo[b.label]??2;
     if (la !== lb) return la - lb;
     return parsePostedTime(a.created) - parsePostedTime(b.created);
   });
+  // Update action required count in filter pill
+  const actionCount = allLeads.filter(l => !l.leadStage && !l.isNew && (l.label==='Hot'||l.label==='Warm')).length;
+  const actionBtn = document.getElementById('f-action');
+  if (actionBtn) actionBtn.textContent = '⚡ Action Required' + (actionCount > 0 ? ' (' + actionCount + ')' : '');
+  // Update new count in filter pill
+  const newCount = allLeads.filter(l => l.isNew).length;
+  const newBtn = document.getElementById('f-new');
+  if (newBtn) newBtn.textContent = '🆕 New' + (newCount > 0 ? ' (' + newCount + ')' : '');
   renderTbl();
 }
 function sortBy(f) {
@@ -1681,7 +1709,7 @@ function renderTbl() {
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
       <td style="white-space:nowrap">${postedBadge(lead.created)}</td>
-      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
+      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}${lead.isNew?'<span class="new-badge">NEW</span>':''}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
       <td><span class="sp ${sc}">${lead.score}/10</span></td>
       <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
       <td>${stageBadge(lead.leadStage)}</td>
@@ -1866,7 +1894,8 @@ async function loadLeadsFromSupabase() {
       // ── CRM ──
       status: parseFloat(l.ai_score || l.Qualification || 0) >= 7 ? 'ready' : 'new',
       leadStage: l.lead_stage || '',
-      remarks: l.remarks || ''
+      remarks: l.remarks || '',
+      isNew: currentScanUrls.has(l.post_url || '') // mark as new if from current scan
     }));
     doFilter();
     updStats(allLeads.length, allLeads.length, false);
