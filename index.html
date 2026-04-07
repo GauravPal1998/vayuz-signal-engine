@@ -1762,8 +1762,10 @@ function openDP(lead) {
     <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
     <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
   `;
-  // Pain points section
-  if (document.getElementById('dp-kws').parentElement) {
+  // Pain points section — remove old before inserting to prevent duplication
+  const oldPain = document.getElementById('dp-pain');
+  if (oldPain && oldPain.parentElement) oldPain.parentElement.remove();
+  if (document.getElementById('dp-kws') && document.getElementById('dp-kws').parentElement) {
     document.getElementById('dp-kws').parentElement.insertAdjacentHTML('afterend',
       `<div><div class="dpl">Pain Point Signals</div><div class="kws" id="dp-pain">${painPointsHtml}</div></div>`
     );
@@ -1838,7 +1840,15 @@ async function saveLeadsToSupabase(leads) {
   const { error } = await _sb.from('leads').upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false });
   if (error) {
     console.error('Supabase save error:', error.message, error.details);
-    toast('DB save failed: ' + (error.message||'check console'), 'e');
+    // Retry without scanned_at if that column is missing
+    if (error.message && error.message.includes('scanned_at')) {
+      const rowsNoScan = rows.map(({scanned_at, ...rest}) => rest);
+      const { error: e2 } = await _sb.from('leads').upsert(rowsNoScan, { onConflict: 'post_url', ignoreDuplicates: false });
+      if (e2) { toast('DB save failed: ' + (e2.message||'check console'), 'e'); console.error('Retry error:', e2); }
+      else { toast(`${rows.length} leads saved ✓`, 'ok'); }
+    } else {
+      toast('DB save failed: ' + (error.message||'check console'), 'e');
+    }
   } else {
     toast(`${rows.length} leads saved to database ✓`, 'ok');
   }
@@ -1847,8 +1857,8 @@ async function saveLeadsToSupabase(leads) {
 // ── Load leads from Supabase on page open ──
 async function loadLeadsFromSupabase() {
   try {
-    // Sort by scanned_at — latest scan always first on refresh
-    const { data, error } = await _sb.from('leads').select('*').order('scanned_at', { ascending: false, nullsFirst: false });
+    // Sort by created_at (always exists) — newest rows first
+    const { data, error } = await _sb.from('leads').select('*').order('created_at', { ascending: false });
     if (error) {
       console.error('Supabase load error:', error.message, error.details, error.hint);
       toast('Load failed: ' + (error.message||'check console'), 'e');
