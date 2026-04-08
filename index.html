@@ -125,7 +125,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 
 /* ── Table ── */
 .ts{flex:1;overflow-y:auto;overflow-x:auto}
-.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1500px}
+.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
 .lt th{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:10px 12px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--bg2);z-index:2}
 .lt th.s{cursor:pointer}.lt th.s:hover{color:var(--text2)}
 .lr td{padding:11px 12px;font-size:12.5px;vertical-align:middle;border-bottom:1px solid var(--border);transition:background .1s}
@@ -361,9 +361,21 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .fs-bar{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0}
 /* Funnel arrow between stages */
 .fs-arrow{display:flex;align-items:center;color:var(--border3);font-size:10px;flex-shrink:0;padding:0 1px;background:var(--bg2);z-index:1}
-/* Noise block styling */
-.fs-block.noise-block{background:var(--rdim);opacity:.75}
-.fs-block.noise-block:hover{opacity:1}
+/* Irrelevant lead hidden notice */
+.irrelevant-notice{padding:6px 16px;font-size:11px;color:var(--text3);font-family:var(--mono);border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:8px}
+.irrelevant-notice a{color:var(--accent);cursor:pointer;text-decoration:underline}
+/* ── Row delete button (shows on hover) ── */
+.row-del{opacity:0;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(220,38,38,.25);background:var(--rdim);color:var(--red);transition:all .12s;white-space:nowrap;font-family:var(--font)}
+.row-del:hover{background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.45)}
+.lr:hover .row-del{opacity:1}
+/* ── Bulk action bar ── */
+.bulk-bar{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:10px;padding:10px 18px;font-size:12.5px;font-weight:600;font-family:var(--font);align-items:center;gap:14px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.22);white-space:nowrap}
+.bulk-bar.show{display:flex}
+.bulk-bar span{color:rgba(255,255,255,.65);font-size:12px}
+.bulk-del{padding:6px 14px;border-radius:6px;background:var(--red);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
+.bulk-del:hover{background:#b91c1c}
+.bulk-cancel{padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:12px;font-family:var(--font);cursor:pointer;transition:all .13s}
+.bulk-cancel:hover{border-color:rgba(255,255,255,.5);color:#fff}
 </style>
 </head>
 <body>
@@ -428,6 +440,17 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <svg viewBox="0 0 14 14" fill="currentColor"><polygon points="4,2 12,7 4,12"/></svg>
         Run Pipeline
       </button>
+    </div>
+  </div>
+
+  <!-- Lead Funnel (always visible when data loaded, above dashboard) -->
+  <div class="funnel-wrap" id="funnel-wrap" style="display:none">
+    <div class="funnel-title">
+      Lead Funnel
+      <span style="font-weight:400;color:var(--text3);font-size:8px">click a stage to filter</span>
+    </div>
+    <div class="funnel-stages" id="funnel-stages">
+      <!-- Populated by JS -->
     </div>
   </div>
 
@@ -516,17 +539,6 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
   </div>
 
-  <!-- DuxSoup-style Funnel (always visible when data loaded) -->
-  <div class="funnel-wrap" id="funnel-wrap" style="display:none">
-    <div class="funnel-title">
-      Lead Funnel
-      <span style="font-weight:400;color:var(--text3);font-size:8px">click a stage to filter</span>
-    </div>
-    <div class="funnel-stages" id="funnel-stages">
-      <!-- Populated by JS -->
-    </div>
-  </div>
-
   <!-- Controls -->
   <div class="ctrl">
     <div class="sw">
@@ -607,6 +619,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
     </div>
 
+    <div id="irrelevant-notice" class="irrelevant-notice" style="display:none"></div>
     <table class="lt" id="tbl" style="display:none">
       <thead>
         <tr>
@@ -620,10 +633,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
           <th>Role</th>
           <th>Geo</th>
           <th>Hiring Type</th>
-          <th>Signals</th>
           <th>Post URL</th>
-          <th>Post Snippet</th>
-          <th>Actions</th>
+          <th>Remarks / Notes</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -729,8 +740,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
 
     <button class="save-btn" onclick="saveLeadEdits()">💾 Save Changes</button>
-    <button class="rbtn" onclick="markReach()">✓ Mark as Reached Out</button>
-    <button class="cbtn" onclick="copyMsg()">Copy Outreach Message</button>
+    <button class="cbtn" onclick="archiveLead()" style="color:var(--amber);border-color:rgba(192,123,16,.3)">🗃 Archive Lead</button>
+    <button class="cbtn" onclick="deleteLead()" style="color:var(--red);border-color:rgba(220,38,38,.25);margin-top:4px">🗑 Delete Lead</button>
   </div>
 </div>
 
@@ -1955,8 +1966,6 @@ function updFunnel() {
     { id:'f-s3',      label:'S3',        count:s3,    color:'var(--purple)', opacity:'1',   filter:()=>setDropFilter('stage','S3') },
     { id:'f-s4',      label:'S4',        count:s4,    color:'var(--green)',  opacity:'1',   filter:()=>setDropFilter('stage','S4') },
     { id:'f-mtg',     label:'Mtg',       count:mtg,   color:'var(--green)',  opacity:'.75', filter:()=>setDropFilter('stage','Meeting') },
-    { id:'f-closed',  label:'Closed',    count:closed,color:'#888',          opacity:'1',   filter:()=>setDropFilter('stage','closed') },
-    { id:'f-noise',   label:'🔇 Noise',  count:noise, color:'var(--red)',    opacity:'.5',  noise:true, filter:()=>{document.getElementById('dd-stage').value='Not Relevant';highlightActiveDropdowns();doFilter();} },
   ];
 
   const container = document.getElementById('funnel-stages');
@@ -2088,7 +2097,7 @@ function sortBy(f) {
   else sel.value = 'name';
   doFilter();
 }
-function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
+function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); updBulkBar(); }
 
 // ── Parse "X minutes/hours ago" → minutes number ──
 function parsePostedTime(str) {
@@ -2182,25 +2191,49 @@ function stageBadge(stage) {
 function renderTbl() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+  // By default hide Not Relevant / Unable to connect leads unless explicitly filtered for
+  const ddStage = document.getElementById('dd-stage').value;
+  const showIrrelevant = ddStage === 'Not Relevant';
+  const visibleLeads = filtered.filter(l => {
+    if (!showIrrelevant) {
+      const stage = (l.leadStage || '').toLowerCase();
+      if (stage.includes('not relevant') || stage.includes('unable to connect')) return false;
+    }
+    return true;
+  });
+  // Show/hide irrelevant notice
+  const irrelevantCount = filtered.filter(l => {
+    const stage = (l.leadStage || '').toLowerCase();
+    return stage.includes('not relevant') || stage.includes('unable to connect');
+  }).length;
+  const noticeEl = document.getElementById('irrelevant-notice');
+  if (noticeEl) {
+    if (!showIrrelevant && irrelevantCount > 0) {
+      noticeEl.style.display = 'flex';
+      noticeEl.innerHTML = `🔇 ${irrelevantCount} Not Relevant / Unable to Connect lead${irrelevantCount>1?'s':''} hidden. <a onclick="showIrrelevantLeads()">Show them</a> &nbsp;·&nbsp; <a onclick="bulkDeleteIrrelevant()">Delete all</a>`;
+    } else {
+      noticeEl.style.display = 'none';
+    }
+  }
+
+  if (!visibleLeads.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
     return;
   }
-  filtered.forEach(lead => {
+  visibleLeads.forEach(lead => {
     const sc = lead.score>=7?'h':lead.score>=4?'m':'l';
     const lbl = lead.label || (lead.score>=7?'Hot':lead.score>=4?'Warm':'Cold');
-    const chips = (lead.signals||[]).map(s=>`<span class="chip c-${s==='hiring'?'hiring':s==='remote'?'expansion':s==='urgent'?'pain':s==='india'?'vendor':'funding'}">${s}</span>`).join('');
-    const snip = (lead.post||'').slice(0,65)+((lead.post||'').length>65?'…':'');
     let urlCell = '<span class="nu">—</span>';
     if (lead.postUrl) {
-      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,30)+'…';
+      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,28)+'…';
       urlCell = `<a class="ul" href="${lead.postUrl}" target="_blank" onclick="event.stopPropagation()" title="${esc(lead.postUrl)}">${disp}</a>`;
     }
+    const remarksSnip = lead.remarks ? esc(lead.remarks.slice(0,60)) + (lead.remarks.length>60?'…':'') : '<span style="color:var(--text3);font-size:10.5px">—</span>';
     const tr = document.createElement('tr');
     tr.className = 'lr';
     tr.onclick = () => openDP(lead);
     tr.innerHTML = `
-      <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
+      <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
       <td style="white-space:nowrap">${postedBadge(lead)}</td>
       <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}${lead.isNew?'<span class="new-badge">NEW</span>':''}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
       <td><span class="sp ${sc}">${lead.score}/10</span></td>
@@ -2210,10 +2243,8 @@ function renderTbl() {
       <td><span style="font-size:11.5px;color:var(--text2)">${esc(lead.role||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${esc(lead.geo||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3)">${esc(lead.hiringType||'—')}</span></td>
-      <td><div class="chips">${chips||'<span style="color:var(--text3);font-size:10.5px">—</span>'}</div></td>
       <td class="uc">${urlCell}</td>
-      <td><div class="snp">${esc(snip)}</div></td>
-      <td><div class="ac"><button class="ab p" onclick="event.stopPropagation();qReach(${lead.id})">Reach Out</button><button class="ab" onclick="event.stopPropagation();openDP(allLeads[${lead.id}])">Detail</button></div></td>
+      <td style="display:flex;align-items:center;gap:8px;min-width:180px"><div class="snp" style="flex:1;font-size:11.5px;color:var(--text2)">${remarksSnip}</div><button class="row-del" onclick="event.stopPropagation();deleteLeadById(${JSON.stringify(lead._dbid)},${JSON.stringify(lead.name)})">🗑</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -2354,17 +2385,97 @@ function openDP(lead) {
   document.getElementById('dpanel').classList.add('show');
 }
 function closeDP() { document.getElementById('dpanel').classList.remove('show'); activeDetail = null; }
-function markReach() {
-  if (!activeDetail) return;
-  activeDetail.status = 'contacted';
-  doFilter(); updStats(); toast(activeDetail.name+' marked as reached out','ok'); closeDP();
+function updBulkBar() {
+  const checked = document.querySelectorAll('.rchk:checked');
+  const bar = document.getElementById('bulk-bar');
+  const cnt = document.getElementById('bulk-count');
+  if (checked.length > 0) {
+    bar.classList.add('show');
+    cnt.textContent = checked.length + ' lead' + (checked.length > 1 ? 's' : '') + ' selected';
+  } else {
+    bar.classList.remove('show');
+  }
 }
-function qReach(id) { const l=allLeads[id]; if(!l)return; toast('Opening outreach for '+l.name,'ok'); }
-function copyMsg() {
+
+function clearSelection() {
+  document.querySelectorAll('.rchk').forEach(c => c.checked = false);
+  const hdr = document.querySelector('thead input[type=checkbox]');
+  if (hdr) hdr.checked = false;
+  document.getElementById('bulk-bar').classList.remove('show');
+}
+
+async function deleteLeadById(dbid, name) {
+  if (!confirm('Delete ' + name + '? This cannot be undone.')) return;
+  const { error } = await _sb.from('leads').delete().eq('id', dbid);
+  if (error) { toast('Delete failed — check console', 'e'); return; }
+  allLeads = allLeads.filter(l => l._dbid !== dbid);
+  toast(name + ' deleted', 'w');
+  if (activeDetail && activeDetail._dbid === dbid) closeDP();
+  doFilter();
+  updStats(allLeads.length, allLeads.length, false);
+}
+
+async function bulkDeleteSelected() {
+  const checked = document.querySelectorAll('.rchk:checked');
+  if (!checked.length) return;
+  const dbids = Array.from(checked).map(c => c.dataset.dbid).filter(Boolean);
+  if (!confirm('Permanently delete ' + dbids.length + ' lead' + (dbids.length>1?'s':'') + '? This cannot be undone.')) return;
+  const { error } = await _sb.from('leads').delete().in('id', dbids);
+  if (error) { toast('Bulk delete failed', 'e'); return; }
+  allLeads = allLeads.filter(l => !dbids.includes(String(l._dbid)));
+  clearSelection();
+  toast(dbids.length + ' lead' + (dbids.length>1?'s':'') + ' deleted', 'w');
+  if (activeDetail && dbids.includes(String(activeDetail._dbid))) closeDP();
+  doFilter();
+  updStats(allLeads.length, allLeads.length, false);
+}
+
+function showIrrelevantLeads() {
+  document.getElementById('dd-stage').value = 'Not Relevant';
+  highlightActiveDropdowns();
+  doFilter();
+}
+
+async function archiveLead() {
   if (!activeDetail) return;
-  const l = activeDetail, kw = l.keywords&&l.keywords.length ? l.keywords[0] : 'your tech needs';
-  const msg = `Hi ${l.name.split(' ')[0]}, came across your post about ${kw} — at VAYUZ we've helped companies like yours build reliable products with dedicated dev teams. Would love to share how we can help. Open to a quick 15-min call?`;
-  navigator.clipboard.writeText(msg).then(()=>toast('Outreach message copied','ok'));
+  if (!confirm('Archive this lead? It will be hidden from the main view.')) return;
+  activeDetail.leadStage = 'Not Relevant';
+  const { error } = await _sb.from('leads').update({ lead_stage: 'Not Relevant' }).eq('id', activeDetail._dbid);
+  if (error) { toast('Archive failed — check console', 'e'); return; }
+  toast(activeDetail.name + ' archived', 'w');
+  closeDP();
+  doFilter();
+  updPipeline();
+}
+
+async function deleteLead() {
+  if (!activeDetail) return;
+  if (!confirm('Permanently delete ' + activeDetail.name + '? This cannot be undone.')) return;
+  const { error } = await _sb.from('leads').delete().eq('id', activeDetail._dbid);
+  if (error) { toast('Delete failed — check console', 'e'); return; }
+  allLeads = allLeads.filter(l => l._dbid !== activeDetail._dbid);
+  toast(activeDetail.name + ' deleted', 'w');
+  closeDP();
+  doFilter();
+  updStats(allLeads.length, allLeads.length, false);
+}
+
+async function bulkDeleteIrrelevant() {
+  const toDelete = allLeads.filter(l => {
+    const s = (l.leadStage || '').toLowerCase();
+    return s.includes('not relevant') || s.includes('unable to connect');
+  });
+  if (!toDelete.length) return;
+  if (!confirm('Permanently delete ' + toDelete.length + ' Not Relevant / Unable to Connect leads? This cannot be undone.')) return;
+  const ids = toDelete.map(l => l._dbid).filter(Boolean);
+  if (ids.length) {
+    const { error } = await _sb.from('leads').delete().in('id', ids);
+    if (error) { toast('Bulk delete failed', 'e'); return; }
+  }
+  allLeads = allLeads.filter(l => !toDelete.includes(l));
+  toast(toDelete.length + ' leads deleted', 'w');
+  doFilter();
+  updStats(allLeads.length, allLeads.length, false);
 }
 
 // ── Supabase Client ──
@@ -2613,5 +2724,12 @@ async function initLoad() {
 }
 initLoad();
 </script>
+<!-- Bulk Action Bar -->
+<div class="bulk-bar" id="bulk-bar">
+  <span id="bulk-count">0 selected</span>
+  <button class="bulk-del" onclick="bulkDeleteSelected()">🗑 Delete Selected</button>
+  <button class="bulk-cancel" onclick="clearSelection()">Cancel</button>
+</div>
+
 </body>
 </html>
