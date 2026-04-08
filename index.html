@@ -1402,7 +1402,7 @@ async function geminiScoreAPI(post, name, headline, company, postUrl, category, 
   const runDate = new Date().toISOString().split('T')[0];
   const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cfg.geminiKey}`, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${cfg.geminiKey}`, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
     });
