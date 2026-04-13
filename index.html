@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signal Engine — VAYUZ</title>
+<title>Signal — VAYUZ</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -226,6 +226,24 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .actor-info{background:rgba(13,158,114,.07);border:1px solid rgba(13,158,114,.2);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--green);line-height:1.6;margin-bottom:14px}
 .actor-info strong{color:var(--green)}
 
+/* ── Add Lead Modal ── */
+.al-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:26px 30px;width:580px;max-width:94vw;max-height:90vh;overflow-y:auto}
+.al-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.al-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:20px}
+.al-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.al-grid .cf{margin-bottom:12px}
+.al-full{grid-column:1/-1}
+.al-score-row{display:flex;gap:10px;align-items:center}
+.al-score-row input[type=number]{width:70px}
+.al-actions{display:flex;gap:10px;margin-top:20px}
+.al-save{flex:1;padding:10px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
+.al-save:hover{background:#3578e5}
+.al-save:disabled{opacity:.5;pointer-events:none}
+.al-cancel{padding:10px 20px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .13s}
+.al-cancel:hover{background:var(--bg4);color:var(--text)}
+.al-req{color:var(--red)}
+.al-hint{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px;line-height:1.5}
+
 /* ── Detail panel ── */
 .dp{width:340px;height:100vh;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
 .dp.show{display:flex}
@@ -384,7 +402,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <aside class="sb" id="sidebar">
   <div class="sb-logo" onclick="toggleSidebar()" title="Toggle sidebar">
     <div class="sb-mark">V</div>
-    <div><div class="sb-name">VAYUZ</div><div class="sb-tag">Signal Engine</div></div>
+    <div><div class="sb-name">VAYUZ</div><div class="sb-tag">Signal</div></div>
     <div class="sb-toggle">◀</div>
   </div>
   <div class="sb-nav">
@@ -428,10 +446,14 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <main class="main">
   <div class="topbar">
     <div class="tb-info">
-      <div class="tb-t">LinkedIn Signal Feed</div>
-      <div class="tb-s">Apify (no cookies) → Rule Gate → Gemini Score → Outreach Ready</div>
+      <div class="tb-t">Signal</div>
+      <div class="tb-s" id="tb-subtitle">Apify → Rule Gate → AI Score → Outreach Ready</div>
     </div>
     <div class="tb-right">
+      <button class="btn" onclick="showAddLead()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v10M2 7h10"/></svg>
+        Add Lead
+      </button>
       <button class="btn" onclick="showCfg()">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="2"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13"/></svg>
         Configure
@@ -602,7 +624,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <button class="btn" style="padding:6px 10px;font-size:11px;color:var(--text3)" onclick="resetAllFilters()" title="Clear all filters">✕ Clear</button>
   </div>
 
-  <div class="ts">
+  <!-- Persistent Gate 1 fallback warning -->
+  <div id="gate-warn" style="display:none;padding:6px 16px;background:rgba(192,123,16,.09);border-bottom:1px solid rgba(192,123,16,.2);font-size:11px;color:var(--amber);font-family:var(--mono);flex-shrink:0"></div>
     <div id="emp" class="empty">
       <div class="ei"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z"/><path d="M13 10l-4-2.5v5L13 10z" fill="currentColor" stroke="none"/></svg></div>
       <div class="et">No signals yet</div>
@@ -610,7 +633,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <div class="setup">
         <div class="step"><div class="sno">1</div><div class="stxt">Get your Apify API token<small>apify.com → Settings → Integrations → API tokens</small></div></div>
         <div class="step"><div class="sno">2</div><div class="stxt">Enter your search keywords in Configure<small>e.g. "hire developers", "app development", "need tech partner"</small></div></div>
-        <div class="step"><div class="sno">3</div><div class="stxt">Optionally add a Gemini key for AI scoring<small>aistudio.google.com → Get API Key (free tier works)</small></div></div>
+        <div class="step"><div class="sno">3</div><div class="stxt">Add an AI key in Configure for smarter scoring<small>Gemini (free) · Claude · OpenRouter (300+ models, free tier available)</small></div></div>
         <div class="step"><div class="sno">4</div><div class="stxt">Click Run Pipeline — real posts load in ~30s<small>Actor: harvestapi/linkedin-post-search · No cookies needed</small></div></div>
       </div>
       <div class="eb">
@@ -745,6 +768,127 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
   </div>
 </div>
 
+<!-- Add Lead Modal -->
+<div class="mb" id="addlead-mb" onclick="if(event.target===this)closeAddLead()">
+  <div class="al-modal">
+    <div class="al-title">➕ Add Lead Manually</div>
+    <div class="al-sub">Manually entered leads are saved directly to the database and scored using VAYUZ rule-based logic.</div>
+
+    <div class="al-grid">
+      <!-- Name -->
+      <div class="cf">
+        <label class="cl">Full Name <span class="al-req">*</span></label>
+        <input class="ci" type="text" id="al-name" placeholder="e.g. Rahul Sharma">
+      </div>
+      <!-- Company -->
+      <div class="cf">
+        <label class="cl">Company <span class="al-req">*</span></label>
+        <input class="ci" type="text" id="al-company" placeholder="e.g. TechCorp India">
+      </div>
+      <!-- Headline -->
+      <div class="cf al-full">
+        <label class="cl">Title / Headline</label>
+        <input class="ci" type="text" id="al-headline" placeholder="e.g. Founder & CEO at TechCorp India">
+      </div>
+      <!-- LinkedIn Profile URL -->
+      <div class="cf">
+        <label class="cl">LinkedIn Profile URL</label>
+        <input class="ci" type="url" id="al-profile-url" placeholder="https://linkedin.com/in/…">
+      </div>
+      <!-- Post URL -->
+      <div class="cf">
+        <label class="cl">Post URL</label>
+        <input class="ci" type="url" id="al-post-url" placeholder="https://linkedin.com/posts/…">
+      </div>
+      <!-- Email -->
+      <div class="cf">
+        <label class="cl">Email</label>
+        <input class="ci" type="email" id="al-email" placeholder="name@company.com">
+      </div>
+      <!-- Phone -->
+      <div class="cf">
+        <label class="cl">Phone / WhatsApp</label>
+        <input class="ci" type="tel" id="al-phone" placeholder="+91 98765 43210">
+      </div>
+      <!-- Category -->
+      <div class="cf">
+        <label class="cl">Category</label>
+        <select class="ci" id="al-category">
+          <option value="">— Select —</option>
+          <option value="App Development">📱 App Development</option>
+          <option value="Web Development">🌐 Web Development</option>
+          <option value="WordPress Development">🔷 WordPress Development</option>
+          <option value="Product Development">🚀 Product Development</option>
+          <option value="Staff Augmentation">👥 Staff Augmentation</option>
+          <option value="Dedicated Teams">🏢 Dedicated Teams</option>
+          <option value="Digital Transformation">⚡ Digital Transformation</option>
+          <option value="IT Consulting">💡 IT Consulting</option>
+          <option value="Legacy System Modernization">🔧 Legacy Modernization</option>
+          <option value="EdTech / Education App Development">🎓 EdTech</option>
+        </select>
+      </div>
+      <!-- Geo -->
+      <div class="cf">
+        <label class="cl">Client Geo</label>
+        <input class="ci" type="text" id="al-geo" placeholder="e.g. India, UAE, UK, Remote">
+      </div>
+      <!-- Stage -->
+      <div class="cf">
+        <label class="cl">Lead Stage</label>
+        <select class="ci" id="al-stage">
+          <option value="">— Not Set —</option>
+          <option value="Meeting Booked">📅 Meeting Booked</option>
+          <option value="S0 - Connection in Progress">S0 · Connection in Progress</option>
+          <option value="S1 - Connected RPC">S1 · Connected RPC</option>
+          <option value="S2 - Received Requirement">S2 · Received Requirement</option>
+          <option value="S3 - Proposal / EoI / Interviews">S3 · Proposal / EoI</option>
+          <option value="S4 - Contract (AWDS) / RAPYD">S4 · Contract</option>
+          <option value="Requirement closed">🔒 Requirement Closed</option>
+          <option value="Not Relevant">❌ Not Relevant</option>
+        </select>
+      </div>
+      <!-- Score -->
+      <div class="cf">
+        <label class="cl">Score (0–10)</label>
+        <div class="al-score-row">
+          <input class="ci" type="number" id="al-score" min="0" max="10" step="0.5" placeholder="Auto" oninput="updateAlLabel()">
+          <span id="al-label-preview" style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text3)">Auto</span>
+        </div>
+        <div class="al-hint">Leave blank to auto-score using VAYUZ rule logic.</div>
+      </div>
+      <!-- Hiring Type -->
+      <div class="cf">
+        <label class="cl">Hiring / Engagement Type</label>
+        <select class="ci" id="al-hiring-type">
+          <option value="Not Specified">Not Specified</option>
+          <option value="Remote">🌐 Remote</option>
+          <option value="Project-Based">📋 Project-Based</option>
+          <option value="Full-Time">💼 Full-Time</option>
+          <option value="Contract">📄 Contract</option>
+          <option value="Staff Augmentation">👥 Staff Augmentation</option>
+          <option value="Dedicated Team">🏢 Dedicated Team</option>
+        </select>
+      </div>
+      <!-- Post Text -->
+      <div class="cf al-full">
+        <label class="cl">Post / Message Content</label>
+        <textarea class="ci" id="al-post" rows="4" style="resize:vertical;line-height:1.6" placeholder="Paste the LinkedIn post text, email content, or any context about this lead…"></textarea>
+        <div class="al-hint">Used for auto-scoring if score is left blank. Also stored for reference.</div>
+      </div>
+      <!-- Remarks -->
+      <div class="cf al-full">
+        <label class="cl">Remarks / Notes</label>
+        <textarea class="ci" id="al-remarks" rows="2" style="resize:vertical;line-height:1.6" placeholder="How did you find this lead? Any context, urgency, or follow-up notes…"></textarea>
+      </div>
+    </div>
+
+    <div class="al-actions">
+      <button class="al-save" id="al-save-btn" onclick="saveManualLead()">💾 Save Lead to Database</button>
+      <button class="al-cancel" onclick="closeAddLead()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Pipeline Modal -->
 <div class="mb" id="pipe-mb">
   <div class="pc">
@@ -753,7 +897,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="stgs">
       <div class="stg" id="st0"><div class="sd" id="sd0">1</div><div class="stxt2">Apify: Fetching posts (no cookies)</div><div class="scnt" id="sc0"></div></div>
       <div class="stg" id="st1"><div class="sd" id="sd1">2</div><div class="stxt2">Gate 1: Keyword OR title filter (auto-fallback)</div><div class="scnt" id="sc1"></div></div>
-      <div class="stg" id="st2"><div class="sd" id="sd2">3</div><div class="stxt2">Gate 2: Gemini intent + signal scoring</div><div class="scnt" id="sc2"></div></div>
+      <div class="stg" id="st2"><div class="sd" id="sd2">3</div><div class="stxt2" id="st2-label">Gate 2: AI intent + signal scoring</div><div class="scnt" id="sc2"></div></div>
       <div class="stg" id="st3"><div class="sd" id="sd3">4</div><div class="stxt2">Building outreach-ready list</div><div class="scnt" id="sc3"></div></div>
     </div>
     <div class="pb"><div class="pf" id="pf" style="width:0%"></div></div>
@@ -773,7 +917,32 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       ✓ Actor: <strong>harvestapi/linkedin-post-search</strong> — No cookies required · $2 / 1k posts · Takes keywords directly, no LinkedIn URL needed.
     </div>
 
-    <div class="csec">Apify Settings</div>
+    <div class="csec">Scraping Settings</div>
+    <div class="cf">
+      <label class="cl">Posts per keyword <span style="color:var(--red)">*</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="ci" type="number" id="c-maxposts" min="10" max="100" placeholder="50" style="width:70px">
+        <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">5 keywords × this value = total raw posts</span>
+      </div>
+      <div class="ch">Higher = more posts, slower scrape. Max 100 posts per keyword. Example: 100 posts × 5 keywords = ~500 total posts.</div>
+    </div>
+
+    <div class="cf">
+      <label class="cl">AI Batch size <span style="color:var(--text3)">(optional)</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="ci" type="number" id="c-batchsize" min="10" max="100" placeholder="50" style="width:70px">
+        <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Posts scored at once</span>
+      </div>
+      <div class="ch">First batch scores immediately & shows in dashboard. Remaining batches process in background.</div>
+    </div>
+
+    <div class="cf">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="c-background" checked style="width:16px;height:16px;cursor:pointer">
+        <span style="font-size:12px;font-weight:600">Background processing</span>
+      </label>
+      <div class="ch">Process remaining batches in background. Dashboard updates live as batches complete.</div>
+    </div>
     <div class="cf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
         <label class="cl" style="margin-bottom:0">Apify API Token <span style="color:var(--red)">*</span></label>
@@ -819,6 +988,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <button id="toggle-claude" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('claude');saveToStorage()">
           ◆ Claude (Anthropic)
         </button>
+        <button id="toggle-openrouter" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('openrouter');saveToStorage()">
+          ⚡ OpenRouter
+        </button>
       </div>
       <div class="ch" style="margin-top:6px">Selected provider is used for Gate 2 AI scoring. Falls back to rule-based if key is missing.</div>
     </div>
@@ -847,6 +1019,35 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
       <input class="ci" type="password" id="c-claude" placeholder="sk-ant-api03-..." oninput="document.getElementById('claude-saved').style.display='none'">
       <div class="ch">Get key → <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> · Uses claude-haiku-4-5 · ~₹1 per 50-post scan</div>
+    </div>
+
+    <!-- OpenRouter Key -->
+    <div class="cf">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label class="cl" style="margin-bottom:0">OpenRouter API Key <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(300+ models)</span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="or-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
+          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-openrouter','or-saved')">Clear</button>
+        </div>
+      </div>
+      <input class="ci" type="password" id="c-openrouter" placeholder="sk-or-v1-..." oninput="document.getElementById('or-saved').style.display='none'">
+      <div class="ch">Get free key → <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> · Free models available · No credit card needed</div>
+    </div>
+
+    <!-- OpenRouter Model -->
+    <div class="cf">
+      <label class="cl">OpenRouter Model <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(model string)</span></label>
+      <select class="ci" id="c-openrouter-model">
+        <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct — Free ★</option>
+        <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Experimental — Free</option>
+        <option value="deepseek/deepseek-chat-v3-0324:free">DeepSeek V3 — Free</option>
+        <option value="qwen/qwen3-235b-a22b:free">Qwen3 235B A22B — Free</option>
+        <option value="mistralai/mistral-7b-instruct:free">Mistral 7B Instruct — Free</option>
+        <option value="openai/gpt-4o-mini">GPT-4o Mini — Paid</option>
+        <option value="anthropic/claude-3-haiku">Claude 3 Haiku — Paid</option>
+        <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Paid</option>
+      </select>
+      <div class="ch">All free-tier models work with 0 credits. Check <a href="https://openrouter.ai/models?order=newest&supported_parameters=free" target="_blank">openrouter.ai/models</a> for full list.</div>
     </div>
 
     <div class="cf">
@@ -922,10 +1123,17 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 // ── Config ──
 let cfg = {
   apifyToken: '', maxPosts: 50, postAge: 'week', sortBy: 'date',
-  geminiKey: '', claudeKey: '', aiProvider: 'gemini', minScore: 7, skipGate: false,
+  geminiKey: '', claudeKey: '', openRouterKey: '', openRouterModel: 'meta-llama/llama-3.3-70b-instruct:free',
+  aiProvider: 'gemini', minScore: 7, skipGate: false,
+  batchSize: 50, backgroundProcessing: true,
   keywords: ['app development','mobile app','web development','digital transformation','hire developers','build product','offshore team','tech partner','dedicated team','software development'],
   titles: ['Founder','Co-Founder','CEO','CTO','CPO','CIO','MD','Director','VP','Head of','President','Partner','Owner','Engineer','Manager','Lead']
 };
+
+// ── Background queue for batch AI processing ──
+let batchQueue = [];
+let isProcessingBatch = false;
+let backgroundBatchCount = 0;
 
 let allLeads = [], filtered = [], curFilter = 'all', activeDetail = null;
 let currentScanUrls = new Set(); // tracks post URLs from current pipeline run
@@ -944,12 +1152,16 @@ function saveToStorage() {
       apifyToken: cfg.apifyToken,
       geminiKey: cfg.geminiKey,
       claudeKey: cfg.claudeKey,
+      openRouterKey: cfg.openRouterKey,
+      openRouterModel: cfg.openRouterModel,
       aiProvider: cfg.aiProvider,
       maxPosts: cfg.maxPosts,
       postAge: cfg.postAge,
       sortBy: cfg.sortBy,
       minScore: cfg.minScore,
       skipGate: cfg.skipGate,
+      batchSize: cfg.batchSize,
+      backgroundProcessing: cfg.backgroundProcessing,
       keywords: cfg.keywords,
       titles: cfg.titles
     }));
@@ -964,17 +1176,18 @@ function loadFromStorage() {
     if (d.apifyToken) cfg.apifyToken = d.apifyToken;
     if (d.geminiKey) cfg.geminiKey = d.geminiKey;
     if (d.claudeKey) cfg.claudeKey = d.claudeKey;
+    if (d.openRouterKey) cfg.openRouterKey = d.openRouterKey;
+    if (d.openRouterModel) cfg.openRouterModel = d.openRouterModel;
     if (d.aiProvider) cfg.aiProvider = d.aiProvider;
     if (d.maxPosts) cfg.maxPosts = d.maxPosts;
     if (d.postAge) cfg.postAge = d.postAge;
     if (d.sortBy) cfg.sortBy = d.sortBy;
-    if (typeof d.minScore === 'number') cfg.minScore = d.minScore;
-    if (typeof d.skipGate === 'boolean') cfg.skipGate = d.skipGate;
-    if (Array.isArray(d.keywords) && d.keywords.length) cfg.keywords = d.keywords;
-    if (Array.isArray(d.titles) && d.titles.length) cfg.titles = d.titles;
-    if (cfg.apifyToken) showSavedBadge('apify-saved');
-    if (cfg.geminiKey) showSavedBadge('gemini-saved');
-    if (cfg.claudeKey) showSavedBadge('claude-saved');
+    if (d.minScore) cfg.minScore = d.minScore;
+    if (d.skipGate !== undefined) cfg.skipGate = d.skipGate;
+    if (d.batchSize) cfg.batchSize = d.batchSize;
+    if (d.backgroundProcessing !== undefined) cfg.backgroundProcessing = d.backgroundProcessing;
+    if (d.keywords?.length) cfg.keywords = d.keywords;
+    if (d.titles?.length) cfg.titles = d.titles;
   } catch(e) { console.warn('Storage load failed:', e); }
 }
 
@@ -1048,44 +1261,75 @@ function applyBulkTitle() {
 // ── Config modal ──
 function showCfg() {
   document.getElementById('c-apify').value = cfg.apifyToken;
-  document.getElementById('c-max').value = cfg.maxPosts;
+  document.getElementById('c-maxposts').value = cfg.maxPosts;
   document.getElementById('c-age').value = cfg.postAge;
   document.getElementById('c-sort').value = cfg.sortBy;
   document.getElementById('c-gemini').value = cfg.geminiKey;
   document.getElementById('c-claude').value = cfg.claudeKey;
+  document.getElementById('c-openrouter').value = cfg.openRouterKey;
+  // Restore OpenRouter model — if saved value not in options, add it dynamically
+  const orModelSel = document.getElementById('c-openrouter-model');
+  if (cfg.openRouterModel) {
+    const exists = Array.from(orModelSel.options).some(o => o.value === cfg.openRouterModel);
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = cfg.openRouterModel;
+      opt.textContent = cfg.openRouterModel + ' (custom)';
+      orModelSel.insertBefore(opt, orModelSel.firstChild);
+    }
+    orModelSel.value = cfg.openRouterModel;
+  }
   document.getElementById('c-min').value = cfg.minScore;
   document.getElementById('c-skipgate').checked = cfg.skipGate;
+  document.getElementById('c-batchsize').value = cfg.batchSize;
+  document.getElementById('c-background').checked = cfg.backgroundProcessing;
   if (cfg.apifyToken) showSavedBadge('apify-saved');
   if (cfg.geminiKey) showSavedBadge('gemini-saved');
   if (cfg.claudeKey) showSavedBadge('claude-saved');
+  if (cfg.openRouterKey) showSavedBadge('or-saved');
   setProviderToggle(cfg.aiProvider);
   refreshUI();
   document.getElementById('cfg-mb').classList.add('show');
 }
 function saveCfg() {
   cfg.apifyToken = document.getElementById('c-apify').value.trim();
-  cfg.maxPosts = parseInt(document.getElementById('c-max').value)||50;
+  cfg.maxPosts = Math.min(100, Math.max(10, parseInt(document.getElementById('c-maxposts').value)||50));
   cfg.postAge = document.getElementById('c-age').value;
   cfg.sortBy = document.getElementById('c-sort').value;
   cfg.geminiKey = document.getElementById('c-gemini').value.trim();
   cfg.claudeKey = document.getElementById('c-claude').value.trim();
+  cfg.openRouterKey = document.getElementById('c-openrouter').value.trim();
+  cfg.openRouterModel = document.getElementById('c-openrouter-model').value.trim() || 'meta-llama/llama-3.3-70b-instruct:free';
   cfg.minScore = parseFloat(document.getElementById('c-min').value)||7;
   cfg.skipGate = document.getElementById('c-skipgate').checked;
+  cfg.batchSize = Math.min(100, Math.max(10, parseInt(document.getElementById('c-batchsize').value)||50));
+  cfg.backgroundProcessing = document.getElementById('c-background').checked;
   saveToStorage();
   document.getElementById('cfg-mb').classList.remove('show');
-  toast('Configuration saved · AI: ' + cfg.aiProvider.toUpperCase(), 'ok');
+  toast('Configuration saved · AI: ' + cfg.aiProvider.toUpperCase() + ' · Batch: ' + cfg.batchSize, 'ok');
 }
 function setProviderToggle(provider) {
   cfg.aiProvider = provider;
   const gBtn = document.getElementById('toggle-gemini');
   const cBtn = document.getElementById('toggle-claude');
-  if (!gBtn || !cBtn) return;
+  const oBtn = document.getElementById('toggle-openrouter');
+  if (!gBtn || !cBtn || !oBtn) return;
+  // Reset all
+  [gBtn, cBtn, oBtn].forEach(b => {
+    b.style.background = 'var(--bg3)'; b.style.color = 'var(--text2)'; b.style.borderColor = 'var(--border2)';
+  });
   if (provider === 'gemini') {
     gBtn.style.background = 'var(--accent)'; gBtn.style.color = '#fff'; gBtn.style.borderColor = 'var(--accent)';
-    cBtn.style.background = 'var(--bg3)'; cBtn.style.color = 'var(--text2)'; cBtn.style.borderColor = 'var(--border2)';
-  } else {
+  } else if (provider === 'claude') {
     cBtn.style.background = 'var(--purple)'; cBtn.style.color = '#fff'; cBtn.style.borderColor = 'var(--purple)';
-    gBtn.style.background = 'var(--bg3)'; gBtn.style.color = 'var(--text2)'; gBtn.style.borderColor = 'var(--border2)';
+  } else if (provider === 'openrouter') {
+    oBtn.style.background = 'var(--green)'; oBtn.style.color = '#fff'; oBtn.style.borderColor = 'var(--green)';
+  }
+  // Update topbar subtitle to reflect new selection
+  const tbSub = document.getElementById('tb-subtitle');
+  if (tbSub) {
+    const label = provider === 'claude' ? 'Claude' : provider === 'openrouter' ? 'OpenRouter' : 'Gemini';
+    tbSub.textContent = 'Apify → Rule Gate → ' + label + ' Score → Outreach Ready';
   }
 }
 
@@ -1114,6 +1358,7 @@ function resetPipe() {
   document.getElementById('pl').textContent = '0 / 4 stages';
   document.getElementById('er').classList.remove('show'); document.getElementById('er').textContent = '';
   document.getElementById('dn').classList.remove('show');
+  const gw = document.getElementById('gate-warn'); if (gw) gw.style.display = 'none';
 }
 function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
 
@@ -1335,6 +1580,33 @@ function extractGeo(post) {
   return geoMatch ? geoMatch[0] : '';
 }
 
+// ── Helper: Apply score to lead object ──
+function applyScoreToLead(lead, r) {
+  lead.score = r.score;
+  lead.intent = r.intent;
+  lead.signals = r.signals || [];
+  lead.label = r.label || (r.score>=8?'Hot':r.score>=4?'Warm':'Cold');
+  lead.status = lead.label === 'Hot' ? 'ready' : lead.label === 'Warm' ? 'new' : 'cold';
+  lead.reasoning = r.reasoning || '';
+  lead.category = r.category || '';
+  lead.hiringType = r.hiringType || '';
+  lead.role = r.role || '';
+  lead.geo = r.geo || '';
+  lead.email = r.email || '';
+  lead.phone = r.phone || '';
+  lead.compName = r.compName || lead.company;
+  lead.scannedAt = new Date().toISOString();
+  lead.buyerType = r.buyerType || 'Unknown';
+  lead.urgency = r.urgency || 'Medium';
+  lead.companySize = r.companySize || 'Unknown';
+  lead.painPoints = r.painPoints || [];
+  lead.lowOutreachContext = r.lowOutreachContext || false;
+  lead.recommendedAction = r.recommendedAction || 'Monitor';
+  lead.disqualifyReason = r.disqualifyReason || '';
+  lead.keywords = detectSignals(lead.post);
+}
+
+
 // ── Gate 2: AI Scoring Router — routes to Gemini or Claude based on cfg.aiProvider ──
 async function geminiScore(post, name, headline, company, postUrl) {
   const category = classifyCategory(post);
@@ -1357,6 +1629,11 @@ async function geminiScore(post, name, headline, company, postUrl) {
   // Route to Claude if selected and key exists
   if (cfg.aiProvider === 'claude' && cfg.claudeKey) {
     return await claudeScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
+  }
+
+  // Route to OpenRouter if selected and key exists
+  if (cfg.aiProvider === 'openrouter' && cfg.openRouterKey) {
+    return await openRouterScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
   }
 
   // Route to Gemini if selected and key exists
@@ -1416,7 +1693,36 @@ async function geminiScoreAPI(post, name, headline, company, postUrl, category, 
   }
 }
 
-// ── Shared prompt builder ──
+// ── OpenRouter Scoring (openrouter.ai — 300+ models) ──
+async function openRouterScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, fallback) {
+  const runDate = new Date().toISOString().split('T')[0];
+  const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
+  try {
+    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + cfg.openRouterKey,
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'VAYUZ Signal Engine'
+      },
+      body: JSON.stringify({
+        model: cfg.openRouterModel || 'meta-llama/llama-3.3-70b-instruct:free',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    let txt = (d.choices?.[0]?.message?.content || '').trim().replace(/```json|```/g, '').trim();
+    return parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback);
+  } catch(e) {
+    console.warn('OpenRouter fallback:', e.message);
+    return fallback();
+  }
+}
+
+
 function buildScoringPrompt(post, name, headline, company, postUrl, runDate) {
   return `You are a lead qualification engine for VAYUZ Technologies.
 
@@ -1637,12 +1943,33 @@ function mapItem(item, idx) {
   };
 }
 
-// ── Main pipeline ──
+// ── Tab visibility guard — warn if user navigates away during pipeline ──
+let _pipelineActive = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && _pipelineActive) {
+    // Can't show toast on hidden tab, but log for debugging
+    console.warn('[SignalEngine] Tab hidden during active pipeline — scoring may slow down in background.');
+  } else if (!document.hidden && _pipelineActive) {
+    toast('⚠ Tab was hidden — AI scoring may have paused. Pipeline still running.', 'w');
+  }
+});
+
 async function runPipeline() {
   const btn = document.getElementById('run-btn');
   btn.disabled = true;
+  _pipelineActive = true;
   currentScanUrls = new Set(); // reset new-lead tracking for this scan
   resetPipe();
+
+  // ── Update dynamic labels to reflect active provider ──
+  const providerName = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude'
+    : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter'
+    : cfg.geminiKey ? 'Gemini' : 'Rule-based';
+  const st2el = document.getElementById('st2-label');
+  if (st2el) st2el.textContent = 'Gate 2: ' + providerName + ' intent + signal scoring';
+  const tbSub = document.getElementById('tb-subtitle');
+  if (tbSub) tbSub.textContent = 'Apify → Rule Gate → ' + providerName + ' Score → Outreach Ready';
+
   document.getElementById('pipe-mb').classList.add('show');
   document.getElementById('pipe-src').textContent = cfg.apifyToken
     ? 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5)
@@ -1670,56 +1997,69 @@ async function runPipeline() {
     stgRun(1);
     await new Promise(r => setTimeout(r, 400));
     let gated;
-    if (isDemo) {
-      gated = mapped;
-    } else {
-      gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
+    // Apply Gate 1 in both live and demo mode — demo data is realistic enough to filter
+    gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
+    if (!isDemo) {
       console.log('[Gate1] Mapped:', mapped.length, '→ Passed:', gated.length, '→ Filtered out:', mapped.length - gated.length);
       if (gated.length === 0 && mapped.length > 0) {
         // Auto-fallback — still apply hard disqualify
         gated = mapped.filter(l => !isHardDisqualified(l.post, l.headline, l.company, false));
         console.log('[Gate1 fallback] After hard-DQ only:', gated.length);
         stgDone(1, 'Keyword gate bypassed — ' + gated.length + ' / ' + mapped.length + ' passed hard filter');
+        const warnMsg = '⚠ Gate 1: No keyword matches found. Hard disqualify still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
         const erEl = document.getElementById('er');
-        erEl.textContent = '⚠ No keyword matches found. Hard disqualify rules still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
+        erEl.textContent = warnMsg;
         erEl.classList.add('show');
+        // Also persist to main UI banner (survives modal close)
+        const gw = document.getElementById('gate-warn');
+        if (gw) { gw.textContent = warnMsg; gw.style.display = 'block'; }
       } else {
         stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate');
+        // Clear any previous gate warning
+        const gw = document.getElementById('gate-warn');
+        if (gw) gw.style.display = 'none';
       }
+    } else {
+      stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate (demo)');
     }
 
-    // Stage 2: VAYUZ Qualification Engine (Gemini AI + Rule-based fallback)
+    // Stage 2: VAYUZ Qualification Engine — Batch processing
     stgRun(2);
     let scored = 0;
-    for (const lead of gated) {
+    const batchSize = cfg.batchSize || 50;
+    const totalToScore = gated.length;
+    const firstBatchSize = Math.min(batchSize, totalToScore);
+    
+    // Process first batch immediately
+    for (let i = 0; i < firstBatchSize; i++) {
+      const lead = gated[i];
       const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
-      lead.score = r.score;
-      lead.intent = r.intent;
-      lead.signals = r.signals || [];
-      lead.label = r.label || (r.score>=8?'Hot':r.score>=4?'Warm':'Cold');
-      lead.status = lead.label === 'Hot' ? 'ready' : lead.label === 'Warm' ? 'new' : 'cold';
-      lead.reasoning = r.reasoning || '';
-      lead.category = r.category || '';
-      lead.hiringType = r.hiringType || '';
-      lead.role = r.role || '';
-      lead.geo = r.geo || '';
-      lead.email = r.email || '';
-      lead.phone = r.phone || '';
-      lead.compName = r.compName || lead.company;
-      lead.scannedAt = new Date().toISOString(); // mark when this lead was scanned
-      lead.buyerType = r.buyerType || 'Unknown';
-      lead.urgency = r.urgency || 'Medium';
-      lead.companySize = r.companySize || 'Unknown';
-      lead.painPoints = r.painPoints || [];
-      lead.lowOutreachContext = r.lowOutreachContext || false;
-      lead.recommendedAction = r.recommendedAction || 'Monitor';
-      lead.disqualifyReason = r.disqualifyReason || '';
-      lead.keywords = detectSignals(lead.post);
+      applyScoreToLead(lead, r);
       scored++;
-      document.getElementById('sc2').textContent = scored + ' scored…';
-      // Rate limit: 4.1s delay between Gemini calls to stay under 15 RPM free tier
+      document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored (foreground)…';
       await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
     }
+    
+    // Queue remaining posts for background processing
+    if (cfg.backgroundProcessing && totalToScore > firstBatchSize) {
+      for (let i = firstBatchSize; i < gated.length; i++) {
+        batchQueue.push(gated[i]);
+      }
+      document.getElementById('sc2').textContent = scored + ' scored · ' + batchQueue.length + ' queued (background)';
+      // Start background processing without awaiting
+      processBackgroundBatch(gated, scored, totalToScore);
+    } else {
+      // Score all remaining in foreground if no background processing
+      for (let i = firstBatchSize; i < gated.length; i++) {
+        const lead = gated[i];
+        const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
+        applyScoreToLead(lead, r);
+        scored++;
+        document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored…';
+        await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
+      }
+    }
+    
     gated.sort((a, b) => b.score - a.score);
     console.log('[Gate2] Scores:', gated.map(l => l.name + ':' + l.score + '(' + l.label + ')'));
     const qualified4plus = gated.filter(l => l.score >= 4).length;
@@ -1748,12 +2088,26 @@ async function runPipeline() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
 
-    // Save qualified leads to Supabase then reload — but only replace allLeads if DB has more
+    // Save qualified leads to Supabase then reload — merge Cold session leads back in
     if (!isDemo) {
       const qualifiedLeads = allLeads.filter(l => l.score >= 4);
+      const coldLeads = allLeads.filter(l => l.score < 4);
       if (qualifiedLeads.length > 0) {
         await saveLeadsToSupabase(qualifiedLeads);
         await loadLeadsFromSupabase();
+        // Merge Cold leads from this session back — they're not in DB but user should still see them
+        if (coldLeads.length > 0) {
+          const existingKeys = new Set(allLeads.map(l => l.postUrl || (l.name + '|' + l.headline)).filter(Boolean));
+          const newColds = coldLeads.filter(l => {
+            const key = l.postUrl || (l.name + '|' + l.headline);
+            return !existingKeys.has(key);
+          });
+          if (newColds.length > 0) {
+            allLeads = [...allLeads, ...newColds];
+            doFilter();
+            toast(newColds.length + ' Cold lead(s) visible in session only (not saved to DB)', 'w');
+          }
+        }
       } else {
         // All leads scored Cold — still show them in session, just don't save
         toast('Pipeline complete — all leads scored Cold (not saved to DB)', 'w');
@@ -1773,10 +2127,71 @@ async function runPipeline() {
     toast(e.message.slice(0,80), 'e');
   } finally {
     btn.disabled = false;
+    _pipelineActive = false;
   }
 }
 
 function loadDemo() { cfg.apifyToken = ''; runPipeline(); }
+
+// ── Background batch processor (called from runPipeline when backgroundProcessing = true) ──
+async function processBackgroundBatch(gated, alreadyScored, totalToScore) {
+  if (isProcessingBatch) return;
+  isProcessingBatch = true;
+  let scored = alreadyScored;
+  try {
+    while (batchQueue.length > 0) {
+      const lead = batchQueue.shift();
+      const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
+      applyScoreToLead(lead, r);
+      scored++;
+      backgroundBatchCount++;
+      // Update stage 2 counter live
+      const sc2 = document.getElementById('sc2');
+      if (sc2) sc2.textContent = scored + ' / ' + totalToScore + ' scored (' + batchQueue.length + ' queued)…';
+      // Refresh table every 5 leads so UI stays live
+      if (backgroundBatchCount % 5 === 0) {
+        gated.sort((a, b) => b.score - a.score);
+        allLeads = gated;
+        doFilter();
+        updStats(gated.length, gated.length, false);
+      }
+      await new Promise(res => setTimeout(res, 4100));
+    }
+    // Final refresh + save after background processing completes
+    gated.sort((a, b) => b.score - a.score);
+    const qualifiedLeads = gated.filter(l => l.score >= 4);
+    if (qualifiedLeads.length > 0) {
+      await saveLeadsToSupabase(qualifiedLeads);
+      // Merge session Colds back before reloading DB
+      const coldSession = gated.filter(l => l.score < 4);
+      await loadLeadsFromSupabase();
+      // Re-merge cold leads that weren't saved
+      if (coldSession.length > 0) {
+        const existingKeys = new Set(allLeads.map(l => l.postUrl || (l.name + '|' + l.headline)).filter(Boolean));
+        const newColds = coldSession.filter(l => {
+          const key = l.postUrl || (l.name + '|' + l.headline);
+          return !existingKeys.has(key);
+        });
+        allLeads = [...allLeads, ...newColds];
+        doFilter();
+      }
+    }
+    toast('Background scoring complete — ' + scored + ' leads processed ✓', 'ok');
+  } catch(e) {
+    console.error('Background batch error:', e);
+    toast('Background scoring error: ' + e.message.slice(0,60), 'e');
+  } finally {
+    isProcessingBatch = false;
+    backgroundBatchCount = 0;
+  }
+}
+
+// ── Shared stage helpers ──
+const isClosed = l => {
+  const s = (l.leadStage||'').toLowerCase();
+  return s === 'closed' || s.includes('requirement closed');
+};
+const isNoise = l => ['Not Relevant','Unable to connect'].some(s => (l.leadStage||'').includes(s));
 
 function updStats(total, matched, isDemo) {
   const hot = allLeads.filter(l => l.label==='Hot').length;
@@ -1789,11 +2204,11 @@ function updStats(total, matched, isDemo) {
   const s3cnt   = allLeads.filter(l => (l.leadStage||'').includes('S3')).length;
   const s4cnt   = allLeads.filter(l => (l.leadStage||'').includes('S4')).length;
   const mtgCnt  = allLeads.filter(l => (l.leadStage||'').includes('Meeting')).length;
-  const closedCnt = allLeads.filter(l => (l.leadStage||'').toLowerCase().includes('requirement closed') || (l.leadStage||'').toLowerCase().includes('closed')).length;
+  const closedCnt = allLeads.filter(isClosed).length;
   const actionLeads = s0cnt + s1cnt + s2cnt + s3cnt + s4cnt + mtgCnt + closedCnt;
 
   // ── NOISE: Not Relevant + Unable to Connect (these are not leads, just noise)
-  const noiseCnt = allLeads.filter(l => ['Not Relevant','Unable to connect'].some(s => (l.leadStage||'').includes(s))).length;
+  const noiseCnt = allLeads.filter(isNoise).length;
 
   // ── SNR = action leads ÷ hot leads × 100
   // Logic: Out of 229 hot leads, 17 are action (S0=15, S1=2) → SNR = 17/229 = 7.4%
@@ -1850,7 +2265,7 @@ function updStats(total, matched, isDemo) {
 
 function updPipeline() {
   const count = stage => allLeads.filter(l => (l.leadStage||'').includes(stage)).length;
-  const closedCount = allLeads.filter(l => (l.leadStage||'').toLowerCase().includes('requirement closed') || (l.leadStage||'').toLowerCase() === 'closed').length;
+  const closedCount = allLeads.filter(isClosed).length;
   document.getElementById('p-meeting').textContent = count('Meeting');
   document.getElementById('p-s0').textContent = count('S0');
   document.getElementById('p-s1').textContent = count('S1');
@@ -1862,7 +2277,7 @@ function updPipeline() {
   const closedEl = document.getElementById('p-closed');
   if (closedEl) closedEl.textContent = closedCount;
   document.getElementById('h-enrichment').textContent = allLeads.filter(l => l.lowOutreachContext).length;
-  document.getElementById('h-noise').textContent = allLeads.filter(l => ['Not Relevant','Unable to connect'].some(s => (l.leadStage||'').includes(s))).length;
+  document.getElementById('h-noise').textContent = allLeads.filter(isNoise).length;
   updFunnel();
 }
 
@@ -1954,8 +2369,8 @@ function updFunnel() {
   const s3     = allLeads.filter(l => (l.leadStage||'').includes('S3')).length;
   const s4     = allLeads.filter(l => (l.leadStage||'').includes('S4')).length;
   const mtg    = allLeads.filter(l => (l.leadStage||'').includes('Meeting')).length;
-  const closed = allLeads.filter(l => (l.leadStage||'').toLowerCase().includes('closed')).length;
-  const noise  = allLeads.filter(l => ['Not Relevant','Unable to connect'].some(s => (l.leadStage||'').includes(s))).length;
+  const closed = allLeads.filter(isClosed).length;
+  const noise  = allLeads.filter(isNoise).length;
 
   const stages = [
     { id:'f-fetched', label:'Fetched',   count:total, color:'var(--accent)', opacity:'.45', filter:()=>{resetAllFilters();} },
@@ -2320,7 +2735,7 @@ function openDP(lead) {
   const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
   document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
-  document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
+  document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel||'').split('/').pop() + ') · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
   document.getElementById('dp-kws').innerHTML = (lead.signals||[]).length
@@ -2562,7 +2977,7 @@ async function loadLeadsFromSupabase() {
       compName: l.company || '—',
       profileUrl: l.linkedin_url || l.Profile || '',
       postUrl: l.post_url || l['Post URL'] || '',
-      post: '',
+      post: l.post_text || l.post || l.text || '',
       // ── Scoring ──
       score: parseFloat(l.ai_score || l.Qualification || 0),
       label: (() => {
@@ -2594,7 +3009,6 @@ async function loadLeadsFromSupabase() {
       leadStage: l.lead_stage || '',
       remarks: l.remarks || '',
       channels: {}, emailNA: false, phoneNA: false, country: '',
-      scannedAt: l.scanned_at || l.created_at || null, // ISO timestamp for date display
       isNew: currentScanUrls.has(l.post_url || '') // mark as new if from current scan
     }));
     doFilter();
@@ -2664,6 +3078,132 @@ async function saveLeadEdits() {
   }
 }
 
+// ── Add Lead Manually ──
+function showAddLead() {
+  // Reset all fields
+  ['al-name','al-company','al-headline','al-profile-url','al-post-url',
+   'al-email','al-phone','al-geo','al-post','al-remarks','al-score'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('al-category').value = '';
+  document.getElementById('al-stage').value = '';
+  document.getElementById('al-hiring-type').value = 'Not Specified';
+  document.getElementById('al-label-preview').textContent = 'Auto';
+  document.getElementById('al-label-preview').style.color = 'var(--text3)';
+  document.getElementById('al-save-btn').disabled = false;
+  document.getElementById('addlead-mb').classList.add('show');
+  setTimeout(() => document.getElementById('al-name').focus(), 100);
+}
+
+function closeAddLead() {
+  document.getElementById('addlead-mb').classList.remove('show');
+}
+
+function updateAlLabel() {
+  const scoreVal = parseFloat(document.getElementById('al-score').value);
+  const preview = document.getElementById('al-label-preview');
+  if (isNaN(scoreVal) || document.getElementById('al-score').value === '') {
+    preview.textContent = 'Auto'; preview.style.color = 'var(--text3)';
+  } else if (scoreVal >= 7) {
+    preview.textContent = '🔥 Hot'; preview.style.color = 'var(--red)';
+  } else if (scoreVal >= 4) {
+    preview.textContent = '🟡 Warm'; preview.style.color = 'var(--amber)';
+  } else {
+    preview.textContent = '🔵 Cold'; preview.style.color = 'var(--accent)';
+  }
+}
+
+async function saveManualLead() {
+  const name    = document.getElementById('al-name').value.trim();
+  const company = document.getElementById('al-company').value.trim();
+  if (!name || !company) {
+    toast('Name and Company are required', 'e'); return;
+  }
+
+  const btn = document.getElementById('al-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const headline    = document.getElementById('al-headline').value.trim();
+  const profileUrl  = document.getElementById('al-profile-url').value.trim();
+  const postUrl     = document.getElementById('al-post-url').value.trim();
+  const email       = document.getElementById('al-email').value.trim();
+  const phone       = document.getElementById('al-phone').value.trim();
+  const category    = document.getElementById('al-category').value;
+  const geo         = document.getElementById('al-geo').value.trim();
+  const stage       = document.getElementById('al-stage').value;
+  const hiringType  = document.getElementById('al-hiring-type').value;
+  const post        = document.getElementById('al-post').value.trim();
+  const remarks     = document.getElementById('al-remarks').value.trim();
+
+  // Score: use manual value if set, else run rule-based scoring
+  let score, label, reasoning;
+  const manualScoreRaw = document.getElementById('al-score').value;
+  if (manualScoreRaw !== '' && !isNaN(parseFloat(manualScoreRaw))) {
+    score = Math.min(10, Math.max(0, parseFloat(manualScoreRaw)));
+    label = score >= 7 ? 'Hot' : score >= 4 ? 'Warm' : 'Cold';
+    reasoning = 'Manually entered lead — score set by user.';
+  } else {
+    // Auto-score using VAYUZ rule engine
+    const detectedCat = category || classifyCategory(post || company + ' ' + headline);
+    const detectedHT  = hiringType !== 'Not Specified' ? hiringType : classifyHiringType(post);
+    const result = vayuzScore(post || headline, headline, detectedCat, detectedHT);
+    score = result.score;
+    label = result.label;
+    reasoning = (result.reasons||[]).join('. ') || 'Rule-based VAYUZ scoring applied.';
+  }
+
+  const nowISO = new Date().toISOString();
+  const row = {
+    name:                 name,
+    title:                headline || null,
+    company:              company,
+    linkedin_url:         profileUrl || null,
+    post_url:             postUrl || null,
+    post_text:            post || null,
+    ai_score:             Math.round(score),
+    qualification_label:  label,
+    qualification_reason: reasoning,
+    category:             category || null,
+    hiring_for:           null,
+    hiring_type:          hiringType !== 'Not Specified' ? hiringType : null,
+    client_geo:           geo || null,
+    source:               'Manual',
+    email:                email || null,
+    phone:                phone || null,
+    posted_at:            null,
+    engagement:           null,
+    lead_stage:           stage || null,
+    remarks:              remarks || null,
+    scanned_at:           nowISO
+  };
+
+  // Upsert — use post_url if provided, else insert fresh row
+  let error;
+  if (postUrl) {
+    const res = await _sb.from('leads').upsert(row, { onConflict: 'post_url', ignoreDuplicates: false });
+    error = res.error;
+  } else {
+    const res = await _sb.from('leads').insert(row);
+    error = res.error;
+  }
+
+  if (error) {
+    console.error('Manual lead save error:', error);
+    toast('Save failed: ' + (error.message||'check console'), 'e');
+    btn.disabled = false;
+    btn.textContent = '💾 Save Lead to Database';
+    return;
+  }
+
+  toast(name + ' added ✓ (' + label + ' · ' + score + '/10)', 'ok');
+  closeAddLead();
+
+  // Reload from DB so new lead appears in table
+  await loadLeadsFromSupabase();
+}
+
 // ── Toast ──
 function toast(msg, type='ok') {
   document.getElementById('tdot').className = 'td'+(type==='e'?' e':type==='w'?' w':'');
@@ -2692,6 +3232,7 @@ function clearKey(inputId, badgeId) {
   if (inputId === 'c-apify') cfg.apifyToken = '';
   if (inputId === 'c-gemini') cfg.geminiKey = '';
   if (inputId === 'c-claude') cfg.claudeKey = '';
+  if (inputId === 'c-openrouter') cfg.openRouterKey = '';
   saveToStorage();
   toast('API key cleared', 'w');
 }
@@ -2717,8 +3258,8 @@ async function initLoad() {
     toast('Failed to connect to database', 'e');
   }
   // Show key loaded toast
-  if (cfg.apifyToken || cfg.geminiKey || cfg.claudeKey) {
-    const provider = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude' : cfg.geminiKey ? 'Gemini' : 'Rule-based';
+  if (cfg.apifyToken || cfg.geminiKey || cfg.claudeKey || cfg.openRouterKey) {
+    const provider = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel.split('/').pop() || 'model') + ')' : cfg.geminiKey ? 'Gemini' : 'Rule-based';
     setTimeout(() => { toast('API keys loaded · AI: ' + provider + ' ✓', 'ok'); }, 1200);
   }
 }
