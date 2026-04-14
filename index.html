@@ -22,7 +22,7 @@
 body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
 
 /* ── Sidebar ── */
-.sb{width:192px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s ease}
+.sb{width:192px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s ease;min-height:0}
 .sb.collapsed{width:44px}
 .sb.collapsed .sb-name,.sb.collapsed .sb-tag,.sb.collapsed .ni-text,.sb.collapsed .nb,.sb.collapsed .nl,.sb.collapsed .ur,.sb.collapsed .un,.sb.collapsed .sb-foot-expand{display:none}
 .sb.collapsed .sb-logo{justify-content:center;padding:10px}
@@ -58,7 +58,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .udot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;box-shadow:0 0 5px rgba(13,158,114,.5);flex-shrink:0}
 
 /* ── Main ── */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:0}
 .topbar{display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:10px}
 .tb-info .tb-t{font-size:14px;font-weight:700;letter-spacing:-.01em}
 .tb-info .tb-s{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
@@ -124,7 +124,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .fb.on{color:var(--accent);border-color:rgba(37,99,235,.35);background:var(--adim)}
 
 /* ── Table ── */
-.ts{flex:1;overflow-y:auto;overflow-x:auto}
+.ts{flex:1;overflow-y:auto;overflow-x:auto;min-height:0}
 .lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
 .lt th{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:10px 12px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--bg2);z-index:2}
 .lt th.s{cursor:pointer}.lt th.s:hover{color:var(--text2)}
@@ -245,12 +245,12 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .al-hint{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px;line-height:1.5}
 
 /* ── Detail panel ── */
-.dp{width:340px;height:100vh;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
+.dp{width:340px;height:100vh;min-height:0;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
 .dp.show{display:flex}
-.dph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-shrink:0}
 .dpclose{width:24px;height:24px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;transition:all .12s;flex-shrink:0}
 .dpclose:hover{color:var(--text);background:var(--bg4)}
-.dpb{padding:14px 16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.dpb{padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;gap:14px}
 .dpl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:7px}
 .dpost{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;line-height:1.65;color:var(--text)}
 .dpost mark{background:rgba(37,99,235,.12);color:var(--accent);border-radius:2px;padding:0 2px}
@@ -626,6 +626,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 
   <!-- Persistent Gate 1 fallback warning -->
   <div id="gate-warn" style="display:none;padding:6px 16px;background:rgba(192,123,16,.09);border-bottom:1px solid rgba(192,123,16,.2);font-size:11px;color:var(--amber);font-family:var(--mono);flex-shrink:0"></div>
+
+  <!-- Scrollable table area -->
+  <div class="ts">
     <div id="emp" class="empty">
       <div class="ei"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z"/><path d="M13 10l-4-2.5v5L13 10z" fill="currentColor" stroke="none"/></svg></div>
       <div class="et">No signals yet</div>
@@ -662,7 +665,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </thead>
       <tbody id="tbody"></tbody>
     </table>
-  </div>
+  </div><!-- /.ts -->
 </main>
 
 <!-- Detail Panel -->
