@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signal — VAYUZ</title>
+<title>Signal Engine — VAYUZ</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -22,44 +22,29 @@
 body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
 
 /* ── Sidebar ── */
-.sb{width:192px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s ease;min-height:0}
-.sb.collapsed{width:44px}
-.sb.collapsed .sb-name,.sb.collapsed .sb-tag,.sb.collapsed .ni-text,.sb.collapsed .nb,.sb.collapsed .nl,.sb.collapsed .ur,.sb.collapsed .un,.sb.collapsed .sb-foot-expand{display:none}
-.sb.collapsed .sb-logo{justify-content:center;padding:10px}
-.sb.collapsed .ni{padding:7px;justify-content:center}
-.sb.collapsed .sb-foot .uf{justify-content:center}
-.sb-logo{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
-.sb-toggle{margin-left:auto;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;border-radius:3px;transition:background .13s}
-.sb-toggle:hover{background:var(--bg3)}
-.sb.collapsed .sb-toggle{margin-left:0;margin-top:0}
-.sb-mark{width:24px;height:24px;background:var(--accent);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;font-family:var(--mono);flex-shrink:0}
-.sb-name{font-size:12.5px;font-weight:700}
-.sb-tag{font-size:8.5px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em}
-.sb-nav{padding:8px 6px;flex:1;overflow:hidden}
-/* Collapsible nav group */
-.nl{font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);padding:0 6px;margin:8px 0 3px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.nl:hover{color:var(--text2)}
-.nl-arrow{font-size:8px;transition:transform .2s;color:var(--text3)}
-.nl-arrow.closed{transform:rotate(-90deg)}
-.nav-group{overflow:hidden;transition:max-height .25s ease;max-height:200px}
-.nav-group.closed{max-height:0}
-.ni{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:5px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .13s;margin-bottom:1px;font-weight:500}
+.sb{width:212px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.sb-mark{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:var(--mono)}
+.sb-name{font-size:13px;font-weight:700}
+.sb-tag{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em}
+.sb-nav{padding:10px 8px;flex:1}
+.nl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);padding:0 8px;margin:10px 0 5px}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text2);cursor:pointer;transition:all .13s;margin-bottom:1px;font-weight:500}
 .ni:hover{background:var(--bg3);color:var(--text)}
 .ni.on{background:var(--adim);color:var(--accent)}
-.ni svg{width:13px;height:13px;flex-shrink:0}
-.ni-text{flex:1}
-.nb{background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:var(--mono);display:none}
+.ni svg{width:14px;height:14px;flex-shrink:0}
+.nb{margin-left:auto;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;font-family:var(--mono);display:none}
 .nb.show{display:block}
-.sb-foot{padding:10px;border-top:1px solid var(--border)}
-.uf{display:flex;align-items:center;gap:8px}
-.uav{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono)}
-.un{font-size:11.5px;font-weight:600}
-.ur{font-size:9.5px;color:var(--text3)}
-.udot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;box-shadow:0 0 5px rgba(13,158,114,.5);flex-shrink:0}
+.sb-foot{padding:12px;border-top:1px solid var(--border)}
+.uf{display:flex;align-items:center;gap:9px}
+.uav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono)}
+.un{font-size:12.5px;font-weight:600}
+.ur{font-size:10px;color:var(--text3)}
+.udot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;box-shadow:0 0 5px rgba(13,158,114,.5)}
 
 /* ── Main ── */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:0}
-.topbar{display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:10px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:12px}
 .tb-info .tb-t{font-size:14px;font-weight:700;letter-spacing:-.01em}
 .tb-info .tb-s{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
 .tb-right{margin-left:auto;display:flex;gap:8px}
@@ -70,51 +55,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .bp{background:var(--accent);border-color:var(--accent);color:#fff}
 .bp:hover{background:#3578e5;border-color:#3578e5}
 
-/* ── Dashboard panel (collapsible, 30% max height) ── */
-.dash-panel{flex-shrink:0;background:var(--bg2);border-bottom:2px solid var(--border);overflow:hidden;transition:max-height .3s ease}
-.dash-panel.open{max-height:30vh}
-.dash-panel.closed{max-height:32px}
-.dash-header{display:flex;align-items:center;padding:0 16px;height:32px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);background:var(--bg3)}
-.dash-header:hover{background:var(--bg4)}
-.dash-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);color:var(--text2);flex:1}
-.dash-meta{font-size:9px;font-family:var(--mono);color:var(--text3);margin-right:10px}
-.dash-chevron{font-size:9px;color:var(--text3);transition:transform .25s}
-.dash-panel.closed .dash-chevron{transform:rotate(-90deg)}
-.dash-inner{overflow-y:auto;max-height:calc(30vh - 32px)}
-
 /* ── Stats ── */
-.stats{display:grid;grid-template-columns:repeat(5,1fr)}
-.sc{padding:8px 14px;border-right:1px solid var(--border)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
+.sc{padding:13px 18px;border-right:1px solid var(--border)}
 .sc:last-child{border-right:none}
-.sn{font-size:18px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em;line-height:1}
-.sl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
-.ss{font-size:8.5px;color:var(--text3);margin-top:1px;font-family:var(--mono)}
+.sn{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em;line-height:1}
+.sl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+.ss{font-size:9px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
 .sn.bl{color:var(--accent)}.sn.gr{color:var(--green)}.sn.am{color:var(--amber)}.sn.pu{color:var(--purple)}.sn.rd{color:var(--red)}
 
-/* ── SNR badge inside stats ── */
-.snr-breakdown{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
-.snr-pill{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:700;font-family:var(--mono);background:var(--adim);color:var(--accent);border:1px solid rgba(37,99,235,.15)}
-.snr-pill.noise{background:var(--rdim);color:var(--red);border-color:rgba(220,38,38,.15)}
-
 /* ── Pipeline row ── */
-.pipe-row{display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid var(--border)}
-.pc-wrap{padding:6px 10px;border-right:1px solid var(--border);cursor:pointer;transition:background .12s}
+.pipe-row{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.pc-wrap{padding:10px 18px;border-right:1px solid var(--border);cursor:pointer;transition:background .12s}
 .pc-wrap:last-child{border-right:none}
 .pc-wrap:hover{background:var(--bg3)}
 .pc-wrap.active{background:var(--adim)}
-.pc-stage{font-size:8.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:1px}
-.pc-num{font-size:16px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;line-height:1}
-.pc-desc{font-size:8px;color:var(--text3);margin-top:1px}
+.pc-stage{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:3px}
+.pc-num{font-size:20px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;line-height:1}
+.pc-desc{font-size:9px;color:var(--text3);margin-top:2px}
 
 /* ── Health row ── */
-.health-row{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)}
-.hc{padding:6px 14px;border-right:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.health-row{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.hc{padding:9px 18px;border-right:1px solid var(--border);display:flex;align-items:center;gap:10px}
 .hc:last-child{border-right:none}
-.hc-num{font-size:14px;font-weight:700;font-family:var(--mono);min-width:24px}
-.hc-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.hc-num{font-size:16px;font-weight:700;font-family:var(--mono);min-width:28px}
+.hc-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
 
 /* ── Controls ── */
-.ctrl{padding:6px 16px;display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.ctrl{padding:10px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
 .sw{flex:1;min-width:160px;display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:7px 11px}
 .sw svg{width:12px;height:12px;color:var(--text3);flex-shrink:0}
 .sw input{background:none;border:none;outline:none;font-family:var(--font);font-size:12.5px;color:var(--text);width:100%}
@@ -124,8 +92,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .fb.on{color:var(--accent);border-color:rgba(37,99,235,.35);background:var(--adim)}
 
 /* ── Table ── */
-.ts{flex:1;overflow-y:auto;overflow-x:auto;min-height:0}
-.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
+.ts{flex:1;overflow-y:auto;overflow-x:auto}
+.lt{width:100%;border-collapse:separate;border-spacing:0;min-width:1500px}
 .lt th{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:10px 12px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--bg2);z-index:2}
 .lt th.s{cursor:pointer}.lt th.s:hover{color:var(--text2)}
 .lr td{padding:11px 12px;font-size:12.5px;vertical-align:middle;border-bottom:1px solid var(--border);transition:background .1s}
@@ -149,6 +117,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .c-pain{background:var(--ydim);color:var(--amber);border-color:rgba(192,123,16,.2)}
 .c-vendor{background:var(--pdim);color:var(--purple);border-color:rgba(124,58,237,.2)}
 .c-funding{background:var(--rdim);color:var(--red);border-color:rgba(220,38,38,.2)}
+.c-jobpost{background:rgba(13,158,114,.1);color:var(--green);border-color:rgba(13,158,114,.3);font-weight:700}
+.c-orgchange{background:var(--adim);color:var(--accent);border-color:rgba(37,99,235,.3);font-weight:700}
+.c-fundingevt{background:var(--rdim);color:var(--red);border-color:rgba(220,38,38,.3);font-weight:700}
+.c-g2{background:var(--ydim);color:var(--amber);border-color:rgba(192,123,16,.3);font-weight:700}
+.c-techstack{background:var(--pdim);color:var(--purple);border-color:rgba(124,58,237,.3);font-weight:700}
 .iw{display:flex;align-items:center;gap:7px}
 .it{width:54px;height:3px;background:var(--bg5);border-radius:2px;overflow:hidden;flex-shrink:0}
 .if{height:100%;border-radius:2px;background:var(--green)}
@@ -226,31 +199,13 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .actor-info{background:rgba(13,158,114,.07);border:1px solid rgba(13,158,114,.2);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--green);line-height:1.6;margin-bottom:14px}
 .actor-info strong{color:var(--green)}
 
-/* ── Add Lead Modal ── */
-.al-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:26px 30px;width:580px;max-width:94vw;max-height:90vh;overflow-y:auto}
-.al-title{font-size:15px;font-weight:700;margin-bottom:3px}
-.al-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:20px}
-.al-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
-.al-grid .cf{margin-bottom:12px}
-.al-full{grid-column:1/-1}
-.al-score-row{display:flex;gap:10px;align-items:center}
-.al-score-row input[type=number]{width:70px}
-.al-actions{display:flex;gap:10px;margin-top:20px}
-.al-save{flex:1;padding:10px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
-.al-save:hover{background:#3578e5}
-.al-save:disabled{opacity:.5;pointer-events:none}
-.al-cancel{padding:10px 20px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .13s}
-.al-cancel:hover{background:var(--bg4);color:var(--text)}
-.al-req{color:var(--red)}
-.al-hint{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px;line-height:1.5}
-
 /* ── Detail panel ── */
-.dp{width:340px;height:100vh;min-height:0;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
+.dp{width:340px;height:100vh;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
 .dp.show{display:flex}
-.dph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-shrink:0}
+.dph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .dpclose{width:24px;height:24px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;transition:all .12s;flex-shrink:0}
 .dpclose:hover{color:var(--text);background:var(--bg4)}
-.dpb{padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;gap:14px}
+.dpb{padding:14px 16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
 .dpl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:7px}
 .dpost{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;line-height:1.65;color:var(--text)}
 .dpost mark{background:rgba(37,99,235,.12);color:var(--accent);border-radius:2px;padding:0 2px}
@@ -285,48 +240,6 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .save-btn{width:100%;padding:9px;border-radius:7px;background:var(--green);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .14s;margin-top:4px}
 .save-btn:hover{background:#0b8a63}
 
-/* ── Contact availability checkbox ── */
-.avail-row{display:flex;align-items:center;gap:8px;margin-top:5px}
-.avail-check{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;font-size:11px;color:var(--text3);font-family:var(--mono)}
-.avail-check input[type=checkbox]{accent-color:var(--amber);width:12px;height:12px;cursor:pointer;flex-shrink:0}
-.avail-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono);background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.25);margin-top:4px}
-
-/* ── Outreach channel tracker ── */
-.outreach-channels{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--border);margin-top:2px}
-.oc-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:4px}
-.oc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.oc-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;transition:all .13s;user-select:none}
-.oc-item:hover{background:var(--bg4)}
-.oc-item.tried{border-color:rgba(37,99,235,.35);background:var(--adim)}
-.oc-item.connected{border-color:rgba(13,158,114,.4);background:var(--gdim)}
-.oc-icon{font-size:14px;flex-shrink:0}
-.oc-text{flex:1}
-.oc-name{font-size:11px;font-weight:600;color:var(--text2);line-height:1.2}
-.oc-status{font-size:9.5px;font-family:var(--mono);color:var(--text3);margin-top:1px}
-.oc-item.tried .oc-name{color:var(--accent)}
-.oc-item.tried .oc-status{color:var(--accent)}
-.oc-item.connected .oc-name{color:var(--green)}
-.oc-item.connected .oc-status{color:var(--green)}
-.oc-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:all .13s}
-.oc-item.tried .oc-dot{background:var(--accent)}
-.oc-item.connected .oc-dot{background:var(--green);box-shadow:0 0 5px rgba(13,158,114,.5)}
-
-/* ── Country field (for non-India leads) ── */
-.country-field{display:flex;align-items:center;gap:6px;margin-top:6px}
-.country-flag{font-size:14px;flex-shrink:0}
-.country-input{flex:1;padding:6px 9px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:11.5px;outline:none;transition:border-color .13s}
-.country-input:focus{border-color:rgba(79,142,247,.45)}
-.country-input::placeholder{color:var(--text3)}
-
-/* ── Dashboard channel stats row ── */
-.channel-row{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--border);background:var(--bg)}
-.cc-block{padding:6px 10px;border-right:1px solid var(--border);display:flex;align-items:center;gap:7px}
-.cc-block:last-child{border-right:none}
-.cc-icon{font-size:13px;flex-shrink:0}
-.cc-num{font-size:14px;font-weight:700;font-family:var(--mono)}
-.cc-label{font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;line-height:1.3}
-.cc-sub{font-size:8px;font-family:var(--mono);color:var(--text3);margin-top:1px}
-
 /* ── Stage badge in table ── */
 .stage-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono);white-space:nowrap}
 .stage-meeting{background:rgba(13,158,114,.12);color:var(--green);border:1px solid rgba(13,158,114,.25)}
@@ -339,13 +252,10 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .stage-irrelevant{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 .stage-unable{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
 /* ── Posted time badge ── */
-.pt-badge{display:inline-flex;flex-direction:column;gap:0px;white-space:nowrap}
-.pt-date{font-size:10.5px;font-weight:600;font-family:var(--mono);color:var(--text2);line-height:1.3}
-.pt-ago{font-size:10px;font-family:var(--mono);color:var(--text3);line-height:1.3}
-/* ── NEW lead badge ── */
-.new-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;background:rgba(220,38,38,.12);color:var(--red);border:1px solid rgba(220,38,38,.3);margin-left:5px;vertical-align:middle;animation:pulse-new 2s ease-in-out 3}
-@keyframes pulse-new{0%,100%{opacity:1}50%{opacity:.5}}
-.pt-badge-wrap{display:inline-block}
+.pt-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:600;font-family:var(--mono);white-space:nowrap}
+.pt-fresh{background:rgba(13,158,114,.1);color:var(--green);border:1px solid rgba(13,158,114,.2)}
+.pt-recent{background:var(--ydim);color:var(--amber);border:1px solid rgba(192,123,16,.2)}
+.pt-old{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
 .pt-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
 
 /* ── Toast ── */
@@ -358,85 +268,40 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:2px}
 ::-webkit-scrollbar-thumb:hover{background:var(--border2)}
-
-/* ── Dropdown filters ── */
-.dd-filter{padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--font);transition:all .13s;appearance:none;-webkit-appearance:none;outline:none;white-space:nowrap;max-width:140px}
-.dd-filter:hover{border-color:var(--border3);color:var(--text)}
-.dd-filter:focus{border-color:rgba(37,99,235,.4);color:var(--text)}
-.dd-filter.active{color:var(--accent);border-color:rgba(37,99,235,.35);background:var(--adim)}
-
-/* ── DuxSoup-style Funnel ── */
-.funnel-wrap{border-top:1px solid var(--border);background:var(--bg);padding:10px 16px 8px;flex-shrink:0}
-.funnel-title{font-size:8.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.funnel-stages{display:flex;align-items:stretch;gap:0;border-radius:7px;overflow:hidden;border:1px solid var(--border2)}
-.fs-block{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 6px;background:var(--bg2);border-right:1px solid var(--border);cursor:pointer;transition:background .12s;position:relative;min-width:0}
-.fs-block:last-child{border-right:none}
-.fs-block:hover{background:var(--bg3)}
-.fs-block.active-filter{background:var(--adim)}
-.fs-num{font-size:16px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em;line-height:1}
-.fs-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-family:var(--mono);color:var(--text3);margin-top:2px;white-space:nowrap}
-.fs-pct{font-size:8px;color:var(--text3);font-family:var(--mono);margin-top:1px}
-.fs-bar{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0}
-/* Funnel arrow between stages */
-.fs-arrow{display:flex;align-items:center;color:var(--border3);font-size:10px;flex-shrink:0;padding:0 1px;background:var(--bg2);z-index:1}
-/* Irrelevant lead hidden notice */
-.irrelevant-notice{padding:6px 16px;font-size:11px;color:var(--text3);font-family:var(--mono);border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:8px}
-.irrelevant-notice a{color:var(--accent);cursor:pointer;text-decoration:underline}
-/* ── Row delete button (shows on hover) ── */
-.row-del{opacity:0;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(220,38,38,.25);background:var(--rdim);color:var(--red);transition:all .12s;white-space:nowrap;font-family:var(--font)}
-.row-del:hover{background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.45)}
-.lr:hover .row-del{opacity:1}
-/* ── Bulk action bar ── */
-.bulk-bar{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:10px;padding:10px 18px;font-size:12.5px;font-weight:600;font-family:var(--font);align-items:center;gap:14px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.22);white-space:nowrap}
-.bulk-bar.show{display:flex}
-.bulk-bar span{color:rgba(255,255,255,.65);font-size:12px}
-.bulk-del{padding:6px 14px;border-radius:6px;background:var(--red);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
-.bulk-del:hover{background:#b91c1c}
-.bulk-cancel{padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:12px;font-family:var(--font);cursor:pointer;transition:all .13s}
-.bulk-cancel:hover{border-color:rgba(255,255,255,.5);color:#fff}
 </style>
 </head>
 <body>
 
 <!-- Sidebar -->
-<aside class="sb" id="sidebar">
-  <div class="sb-logo" onclick="toggleSidebar()" title="Toggle sidebar">
+<aside class="sb">
+  <div class="sb-logo">
     <div class="sb-mark">V</div>
-    <div><div class="sb-name">VAYUZ</div><div class="sb-tag">Signal</div></div>
-    <div class="sb-toggle">◀</div>
+    <div><div class="sb-name">VAYUZ</div><div class="sb-tag">Signal Engine</div></div>
   </div>
   <div class="sb-nav">
-    <div class="nl" onclick="toggleNavGroup('nav-main')">
-      <span>Navigation</span><span class="nl-arrow" id="nl-arrow-main">▾</span>
+    <div class="nl">Navigation</div>
+    <div class="ni on">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3M2 6h8M6 2v8"/></svg>
+      Signals <span class="nb" id="nav-nb">0</span>
     </div>
-    <div class="nav-group" id="nav-main">
-      <div class="ni on">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3M2 6h8M6 2v8"/></svg>
-        <span class="ni-text">Signals</span><span class="nb" id="nav-nb">0</span>
-      </div>
-      <div class="ni" onclick="showCfg()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2m0 10v2M1 8h2m10 0h2M3.22 3.22l1.41 1.41m6.74 6.74l1.41 1.41M3.22 12.78l1.41-1.41m6.74-6.74l1.41-1.41"/></svg>
-        <span class="ni-text">Configure</span>
-      </div>
-      <div class="ni">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg>
-        <span class="ni-text">Analytics</span>
-      </div>
+    <div class="ni" onclick="showCfg()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2m0 10v2M1 8h2m10 0h2M3.22 3.22l1.41 1.41m6.74 6.74l1.41 1.41M3.22 12.78l1.41-1.41m6.74-6.74l1.41-1.41"/></svg>
+      Configure
     </div>
-    <div class="nl" onclick="toggleNavGroup('nav-sys')" style="margin-top:6px">
-      <span>System</span><span class="nl-arrow" id="nl-arrow-sys">▾</span>
+    <div class="ni">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg>
+      Analytics
     </div>
-    <div class="nav-group" id="nav-sys">
-      <div class="ni">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M5 7h6M5 10h4"/></svg>
-        <span class="ni-text">Audit Log</span>
-      </div>
+    <div class="nl" style="margin-top:12px">System</div>
+    <div class="ni">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M5 7h6M5 10h4"/></svg>
+      Audit Log
     </div>
   </div>
   <div class="sb-foot">
     <div class="uf">
       <div class="uav">GV</div>
-      <div class="sb-foot-expand"><div class="un">Gaurav</div><div class="ur">VAYUZ · BizDev</div></div>
+      <div><div class="un">Gaurav</div><div class="ur">VAYUZ · BizDev</div></div>
       <div class="udot"></div>
     </div>
   </div>
@@ -446,17 +311,17 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <main class="main">
   <div class="topbar">
     <div class="tb-info">
-      <div class="tb-t">Signal</div>
-      <div class="tb-s" id="tb-subtitle">Apify → Rule Gate → AI Score → Outreach Ready</div>
+      <div class="tb-t">Signal Engine v6 — VAYUZ</div>
+      <div class="tb-s">LinkedIn Posts · Job Postings · Org Changes · Funding Events · G2 Reviews · Tech Stack</div>
     </div>
     <div class="tb-right">
-      <button class="btn" onclick="showAddLead()">
-        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v10M2 7h10"/></svg>
-        Add Lead
-      </button>
       <button class="btn" onclick="showCfg()">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="2"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13"/></svg>
         Configure
+      </button>
+      <button class="btn" id="multi-btn" onclick="runMultiSignal()" style="border-color:rgba(124,58,237,.35);color:var(--purple);background:var(--pdim)">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="7" r="2"/><circle cx="10" cy="4" r="2"/><circle cx="10" cy="10" r="2"/><path d="M6 7h1.5M8 4.8l-2 1.5M8 9.2l-2-1.5"/></svg>
+        Multi-Signal Scan
       </button>
       <button class="btn bp" id="run-btn" onclick="runPipeline()">
         <svg viewBox="0 0 14 14" fill="currentColor"><polygon points="4,2 12,7 4,12"/></svg>
@@ -465,169 +330,91 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
   </div>
 
-  <!-- Lead Funnel (always visible when data loaded, above dashboard) -->
-  <div class="funnel-wrap" id="funnel-wrap" style="display:none">
-    <div class="funnel-title">
-      Lead Funnel
-      <span style="font-weight:400;color:var(--text3);font-size:8px">click a stage to filter</span>
+  <!-- Row 1: Today's scan -->
+  <div class="stats">
+    <div class="sc"><div class="sn bl" id="s0">0</div><div class="sl">Posts Fetched</div></div>
+    <div class="sc"><div class="sn rd" id="s1">0</div><div class="sl">🔥 Hot Leads</div></div>
+    <div class="sc"><div class="sn am" id="s2">0</div><div class="sl">🟡 Warm Leads</div></div>
+    <div class="sc">
+      <div class="sn gr" id="s3">—</div>
+      <div class="sl">SNR</div>
+      <div class="ss" id="s3-sub">actioned ÷ fetched</div>
     </div>
-    <div class="funnel-stages" id="funnel-stages">
-      <!-- Populated by JS -->
+    <div class="sc"><div class="sn pu" id="s4">—</div><div class="sl">Source</div></div>
+  </div>
+
+  <!-- Row 2: Live pipeline stages -->
+  <div class="pipe-row">
+    <div class="pc-wrap" onclick="setF('meeting',document.getElementById('f-meeting'))">
+      <div class="pc-stage">Meeting</div>
+      <div class="pc-num gr" id="p-meeting">0</div>
+      <div class="pc-desc">Booked</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s0',document.getElementById('f-s0'))">
+      <div class="pc-stage">S0</div>
+      <div class="pc-num bl" id="p-s0">0</div>
+      <div class="pc-desc">Connection in progress</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s1',document.getElementById('f-s1'))">
+      <div class="pc-stage">S1</div>
+      <div class="pc-num bl" id="p-s1">0</div>
+      <div class="pc-desc">Connected RPC</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s2',document.getElementById('f-s2'))">
+      <div class="pc-stage" style="color:var(--amber)">S2 ★</div>
+      <div class="pc-num am" id="p-s2">0</div>
+      <div class="pc-desc">Requirement received</div>
+    </div>
+    <div class="pc-wrap" onclick="setF('s3',document.getElementById('f-s3'))">
+      <div class="pc-stage">S3</div>
+      <div class="pc-num pu" id="p-s3">0</div>
+      <div class="pc-desc">Proposal / EoI</div>
     </div>
   </div>
 
-  <!-- Collapsible Dashboard Panel (max 30% height) -->
-  <div class="dash-panel open" id="dash-panel">
-    <div class="dash-header" onclick="toggleDash()">
-      <span class="dash-title">📊 Dashboard</span>
-      <span class="dash-meta" id="dash-meta-txt">229 leads · SNR 13.47%</span>
-      <span class="dash-chevron" id="dash-chevron">▾</span>
+  <!-- Row 3: Pipeline health -->
+  <div class="health-row">
+    <div class="hc">
+      <div class="hc-num" style="color:var(--green)" id="h-s4">0</div>
+      <div class="hc-label">S4 Contract / AWDS</div>
     </div>
-    <div class="dash-inner">
-      <!-- Row 1: Stats -->
-      <div class="stats">
-        <div class="sc"><div class="sn bl" id="s0">0</div><div class="sl">Posts Fetched</div><div class="ss" id="s0-sub">total from DB</div></div>
-        <div class="sc"><div class="sn rd" id="s1">0</div><div class="sl">🔥 Hot Leads</div><div class="ss" id="s1-sub">AI-identified</div></div>
-        <div class="sc">
-          <div class="sn gr" id="s3">—</div>
-          <div class="sl">SNR</div>
-          <div class="ss" id="s3-sub">action ÷ hot leads</div>
-          <div class="snr-breakdown" id="snr-breakdown"></div>
-        </div>
-        <div class="sc"><div class="sn pu" id="s4">0</div><div class="sl">Action Leads</div><div class="ss" id="s4-sub">S0+S1+S2+S3+S4+Mtg</div></div>
-        <div class="sc"><div class="sn am" id="s-noise">0</div><div class="sl">🔇 Noise</div><div class="ss" id="s-noise-sub">irrelevant · unconnected</div></div>
-      </div>
-      <!-- Row 2: Pipeline stages (now 7 cols incl S0 + Meeting) -->
-      <div class="pipe-row">
-        <div class="pc-wrap" onclick="setF('s0',null)">
-          <div class="pc-stage" style="color:var(--accent)">S0</div>
-          <div class="pc-num bl" id="p-s0">0</div>
-          <div class="pc-desc">Connection req.</div>
-        </div>
-        <div class="pc-wrap" onclick="setF('s1',null)">
-          <div class="pc-stage">S1</div>
-          <div class="pc-num bl" id="p-s1">0</div>
-          <div class="pc-desc">Connected RPC</div>
-        </div>
-        <div class="pc-wrap" onclick="setF('s2',null)">
-          <div class="pc-stage" style="color:var(--amber)">S2 ★</div>
-          <div class="pc-num am" id="p-s2">0</div>
-          <div class="pc-desc">Req. received</div>
-        </div>
-        <div class="pc-wrap" onclick="setF('s3',null)">
-          <div class="pc-stage">S3</div>
-          <div class="pc-num pu" id="p-s3">0</div>
-          <div class="pc-desc">Proposal / EoI</div>
-        </div>
-        <div class="pc-wrap" onclick="setF('s4',null)">
-          <div class="pc-stage" style="color:var(--green)">S4</div>
-          <div class="pc-num gr" id="p-s4-row">0</div>
-          <div class="pc-desc">Contract / AWDS</div>
-        </div>
-        <div class="pc-wrap" onclick="setF('meeting',null)">
-          <div class="pc-stage" style="color:var(--green)">MTG</div>
-          <div class="pc-num gr" id="p-meeting">0</div>
-          <div class="pc-desc">Meeting booked</div>
-        </div>
-        <div class="pc-wrap" onclick="setF('closed',null)">
-          <div class="pc-stage" style="color:var(--red)">CLOSED</div>
-          <div class="pc-num rd" id="p-closed">0</div>
-          <div class="pc-desc">Req. closed</div>
-        </div>
-      </div>
-      <!-- Row 3: Health + noise -->
-      <div class="health-row">
-        <div class="hc">
-          <div class="hc-num" style="color:var(--amber)" id="h-enrichment">0</div>
-          <div class="hc-label">Needs Enrichment</div>
-        </div>
-        <div class="hc">
-          <div class="hc-num" style="color:var(--red)" id="h-noise">0</div>
-          <div class="hc-label">Not Relevant / Unable</div>
-        </div>
-        <div class="hc">
-          <div class="hc-num" style="color:var(--text3)" id="h-s4">0</div>
-          <div class="hc-label">S4 Contract / AWDS</div>
-        </div>
-      </div>
-      <!-- Row 4: Outreach channel stats -->
-      <div class="channel-row">
-        <div class="cc-block"><span class="cc-icon">&#x1F4BC;</span><div><div class="cc-num" style="color:var(--accent)" id="ch-linkedin">0</div><div class="cc-label">LinkedIn</div><div class="cc-sub" id="ch-linkedin-c">0 connected</div></div></div>
-        <div class="cc-block"><span class="cc-icon">&#x1F4E7;</span><div><div class="cc-num" style="color:var(--accent)" id="ch-email">0</div><div class="cc-label">Email</div><div class="cc-sub" id="ch-email-c">0 connected</div></div></div>
-        <div class="cc-block"><span class="cc-icon">&#x1F4DE;</span><div><div class="cc-num" style="color:var(--accent)" id="ch-call">0</div><div class="cc-label">Call</div><div class="cc-sub" id="ch-call-c">0 connected</div></div></div>
-        <div class="cc-block"><span class="cc-icon">&#x1F4AC;</span><div><div class="cc-num" style="color:var(--green)" id="ch-whatsapp">0</div><div class="cc-label">WhatsApp</div><div class="cc-sub" id="ch-whatsapp-c">0 connected</div></div></div>
-        <div class="cc-block"><span class="cc-icon">&#x2705;</span><div><div class="cc-num" style="color:var(--green)" id="ch-any">0</div><div class="cc-label">Any Channel</div><div class="cc-sub">connected leads</div></div></div>
-      </div>
+    <div class="hc">
+      <div class="hc-num" style="color:var(--amber)" id="h-enrichment">0</div>
+      <div class="hc-label">Needs enrichment</div>
+    </div>
+    <div class="hc">
+      <div class="hc-num" style="color:var(--text3)" id="h-noise">0</div>
+      <div class="hc-label">Not relevant / closed</div>
     </div>
   </div>
 
-  <!-- Controls -->
   <div class="ctrl">
     <div class="sw">
       <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="6" cy="6" r="4"/><path d="M10 10l2.5 2.5"/></svg>
       <input id="q" type="text" placeholder="Search name, company, keyword, post URL…" oninput="doFilter()">
     </div>
-    <!-- Date filter -->
-    <select class="dd-filter" id="dd-date" onchange="doFilter()" title="Filter by scan date">
-      <option value="">📅 All Dates</option>
-    </select>
-    <!-- Label filter -->
-    <select class="dd-filter" id="dd-label" onchange="doFilter()">
-      <option value="">🏷 All Labels</option>
-      <option value="Hot">🔥 Hot</option>
-      <option value="Warm">🟡 Warm</option>
-      <option value="Cold">🔵 Cold</option>
-    </select>
-    <!-- Stage filter -->
-    <select class="dd-filter" id="dd-stage" onchange="doFilter()">
-      <option value="">📊 All Stages</option>
-      <option value="new-unsorted">🆕 New / Unsorted</option>
-      <option value="Meeting">📅 Meeting Booked</option>
-      <option value="S0">S0 · Connection</option>
-      <option value="S1">S1 · Connected RPC</option>
-      <option value="S2">S2 · Requirement</option>
-      <option value="S3">S3 · Proposal</option>
-      <option value="S4">S4 · Contract</option>
-      <option value="closed">🔒 Closed / Won</option>
-      <option value="Not Relevant">❌ Not Relevant</option>
-    </select>
-    <!-- Category filter -->
-    <select class="dd-filter" id="dd-cat" onchange="doFilter()">
-      <option value="">📁 All Categories</option>
-      <option value="App Development">📱 App Dev</option>
-      <option value="Web Development">🌐 Web Dev</option>
-      <option value="WordPress Development">🔷 WordPress</option>
-      <option value="Product Development">🚀 Product Dev</option>
-      <option value="Staff Augmentation">👥 Staff Aug</option>
-      <option value="Dedicated Teams">🏢 Dedicated Teams</option>
-      <option value="Digital Transformation">⚡ Digital Transform</option>
-      <option value="IT Consulting">💡 IT Consulting</option>
-    </select>
-    <!-- Geo/Signal filter -->
-    <select class="dd-filter" id="dd-signal" onchange="doFilter()">
-      <option value="">🌍 All Signals</option>
-      <option value="urgent">⚡ Urgent</option>
-      <option value="funding">💰 Funded</option>
-      <option value="india">🇮🇳 India</option>
-      <option value="remote">🌐 Remote</option>
-      <option value="vendor">🤝 Vendor</option>
-    </select>
-    <!-- Sort -->
-    <select class="dd-filter" id="dd-sort" onchange="doFilter()">
-      <option value="smart">⬆ Smart Sort</option>
-      <option value="date-desc">📅 Newest First</option>
-      <option value="date-asc">📅 Oldest First</option>
-      <option value="score-desc">🔥 Highest Score</option>
-      <option value="score-asc">Score: Low→High</option>
-      <option value="name">A→Z Name</option>
-    </select>
-    <button class="btn" style="padding:6px 10px;font-size:11px;color:var(--text3)" onclick="resetAllFilters()" title="Clear all filters">✕ Clear</button>
+    <div class="fb on" id="f-all" onclick="setF('all',this)">All</div>
+    <div class="fb" id="f-hot" onclick="setF('hot',this)">🔥 Hot</div>
+    <div class="fb" id="f-warm" onclick="setF('warm',this)">🟡 Warm</div>
+    <div class="fb" id="f-cold" onclick="setF('cold',this)">🔵 Cold</div>
+    <div class="fb" id="f-remote" onclick="setF('remote',this)">Remote</div>
+    <div class="fb" id="f-india" onclick="setF('india',this)">India</div>
+    <div class="fb" id="f-hiring" onclick="setF('hiring',this)">Hiring</div>
+    <div class="fb" id="f-jobpost" onclick="setF('jobpost',this)" style="border-color:rgba(13,158,114,.25);color:var(--green)">💼 Job Posting</div>
+    <div class="fb" id="f-orgchange" onclick="setF('orgchange',this)" style="border-color:rgba(37,99,235,.25);color:var(--accent)">👤 Org Change</div>
+    <div class="fb" id="f-funding" onclick="setF('funding',this)" style="border-color:rgba(220,38,38,.25);color:var(--red)">💰 Funding</div>
+    <div class="fb" id="f-g2" onclick="setF('g2',this)" style="border-color:rgba(192,123,16,.25);color:var(--amber)">⭐ G2 Review</div>
+    <div class="fb" id="f-techstack" onclick="setF('techstack',this)" style="border-color:rgba(124,58,237,.25);color:var(--purple)">🛠 Tech Stack</div>
+    <div class="fb" id="f-meeting" onclick="setF('meeting',this)">Meeting Booked</div>
+    <div class="fb" id="f-s0" onclick="setF('s0',this)">S0</div>
+    <div class="fb" id="f-s1" onclick="setF('s1',this)">S1</div>
+    <div class="fb" id="f-s2" onclick="setF('s2',this)">S2</div>
+    <div class="fb" id="f-s3" onclick="setF('s3',this)">S3</div>
+    <div class="fb" id="f-s4" onclick="setF('s4',this)">S4</div>
+    <div class="fb" id="f-closed" onclick="setF('closed',this)">Closed</div>
+    <div class="fb" id="f-irrelevant" onclick="setF('irrelevant',this)">Not Relevant</div>
   </div>
 
-  <!-- Persistent Gate 1 fallback warning -->
-  <div id="gate-warn" style="display:none;padding:6px 16px;background:rgba(192,123,16,.09);border-bottom:1px solid rgba(192,123,16,.2);font-size:11px;color:var(--amber);font-family:var(--mono);flex-shrink:0"></div>
-
-  <!-- Scrollable table area -->
   <div class="ts">
     <div id="emp" class="empty">
       <div class="ei"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z"/><path d="M13 10l-4-2.5v5L13 10z" fill="currentColor" stroke="none"/></svg></div>
@@ -636,7 +423,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <div class="setup">
         <div class="step"><div class="sno">1</div><div class="stxt">Get your Apify API token<small>apify.com → Settings → Integrations → API tokens</small></div></div>
         <div class="step"><div class="sno">2</div><div class="stxt">Enter your search keywords in Configure<small>e.g. "hire developers", "app development", "need tech partner"</small></div></div>
-        <div class="step"><div class="sno">3</div><div class="stxt">Add an AI key in Configure for smarter scoring<small>Gemini (free) · Claude · OpenRouter (300+ models, free tier available)</small></div></div>
+        <div class="step"><div class="sno">3</div><div class="stxt">Optionally add a Gemini key for AI scoring<small>aistudio.google.com → Get API Key (free tier works)</small></div></div>
         <div class="step"><div class="sno">4</div><div class="stxt">Click Run Pipeline — real posts load in ~30s<small>Actor: harvestapi/linkedin-post-search · No cookies needed</small></div></div>
       </div>
       <div class="eb">
@@ -645,7 +432,6 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
     </div>
 
-    <div id="irrelevant-notice" class="irrelevant-notice" style="display:none"></div>
     <table class="lt" id="tbl" style="display:none">
       <thead>
         <tr>
@@ -654,18 +440,21 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
           <th class="s" onclick="sortBy('name')">Lead</th>
           <th class="s" onclick="sortBy('score')">Score ↓</th>
           <th>Label</th>
+          <th>Signal Type</th>
           <th>Stage</th>
           <th>Category</th>
           <th>Role</th>
           <th>Geo</th>
           <th>Hiring Type</th>
+          <th>Signals</th>
           <th>Post URL</th>
-          <th>Remarks / Notes</th>
+          <th>Post Snippet</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
     </table>
-  </div><!-- /.ts -->
+  </div>
 </main>
 
 <!-- Detail Panel -->
@@ -686,62 +475,13 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 
     <!-- Editable Fields -->
     <div class="dp-edit-sec">
-      <div class="dp-edit-label">Email</div>
+      <div class="dp-edit-label">Contact Info (Manual)</div>
       <div class="dp-row">
-        <input class="dp-input" id="dp-email-input" type="email" placeholder="Email address…" oninput="onEmailInput()">
+        <input class="dp-input" id="dp-email-input" type="email" placeholder="Email address…">
       </div>
-      <div class="avail-row" id="email-avail-row">
-        <label class="avail-check"><input type="checkbox" id="email-na-check" onchange="onEmailNAChange()"> Email Not Available</label>
-      </div>
-      <div class="avail-tag" id="email-na-tag" style="display:none">&#x26A0; Email Not Available</div>
-    </div>
-
-    <div class="dp-edit-sec">
-      <div class="dp-edit-label">Phone / WhatsApp</div>
       <div class="dp-row">
-        <input class="dp-input" id="dp-phone-input" type="tel" placeholder="Phone / WhatsApp number…" oninput="onPhoneInput()">
+        <input class="dp-input" id="dp-phone-input" type="tel" placeholder="Phone / WhatsApp number…">
       </div>
-      <div class="avail-row" id="phone-avail-row">
-        <label class="avail-check"><input type="checkbox" id="phone-na-check" onchange="onPhoneNAChange()"> Number Not Available</label>
-      </div>
-      <div class="avail-tag" id="phone-na-tag" style="display:none">&#x26A0; Number Not Available</div>
-    </div>
-
-    <!-- Country field — shown for non-India leads -->
-    <div class="dp-edit-sec" id="country-sec" style="display:none">
-      <div class="dp-edit-label">Country</div>
-      <div class="country-field">
-        <span class="country-flag">&#x1F30D;</span>
-        <input class="country-input" id="dp-country-input" type="text" placeholder="e.g. United Kingdom, UAE, Australia…">
-      </div>
-    </div>
-
-    <!-- Outreach Channels -->
-    <div class="outreach-channels">
-      <div class="oc-label">Outreach Channels — why we didn't connect</div>
-      <div class="oc-grid" id="oc-grid">
-        <div class="oc-item" id="oc-linkedin" onclick="toggleChannel('linkedin')" title="Click once = Tried, Click twice = Connected, Click three = Reset">
-          <span class="oc-icon">&#x1F4BC;</span>
-          <div class="oc-text"><div class="oc-name">LinkedIn</div><div class="oc-status" id="oc-linkedin-status">Not tried</div></div>
-          <span class="oc-dot" id="oc-linkedin-dot"></span>
-        </div>
-        <div class="oc-item" id="oc-email" onclick="toggleChannel('email')" title="Click once = Tried, Click twice = Connected, Click three = Reset">
-          <span class="oc-icon">&#x1F4E7;</span>
-          <div class="oc-text"><div class="oc-name">Email</div><div class="oc-status" id="oc-email-status">Not tried</div></div>
-          <span class="oc-dot" id="oc-email-dot"></span>
-        </div>
-        <div class="oc-item" id="oc-call" onclick="toggleChannel('call')" title="Click once = Tried, Click twice = Connected, Click three = Reset">
-          <span class="oc-icon">&#x1F4DE;</span>
-          <div class="oc-text"><div class="oc-name">Call</div><div class="oc-status" id="oc-call-status">Not tried</div></div>
-          <span class="oc-dot" id="oc-call-dot"></span>
-        </div>
-        <div class="oc-item" id="oc-whatsapp" onclick="toggleChannel('whatsapp')" title="Click once = Tried, Click twice = Connected, Click three = Reset">
-          <span class="oc-icon">&#x1F4AC;</span>
-          <div class="oc-text"><div class="oc-name">WhatsApp</div><div class="oc-status" id="oc-whatsapp-status">Not tried</div></div>
-          <span class="oc-dot" id="oc-whatsapp-dot"></span>
-        </div>
-      </div>
-      <div style="font-size:9.5px;color:var(--text3);font-family:var(--mono);margin-top:5px;line-height:1.5">Tap once = Tried &nbsp;&#183;&nbsp; Tap again = <span style="color:var(--green)">Connected &#x2713;</span> &nbsp;&#183;&nbsp; Tap again = Reset</div>
     </div>
 
     <div class="dp-edit-sec">
@@ -766,129 +506,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
 
     <button class="save-btn" onclick="saveLeadEdits()">💾 Save Changes</button>
-    <button class="cbtn" onclick="archiveLead()" style="color:var(--amber);border-color:rgba(192,123,16,.3)">🗃 Archive Lead</button>
-    <button class="cbtn" onclick="deleteLead()" style="color:var(--red);border-color:rgba(220,38,38,.25);margin-top:4px">🗑 Delete Lead</button>
-  </div>
-</div>
-
-<!-- Add Lead Modal -->
-<div class="mb" id="addlead-mb" onclick="if(event.target===this)closeAddLead()">
-  <div class="al-modal">
-    <div class="al-title">➕ Add Lead Manually</div>
-    <div class="al-sub">Manually entered leads are saved directly to the database and scored using VAYUZ rule-based logic.</div>
-
-    <div class="al-grid">
-      <!-- Name -->
-      <div class="cf">
-        <label class="cl">Full Name <span class="al-req">*</span></label>
-        <input class="ci" type="text" id="al-name" placeholder="e.g. Rahul Sharma">
-      </div>
-      <!-- Company -->
-      <div class="cf">
-        <label class="cl">Company <span class="al-req">*</span></label>
-        <input class="ci" type="text" id="al-company" placeholder="e.g. TechCorp India">
-      </div>
-      <!-- Headline -->
-      <div class="cf al-full">
-        <label class="cl">Title / Headline</label>
-        <input class="ci" type="text" id="al-headline" placeholder="e.g. Founder & CEO at TechCorp India">
-      </div>
-      <!-- LinkedIn Profile URL -->
-      <div class="cf">
-        <label class="cl">LinkedIn Profile URL</label>
-        <input class="ci" type="url" id="al-profile-url" placeholder="https://linkedin.com/in/…">
-      </div>
-      <!-- Post URL -->
-      <div class="cf">
-        <label class="cl">Post URL</label>
-        <input class="ci" type="url" id="al-post-url" placeholder="https://linkedin.com/posts/…">
-      </div>
-      <!-- Email -->
-      <div class="cf">
-        <label class="cl">Email</label>
-        <input class="ci" type="email" id="al-email" placeholder="name@company.com">
-      </div>
-      <!-- Phone -->
-      <div class="cf">
-        <label class="cl">Phone / WhatsApp</label>
-        <input class="ci" type="tel" id="al-phone" placeholder="+91 98765 43210">
-      </div>
-      <!-- Category -->
-      <div class="cf">
-        <label class="cl">Category</label>
-        <select class="ci" id="al-category">
-          <option value="">— Select —</option>
-          <option value="App Development">📱 App Development</option>
-          <option value="Web Development">🌐 Web Development</option>
-          <option value="WordPress Development">🔷 WordPress Development</option>
-          <option value="Product Development">🚀 Product Development</option>
-          <option value="Staff Augmentation">👥 Staff Augmentation</option>
-          <option value="Dedicated Teams">🏢 Dedicated Teams</option>
-          <option value="Digital Transformation">⚡ Digital Transformation</option>
-          <option value="IT Consulting">💡 IT Consulting</option>
-          <option value="Legacy System Modernization">🔧 Legacy Modernization</option>
-          <option value="EdTech / Education App Development">🎓 EdTech</option>
-        </select>
-      </div>
-      <!-- Geo -->
-      <div class="cf">
-        <label class="cl">Client Geo</label>
-        <input class="ci" type="text" id="al-geo" placeholder="e.g. India, UAE, UK, Remote">
-      </div>
-      <!-- Stage -->
-      <div class="cf">
-        <label class="cl">Lead Stage</label>
-        <select class="ci" id="al-stage">
-          <option value="">— Not Set —</option>
-          <option value="Meeting Booked">📅 Meeting Booked</option>
-          <option value="S0 - Connection in Progress">S0 · Connection in Progress</option>
-          <option value="S1 - Connected RPC">S1 · Connected RPC</option>
-          <option value="S2 - Received Requirement">S2 · Received Requirement</option>
-          <option value="S3 - Proposal / EoI / Interviews">S3 · Proposal / EoI</option>
-          <option value="S4 - Contract (AWDS) / RAPYD">S4 · Contract</option>
-          <option value="Requirement closed">🔒 Requirement Closed</option>
-          <option value="Not Relevant">❌ Not Relevant</option>
-        </select>
-      </div>
-      <!-- Score -->
-      <div class="cf">
-        <label class="cl">Score (0–10)</label>
-        <div class="al-score-row">
-          <input class="ci" type="number" id="al-score" min="0" max="10" step="0.5" placeholder="Auto" oninput="updateAlLabel()">
-          <span id="al-label-preview" style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text3)">Auto</span>
-        </div>
-        <div class="al-hint">Leave blank to auto-score using VAYUZ rule logic.</div>
-      </div>
-      <!-- Hiring Type -->
-      <div class="cf">
-        <label class="cl">Hiring / Engagement Type</label>
-        <select class="ci" id="al-hiring-type">
-          <option value="Not Specified">Not Specified</option>
-          <option value="Remote">🌐 Remote</option>
-          <option value="Project-Based">📋 Project-Based</option>
-          <option value="Full-Time">💼 Full-Time</option>
-          <option value="Contract">📄 Contract</option>
-          <option value="Staff Augmentation">👥 Staff Augmentation</option>
-          <option value="Dedicated Team">🏢 Dedicated Team</option>
-        </select>
-      </div>
-      <!-- Post Text -->
-      <div class="cf al-full">
-        <label class="cl">Post / Message Content</label>
-        <textarea class="ci" id="al-post" rows="4" style="resize:vertical;line-height:1.6" placeholder="Paste the LinkedIn post text, email content, or any context about this lead…"></textarea>
-        <div class="al-hint">Used for auto-scoring if score is left blank. Also stored for reference.</div>
-      </div>
-      <!-- Remarks -->
-      <div class="cf al-full">
-        <label class="cl">Remarks / Notes</label>
-        <textarea class="ci" id="al-remarks" rows="2" style="resize:vertical;line-height:1.6" placeholder="How did you find this lead? Any context, urgency, or follow-up notes…"></textarea>
-      </div>
-    </div>
-
-    <div class="al-actions">
-      <button class="al-save" id="al-save-btn" onclick="saveManualLead()">💾 Save Lead to Database</button>
-      <button class="al-cancel" onclick="closeAddLead()">Cancel</button>
-    </div>
+    <button class="rbtn" onclick="markReach()">✓ Mark as Reached Out</button>
+    <button class="cbtn" onclick="copyMsg()">Copy Outreach Message</button>
   </div>
 </div>
 
@@ -900,7 +519,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="stgs">
       <div class="stg" id="st0"><div class="sd" id="sd0">1</div><div class="stxt2">Apify: Fetching posts (no cookies)</div><div class="scnt" id="sc0"></div></div>
       <div class="stg" id="st1"><div class="sd" id="sd1">2</div><div class="stxt2">Gate 1: Keyword OR title filter (auto-fallback)</div><div class="scnt" id="sc1"></div></div>
-      <div class="stg" id="st2"><div class="sd" id="sd2">3</div><div class="stxt2" id="st2-label">Gate 2: AI intent + signal scoring</div><div class="scnt" id="sc2"></div></div>
+      <div class="stg" id="st2"><div class="sd" id="sd2">3</div><div class="stxt2">Gate 2: Gemini intent + signal scoring</div><div class="scnt" id="sc2"></div></div>
       <div class="stg" id="st3"><div class="sd" id="sd3">4</div><div class="stxt2">Building outreach-ready list</div><div class="scnt" id="sc3"></div></div>
     </div>
     <div class="pb"><div class="pf" id="pf" style="width:0%"></div></div>
@@ -920,32 +539,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       ✓ Actor: <strong>harvestapi/linkedin-post-search</strong> — No cookies required · $2 / 1k posts · Takes keywords directly, no LinkedIn URL needed.
     </div>
 
-    <div class="csec">Scraping Settings</div>
-    <div class="cf">
-      <label class="cl">Posts per keyword <span style="color:var(--red)">*</span></label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="ci" type="number" id="c-maxposts" min="10" max="100" placeholder="50" style="width:70px">
-        <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">5 keywords × this value = total raw posts</span>
-      </div>
-      <div class="ch">Higher = more posts, slower scrape. Max 100 posts per keyword. Example: 100 posts × 5 keywords = ~500 total posts.</div>
-    </div>
-
-    <div class="cf">
-      <label class="cl">AI Batch size <span style="color:var(--text3)">(optional)</span></label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="ci" type="number" id="c-batchsize" min="10" max="100" placeholder="50" style="width:70px">
-        <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Posts scored at once</span>
-      </div>
-      <div class="ch">First batch scores immediately & shows in dashboard. Remaining batches process in background.</div>
-    </div>
-
-    <div class="cf">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
-        <input type="checkbox" id="c-background" checked style="width:16px;height:16px;cursor:pointer">
-        <span style="font-size:12px;font-weight:600">Background processing</span>
-      </label>
-      <div class="ch">Process remaining batches in background. Dashboard updates live as batches complete.</div>
-    </div>
+    <div class="csec">Apify Settings</div>
     <div class="cf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
         <label class="cl" style="margin-bottom:0">Apify API Token <span style="color:var(--red)">*</span></label>
@@ -979,81 +573,18 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </select>
     </div>
 
-    <div class="csec">AI Scoring Engine</div>
-
-    <!-- Provider Toggle -->
-    <div class="cf" style="margin-bottom:14px">
-      <label class="cl" style="margin-bottom:8px">Active AI Provider</label>
-      <div style="display:flex;gap:8px">
-        <button id="toggle-gemini" class="btn bp" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('gemini');saveToStorage()">
-          ✦ Gemini (Google)
-        </button>
-        <button id="toggle-claude" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('claude');saveToStorage()">
-          ◆ Claude (Anthropic)
-        </button>
-        <button id="toggle-openrouter" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setProviderToggle('openrouter');saveToStorage()">
-          ⚡ OpenRouter
-        </button>
-      </div>
-      <div class="ch" style="margin-top:6px">Selected provider is used for Gate 2 AI scoring. Falls back to rule-based if key is missing.</div>
-    </div>
-
-    <!-- Gemini Key -->
+    <div class="csec">Gemini Settings (optional — improves scoring)</div>
     <div class="cf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label class="cl" style="margin-bottom:0">Gemini API Key <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(Google)</span></label>
+        <label class="cl" style="margin-bottom:0">Gemini API Key</label>
         <div style="display:flex;align-items:center;gap:6px">
           <span id="gemini-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
           <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-gemini','gemini-saved')">Clear</button>
         </div>
       </div>
       <input class="ci" type="password" id="c-gemini" placeholder="AIzaSy..." oninput="document.getElementById('gemini-saved').style.display='none'">
-      <div class="ch">Get free key → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> · Free tier: 1,500 req/day</div>
+      <div class="ch">Get free key → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. If blank, rule-based scoring is used.</div>
     </div>
-
-    <!-- Claude Key -->
-    <div class="cf">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label class="cl" style="margin-bottom:0">Claude API Key <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(Anthropic)</span></label>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span id="claude-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
-          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-claude','claude-saved')">Clear</button>
-        </div>
-      </div>
-      <input class="ci" type="password" id="c-claude" placeholder="sk-ant-api03-..." oninput="document.getElementById('claude-saved').style.display='none'">
-      <div class="ch">Get key → <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> · Uses claude-haiku-4-5 · ~₹1 per 50-post scan</div>
-    </div>
-
-    <!-- OpenRouter Key -->
-    <div class="cf">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label class="cl" style="margin-bottom:0">OpenRouter API Key <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(300+ models)</span></label>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span id="or-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
-          <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-openrouter','or-saved')">Clear</button>
-        </div>
-      </div>
-      <input class="ci" type="password" id="c-openrouter" placeholder="sk-or-v1-..." oninput="document.getElementById('or-saved').style.display='none'">
-      <div class="ch">Get free key → <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> · Free models available · No credit card needed</div>
-    </div>
-
-    <!-- OpenRouter Model -->
-    <div class="cf">
-      <label class="cl">OpenRouter Model <span style="font-size:9px;color:var(--text3);font-family:var(--mono)">(model string)</span></label>
-      <select class="ci" id="c-openrouter-model">
-        <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct — Free ★</option>
-        <option value="nvidia/nemotron-3-super-120b-a12b:free">Nvidia Nemotron 3 Super 120B — Free</option>
-        <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Experimental — Free</option>
-        <option value="deepseek/deepseek-chat-v3-0324:free">DeepSeek V3 — Free</option>
-        <option value="qwen/qwen3-235b-a22b:free">Qwen3 235B A22B — Free</option>
-        <option value="mistralai/mistral-7b-instruct:free">Mistral 7B Instruct — Free</option>
-        <option value="openai/gpt-4o-mini">GPT-4o Mini — Paid</option>
-        <option value="anthropic/claude-3-haiku">Claude 3 Haiku — Paid</option>
-        <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Paid</option>
-      </select>
-      <div class="ch">All free-tier models work with 0 credits. Check <a href="https://openrouter.ai/models?order=newest&supported_parameters=free" target="_blank">openrouter.ai/models</a> for full list.</div>
-    </div>
-
     <div class="cf">
       <label class="cl">Min Score for "Ready" status (0–10)</label>
       <input class="ci" type="number" id="c-min" value="7" min="0" max="10" step="0.5">
@@ -1062,8 +593,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="cf" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;margin-top:4px">
       <input type="checkbox" id="c-skipgate" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer">
       <div>
-        <div style="font-size:12px;font-weight:600;color:var(--text)">Skip Gate 1 (send ALL posts to AI scoring)</div>
-        <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:2px">Recommended if you get 0 results. Sends every fetched post to the active AI provider regardless of keywords.</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Skip Gate 1 (send ALL posts to Gemini)</div>
+        <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-top:2px">Recommended if you get 0 results. Lets Gemini score every fetched post regardless of keywords.</div>
       </div>
     </div>
 
@@ -1120,6 +651,27 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
   </div>
 </div>
 
+<!-- Multi-Signal Pipeline Modal -->
+<div class="mb" id="multi-mb">
+  <div class="pc" style="width:500px">
+    <div class="pt">Multi-Signal Scan</div>
+    <div class="ps" id="multi-src">Running 5 signal types across your ICP accounts</div>
+    <div class="stgs">
+      <div class="stg" id="ms0"><div class="sd" id="msd0">1</div><div class="stxt2">💼 Job Postings — linkedin-jobs-scraper</div><div class="scnt" id="msc0"></div></div>
+      <div class="stg" id="ms1"><div class="sd" id="msd1">2</div><div class="stxt2">👤 Org Changes — profile title diff</div><div class="scnt" id="msc1"></div></div>
+      <div class="stg" id="ms2"><div class="sd" id="msd2">3</div><div class="stxt2">💰 Funding Events — Crunchbase / RSS</div><div class="scnt" id="msc2"></div></div>
+      <div class="stg" id="ms3"><div class="sd" id="msd3">4</div><div class="stxt2">⭐ G2 Reviews — competitor dissatisfaction</div><div class="scnt" id="msc3"></div></div>
+      <div class="stg" id="ms4"><div class="sd" id="msd4">5</div><div class="stxt2">🛠 Tech Stack — JD keyword NLP</div><div class="scnt" id="msc4"></div></div>
+    </div>
+    <div class="pb"><div class="pf" id="mpf" style="width:0%"></div></div>
+    <div class="pl" id="mpl">0 / 5 signals</div>
+    <div class="er" id="mer"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" onclick="document.getElementById('multi-mb').classList.remove('show')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"><div class="td" id="tdot"></div><span id="tmsg"></span></div>
 
@@ -1127,20 +679,12 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 // ── Config ──
 let cfg = {
   apifyToken: '', maxPosts: 50, postAge: 'week', sortBy: 'date',
-  geminiKey: '', claudeKey: '', openRouterKey: '', openRouterModel: 'meta-llama/llama-3.3-70b-instruct:free',
-  aiProvider: 'gemini', minScore: 7, skipGate: false,
-  batchSize: 50, backgroundProcessing: true,
+  geminiKey: '', minScore: 7, skipGate: false,
   keywords: ['app development','mobile app','web development','digital transformation','hire developers','build product','offshore team','tech partner','dedicated team','software development'],
   titles: ['Founder','Co-Founder','CEO','CTO','CPO','CIO','MD','Director','VP','Head of','President','Partner','Owner','Engineer','Manager','Lead']
 };
 
-// ── Background queue for batch AI processing ──
-let batchQueue = [];
-let isProcessingBatch = false;
-let backgroundBatchCount = 0;
-
 let allLeads = [], filtered = [], curFilter = 'all', activeDetail = null;
-let currentScanUrls = new Set(); // tracks post URLs from current pipeline run
 
 const COLS = ['#4f8ef7','#22d3a0','#f0a84a','#9d72f5','#f05b5b','#38bdf8','#fb7185','#34d399','#f59e0b','#818cf8'];
 const avc = i => COLS[i % COLS.length];
@@ -1155,17 +699,11 @@ function saveToStorage() {
     localStorage.setItem(STORE_KEY, JSON.stringify({
       apifyToken: cfg.apifyToken,
       geminiKey: cfg.geminiKey,
-      claudeKey: cfg.claudeKey,
-      openRouterKey: cfg.openRouterKey,
-      openRouterModel: cfg.openRouterModel,
-      aiProvider: cfg.aiProvider,
       maxPosts: cfg.maxPosts,
       postAge: cfg.postAge,
       sortBy: cfg.sortBy,
       minScore: cfg.minScore,
       skipGate: cfg.skipGate,
-      batchSize: cfg.batchSize,
-      backgroundProcessing: cfg.backgroundProcessing,
       keywords: cfg.keywords,
       titles: cfg.titles
     }));
@@ -1179,19 +717,16 @@ function loadFromStorage() {
     const d = JSON.parse(saved);
     if (d.apifyToken) cfg.apifyToken = d.apifyToken;
     if (d.geminiKey) cfg.geminiKey = d.geminiKey;
-    if (d.claudeKey) cfg.claudeKey = d.claudeKey;
-    if (d.openRouterKey) cfg.openRouterKey = d.openRouterKey;
-    if (d.openRouterModel) cfg.openRouterModel = d.openRouterModel;
-    if (d.aiProvider) cfg.aiProvider = d.aiProvider;
     if (d.maxPosts) cfg.maxPosts = d.maxPosts;
     if (d.postAge) cfg.postAge = d.postAge;
     if (d.sortBy) cfg.sortBy = d.sortBy;
-    if (d.minScore) cfg.minScore = d.minScore;
-    if (d.skipGate !== undefined) cfg.skipGate = d.skipGate;
-    if (d.batchSize) cfg.batchSize = d.batchSize;
-    if (d.backgroundProcessing !== undefined) cfg.backgroundProcessing = d.backgroundProcessing;
-    if (d.keywords?.length) cfg.keywords = d.keywords;
-    if (d.titles?.length) cfg.titles = d.titles;
+    if (typeof d.minScore === 'number') cfg.minScore = d.minScore;
+    if (typeof d.skipGate === 'boolean') cfg.skipGate = d.skipGate;
+    if (Array.isArray(d.keywords) && d.keywords.length) cfg.keywords = d.keywords;
+    if (Array.isArray(d.titles) && d.titles.length) cfg.titles = d.titles;
+    // Show saved badge on API fields if keys exist
+    if (cfg.apifyToken) showSavedBadge('apify-saved');
+    if (cfg.geminiKey) showSavedBadge('gemini-saved');
   } catch(e) { console.warn('Storage load failed:', e); }
 }
 
@@ -1265,76 +800,28 @@ function applyBulkTitle() {
 // ── Config modal ──
 function showCfg() {
   document.getElementById('c-apify').value = cfg.apifyToken;
-  document.getElementById('c-maxposts').value = cfg.maxPosts;
+  document.getElementById('c-max').value = cfg.maxPosts;
   document.getElementById('c-age').value = cfg.postAge;
   document.getElementById('c-sort').value = cfg.sortBy;
   document.getElementById('c-gemini').value = cfg.geminiKey;
-  document.getElementById('c-claude').value = cfg.claudeKey;
-  document.getElementById('c-openrouter').value = cfg.openRouterKey;
-  // Restore OpenRouter model — if saved value not in options, add it dynamically
-  const orModelSel = document.getElementById('c-openrouter-model');
-  if (cfg.openRouterModel) {
-    const exists = Array.from(orModelSel.options).some(o => o.value === cfg.openRouterModel);
-    if (!exists) {
-      const opt = document.createElement('option');
-      opt.value = cfg.openRouterModel;
-      opt.textContent = cfg.openRouterModel + ' (custom)';
-      orModelSel.insertBefore(opt, orModelSel.firstChild);
-    }
-    orModelSel.value = cfg.openRouterModel;
-  }
   document.getElementById('c-min').value = cfg.minScore;
   document.getElementById('c-skipgate').checked = cfg.skipGate;
-  document.getElementById('c-batchsize').value = cfg.batchSize;
-  document.getElementById('c-background').checked = cfg.backgroundProcessing;
   if (cfg.apifyToken) showSavedBadge('apify-saved');
   if (cfg.geminiKey) showSavedBadge('gemini-saved');
-  if (cfg.claudeKey) showSavedBadge('claude-saved');
-  if (cfg.openRouterKey) showSavedBadge('or-saved');
-  setProviderToggle(cfg.aiProvider);
   refreshUI();
   document.getElementById('cfg-mb').classList.add('show');
 }
 function saveCfg() {
   cfg.apifyToken = document.getElementById('c-apify').value.trim();
-  cfg.maxPosts = Math.min(100, Math.max(10, parseInt(document.getElementById('c-maxposts').value)||50));
+  cfg.maxPosts = parseInt(document.getElementById('c-max').value)||50;
   cfg.postAge = document.getElementById('c-age').value;
   cfg.sortBy = document.getElementById('c-sort').value;
   cfg.geminiKey = document.getElementById('c-gemini').value.trim();
-  cfg.claudeKey = document.getElementById('c-claude').value.trim();
-  cfg.openRouterKey = document.getElementById('c-openrouter').value.trim();
-  cfg.openRouterModel = document.getElementById('c-openrouter-model').value.trim() || 'meta-llama/llama-3.3-70b-instruct:free';
   cfg.minScore = parseFloat(document.getElementById('c-min').value)||7;
   cfg.skipGate = document.getElementById('c-skipgate').checked;
-  cfg.batchSize = Math.min(100, Math.max(10, parseInt(document.getElementById('c-batchsize').value)||50));
-  cfg.backgroundProcessing = document.getElementById('c-background').checked;
   saveToStorage();
   document.getElementById('cfg-mb').classList.remove('show');
-  toast('Configuration saved · AI: ' + cfg.aiProvider.toUpperCase() + ' · Batch: ' + cfg.batchSize, 'ok');
-}
-function setProviderToggle(provider) {
-  cfg.aiProvider = provider;
-  const gBtn = document.getElementById('toggle-gemini');
-  const cBtn = document.getElementById('toggle-claude');
-  const oBtn = document.getElementById('toggle-openrouter');
-  if (!gBtn || !cBtn || !oBtn) return;
-  // Reset all
-  [gBtn, cBtn, oBtn].forEach(b => {
-    b.style.background = 'var(--bg3)'; b.style.color = 'var(--text2)'; b.style.borderColor = 'var(--border2)';
-  });
-  if (provider === 'gemini') {
-    gBtn.style.background = 'var(--accent)'; gBtn.style.color = '#fff'; gBtn.style.borderColor = 'var(--accent)';
-  } else if (provider === 'claude') {
-    cBtn.style.background = 'var(--purple)'; cBtn.style.color = '#fff'; cBtn.style.borderColor = 'var(--purple)';
-  } else if (provider === 'openrouter') {
-    oBtn.style.background = 'var(--green)'; oBtn.style.color = '#fff'; oBtn.style.borderColor = 'var(--green)';
-  }
-  // Update topbar subtitle to reflect new selection
-  const tbSub = document.getElementById('tb-subtitle');
-  if (tbSub) {
-    const label = provider === 'claude' ? 'Claude' : provider === 'openrouter' ? 'OpenRouter' : 'Gemini';
-    tbSub.textContent = 'Apify → Rule Gate → ' + label + ' Score → Outreach Ready';
-  }
+  toast('Configuration saved & remembered','ok');
 }
 
 // ── Stage helpers ──
@@ -1362,7 +849,6 @@ function resetPipe() {
   document.getElementById('pl').textContent = '0 / 4 stages';
   document.getElementById('er').classList.remove('show'); document.getElementById('er').textContent = '';
   document.getElementById('dn').classList.remove('show');
-  const gw = document.getElementById('gate-warn'); if (gw) gw.style.display = 'none';
 }
 function showErr(m) { const el=document.getElementById('er'); el.textContent='⚠ '+m; el.classList.add('show'); }
 
@@ -1584,40 +1070,13 @@ function extractGeo(post) {
   return geoMatch ? geoMatch[0] : '';
 }
 
-// ── Helper: Apply score to lead object ──
-function applyScoreToLead(lead, r) {
-  lead.score = r.score;
-  lead.intent = r.intent;
-  lead.signals = r.signals || [];
-  lead.label = r.label || (r.score>=8?'Hot':r.score>=4?'Warm':'Cold');
-  lead.status = lead.label === 'Hot' ? 'ready' : lead.label === 'Warm' ? 'new' : 'cold';
-  lead.reasoning = r.reasoning || '';
-  lead.category = r.category || '';
-  lead.hiringType = r.hiringType || '';
-  lead.role = r.role || '';
-  lead.geo = r.geo || '';
-  lead.email = r.email || '';
-  lead.phone = r.phone || '';
-  lead.compName = r.compName || lead.company;
-  lead.scannedAt = new Date().toISOString();
-  lead.buyerType = r.buyerType || 'Unknown';
-  lead.urgency = r.urgency || 'Medium';
-  lead.companySize = r.companySize || 'Unknown';
-  lead.painPoints = r.painPoints || [];
-  lead.lowOutreachContext = r.lowOutreachContext || false;
-  lead.recommendedAction = r.recommendedAction || 'Monitor';
-  lead.disqualifyReason = r.disqualifyReason || '';
-  lead.keywords = detectSignals(lead.post);
-}
-
-
-// ── Gate 2: AI Scoring Router — routes to Gemini or Claude based on cfg.aiProvider ──
+// ── Gate 2: Gemini AI Scoring (v2.1 Full Production Prompt) ──
 async function geminiScore(post, name, headline, company, postUrl) {
   const category = classifyCategory(post);
   const hiringType = classifyHiringType(post);
   const { isDecisionMaker, isHRAtEndClient, isAgencyBuyer } = buyerPersonaCheck(post, headline, company);
 
-  const ruleBasedFallback = () => {
+  if (!cfg.geminiKey) {
     const result = vayuzScore(post, headline, category, hiringType);
     return {
       score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
@@ -1628,121 +1087,11 @@ async function geminiScore(post, name, headline, company, postUrl) {
       urgency: 'Medium', companySize: 'Unknown', painPoints: [], lowOutreachContext: false,
       recommendedAction: result.score >= 8 ? 'Reach Out Now' : result.score >= 4 ? 'Monitor' : 'Skip'
     };
-  };
-
-  // Route to Claude if selected and key exists
-  if (cfg.aiProvider === 'claude' && cfg.claudeKey) {
-    return await claudeScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
   }
 
-  // Route to OpenRouter if selected and key exists
-  if (cfg.aiProvider === 'openrouter' && cfg.openRouterKey) {
-    return await openRouterScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
-  }
-
-  // Route to Gemini if selected and key exists
-  if (cfg.aiProvider === 'gemini' && cfg.geminiKey) {
-    return await geminiScoreAPI(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, ruleBasedFallback);
-  }
-
-  // No key set — use rule-based fallback
-  return ruleBasedFallback();
-}
-
-// ── Claude Scoring (Anthropic API) ──
-async function claudeScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, fallback) {
   const runDate = new Date().toISOString().split('T')[0];
-  const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': cfg.claudeKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error.message);
-    let txt = (d.content?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
-    return parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback);
-  } catch(e) {
-    console.warn('Claude fallback:', e.message);
-    return fallback();
-  }
-}
 
-// ── Gemini Scoring (Google API) ──
-async function geminiScoreAPI(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, fallback) {
-  const runDate = new Date().toISOString().split('T')[0];
-  const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
-  try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${cfg.geminiKey}`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-    });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error.message);
-    let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
-    return parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback);
-  } catch(e) {
-    console.warn('Gemini fallback:', e.message);
-    return fallback();
-  }
-}
-
-// ── OpenRouter Scoring (openrouter.ai — 300+ models) ──
-async function openRouterScore(post, name, headline, company, postUrl, category, hiringType, isDecisionMaker, isHRAtEndClient, fallback) {
-  const runDate = new Date().toISOString().split('T')[0];
-  const prompt = buildScoringPrompt(post, name, headline, company, postUrl, runDate);
-  try {
-    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + cfg.openRouterKey,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'VAYUZ Signal Engine'
-      },
-      body: JSON.stringify({
-        model: cfg.openRouterModel || 'meta-llama/llama-3.3-70b-instruct:free',
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a JSON-only API. You MUST respond with a single valid JSON object and absolutely nothing else — no preamble, no explanation, no markdown, no code fences, no text before or after the JSON. Your entire response must be parseable by JSON.parse().'
-          },
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error.message);
-    let raw = (d.choices?.[0]?.message?.content || '').trim();
-    // Strip markdown fences if present
-    raw = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-    // Extract first JSON object — handles models that add preamble text
-    const jsonStart = raw.indexOf('{');
-    const jsonEnd = raw.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      raw = raw.slice(jsonStart, jsonEnd + 1);
-    }
-    return parseScoringResponse(raw, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback);
-  } catch(e) {
-    console.warn('OpenRouter fallback:', e.message);
-    return fallback();
-  }
-}
-
-
-function buildScoringPrompt(post, name, headline, company, postUrl, runDate) {
-  return `You are a lead qualification engine for VAYUZ Technologies.
+  const prompt = `You are a lead qualification engine for VAYUZ Technologies.
 
 ═══ ABOUT VAYUZ ═══
 VAYUZ is a 10-year-old AI-inclusive digital engineering company based in India.
@@ -1784,7 +1133,8 @@ Award +1 bonus point (up to +3 total bonus) for each present in post:
 +3 Active urgency: clear JD, deadline, 'hiring now', 'immediate start', 'ASAP'
 +2 Company 50+ employees or visible enterprise signals
 +1 Project / milestone-based engagement model
-Up to +3 bonus from pain point signals above. Cap total score at 10.
+Up to +3 bonus from pain point signals above.
+Cap total score at 10.
 
 ═══ DEDUCTIONS ═══
 -3 No identifiable company (anonymous post, no company name or website)
@@ -1797,6 +1147,7 @@ Score MAXIMUM 3 (Cold) if ANY of:
 - Solo founder / 1-person company with no visible funding
 - 2-5 person startup with no funding signals
 - Zero company information in post or author profile
+These override all positive scoring. Hard floor = 3.
 
 ═══ GEO RULES ═══
 India-based company or India-open post: apply full +4 geo bonus
@@ -1804,10 +1155,14 @@ USA / UK / GCC / APAC remote-open: apply full +4 remote bonus
 Onsite required outside India (Staff Aug / Dedicated / Consulting): score = 0
 
 ═══ HR AUTHOR RULE ═══
-HR / Recruiter at genuine product company: VALID, restrict to Staff Aug/Dedicated/IT Consulting, max score 7
-HR / Recruiter at staffing/recruitment/RPO firm: score = 0, label = Cold, DQ-8 Middleman
+HR / Recruiter at genuine product company or enterprise:
+→ VALID lead — restrict lead_category to Staff Augmentation, Dedicated Teams, or IT Consulting ONLY
+→ Maximum score = 7
+HR / Recruiter at staffing / recruitment / RPO firm:
+→ score = 0, label = Cold, disqualify_reason = "DQ-8 Middleman"
 
 ═══ HARD DISQUALIFY — score 0, Cold ═══
+Return score=0, label="Cold" immediately if ANY match:
 - Post is a blog, article, guide, thought leadership, or company news
 - Person is looking for a job themselves (open to work, job seeker)
 - Post is from a staffing/recruitment firm posting client vacancy
@@ -1815,11 +1170,29 @@ HR / Recruiter at staffing/recruitment/RPO firm: score = 0, label = Cold, DQ-8 M
 - Requires onsite presence outside India with no remote option
 - Looking for a co-founder or equity partner
 - Explicitly says 'no agencies', 'direct only', 'no middlemen'
-- Budget clearly below VAYUZ minimum
-- Posting on behalf of someone else (referral post)
+- Budget clearly below VAYUZ minimum (free, cheapest, no budget)
+- Posting on behalf of someone else (referral post, no budget authority)
 - Post is a job application form or candidate profile
 
+═══ ROLE-LEVEL SEARCH POSTS ═══
+If post searches for a specific tech role (e.g. 'looking for a React developer'):
+→ Always classify as Staff Augmentation or Dedicated Teams
+→ Never classify as Product Development
+→ Score normally using base rules above
+→ If no company context: apply -3 deduction
+
+═══ SERVICE CATEGORIES ═══
+App Development | Web Development | WordPress Development |
+Legacy System Modernization | Digital Transformation |
+EdTech / Education App Development | Staff Augmentation |
+Dedicated Teams | IT Consulting | Product Development
+
 LABELS: 8-10 = "Hot" | 4-7 = "Warm" | 0-3 = "Cold"
+
+═══ OUTREACH CONTEXT ═══
+VAYUZ sends templated outreach first, personalises on reply.
+A good lead must have enough publicly visible context for a meaningful template.
+If the post has no stack, no project type, and no company info, flag low_outreach_context = true.
 
 ═══ INPUT ═══
 Run Date: ${runDate}
@@ -1831,11 +1204,32 @@ Post Content: ${(post||'').slice(0,1500)}
 
 ═══ OUTPUT — return valid JSON only, no preamble, no markdown ═══
 {"score":0,"label":"Hot|Warm|Cold","lead_category":"","buyer_type":"Decision Maker|HR at End-Client|Middleman|Unknown","hiring_type":"Remote|Contract|Full-Time|Project-Based|Mixed","urgency":"High|Medium|Low","company_size_signal":"Enterprise|Mid-Market|SMB|Unknown","client_geo":"","role_hiring_for":"","email":"","phone":"","comp_name":"","first_name":"","last_name":"","pain_points_detected":[],"low_outreach_context":false,"disqualify_reason":"","qualification_reason":"","detected_signals":[],"recommended_action":"Reach Out Now|Monitor|Skip"}`;
-}
 
-// ── Shared response parser ──
-function parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback) {
   try {
+    // ⚠️ CRITICAL FIX: Changed gemini-2.0-flash (deprecated) to gemini-1.5-flash
+    if (!cfg.geminiKey) {
+      console.warn('Gemini API key not configured');
+      return { score: 0, intent: 0, signals: [], label: 'Cold' };
+    }
+
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cfg.geminiKey}`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+    });
+
+    // ⚠️ CRITICAL FIX: Added proper status code checking
+    if (!r.ok) {
+      const errorText = await r.text();
+      console.error(`Gemini API HTTP ${r.status}:`, errorText);
+      return { score: 0, intent: 0, signals: [], label: 'Cold' };
+    }
+
+    const d = await r.json();
+    if (d.error) {
+      console.error('Gemini API error response:', d.error);
+      throw new Error(d.error.message);
+    }
+    let txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
     const p = JSON.parse(txt);
     return {
       score: p.score||0,
@@ -1861,8 +1255,17 @@ function parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, 
       recommendedAction: p.recommended_action||'Monitor'
     };
   } catch(e) {
-    console.warn('JSON parse failed:', e.message);
-    return fallback();
+    console.warn('Gemini fallback:', e.message);
+    const result = vayuzScore(post, headline, category, hiringType);
+    return {
+      score: result.score, intent: parseFloat((result.score/10).toFixed(2)),
+      signals: result.signals, label: result.label, category: result.category,
+      hiringType: result.hiringType, role: result.role, geo: result.geo,
+      reasoning: result.reasons.join('. '),
+      buyerType: isDecisionMaker ? 'Decision Maker' : isHRAtEndClient ? 'HR at End-Client' : 'Unknown',
+      urgency: 'Medium', companySize: 'Unknown', painPoints: [], lowOutreachContext: false,
+      recommendedAction: result.score >= 8 ? 'Reach Out Now' : result.score >= 4 ? 'Monitor' : 'Skip'
+    };
   }
 }
 
@@ -1961,33 +1364,11 @@ function mapItem(item, idx) {
   };
 }
 
-// ── Tab visibility guard — warn if user navigates away during pipeline ──
-let _pipelineActive = false;
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && _pipelineActive) {
-    // Can't show toast on hidden tab, but log for debugging
-    console.warn('[SignalEngine] Tab hidden during active pipeline — scoring may slow down in background.');
-  } else if (!document.hidden && _pipelineActive) {
-    toast('⚠ Tab was hidden — AI scoring may have paused. Pipeline still running.', 'w');
-  }
-});
-
+// ── Main pipeline ──
 async function runPipeline() {
   const btn = document.getElementById('run-btn');
   btn.disabled = true;
-  _pipelineActive = true;
-  currentScanUrls = new Set(); // reset new-lead tracking for this scan
   resetPipe();
-
-  // ── Update dynamic labels to reflect active provider ──
-  const providerName = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude'
-    : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter'
-    : cfg.geminiKey ? 'Gemini' : 'Rule-based';
-  const st2el = document.getElementById('st2-label');
-  if (st2el) st2el.textContent = 'Gate 2: ' + providerName + ' intent + signal scoring';
-  const tbSub = document.getElementById('tb-subtitle');
-  if (tbSub) tbSub.textContent = 'Apify → Rule Gate → ' + providerName + ' Score → Outreach Ready';
-
   document.getElementById('pipe-mb').classList.add('show');
   document.getElementById('pipe-src').textContent = cfg.apifyToken
     ? 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5)
@@ -2015,80 +1396,56 @@ async function runPipeline() {
     stgRun(1);
     await new Promise(r => setTimeout(r, 400));
     let gated;
-    // Apply Gate 1 in both live and demo mode — demo data is realistic enough to filter
-    gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
-    if (!isDemo) {
-      console.log('[Gate1] Mapped:', mapped.length, '→ Passed:', gated.length, '→ Filtered out:', mapped.length - gated.length);
+    if (isDemo) {
+      gated = mapped;
+    } else {
+      gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
       if (gated.length === 0 && mapped.length > 0) {
         // Auto-fallback — still apply hard disqualify
+        const { isAgencyBuyer } = buyerPersonaCheck('','','');
         gated = mapped.filter(l => !isHardDisqualified(l.post, l.headline, l.company, false));
-        console.log('[Gate1 fallback] After hard-DQ only:', gated.length);
         stgDone(1, 'Keyword gate bypassed — ' + gated.length + ' / ' + mapped.length + ' passed hard filter');
-        const warnMsg = '⚠ Gate 1: No keyword matches found. Hard disqualify still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
         const erEl = document.getElementById('er');
-        erEl.textContent = warnMsg;
+        erEl.textContent = '⚠ No keyword matches found. Hard disqualify rules still applied — ' + (mapped.length - gated.length) + ' junk posts removed. Enable "Skip Gate 1" in Configure to always use this mode.';
         erEl.classList.add('show');
-        // Also persist to main UI banner (survives modal close)
-        const gw = document.getElementById('gate-warn');
-        if (gw) { gw.textContent = warnMsg; gw.style.display = 'block'; }
       } else {
         stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate');
-        // Clear any previous gate warning
-        const gw = document.getElementById('gate-warn');
-        if (gw) gw.style.display = 'none';
       }
-    } else {
-      stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate (demo)');
     }
 
-    // Stage 2: VAYUZ Qualification Engine — Batch processing
+    // Stage 2: VAYUZ Qualification Engine (Gemini AI + Rule-based fallback)
     stgRun(2);
     let scored = 0;
-    const batchSize = cfg.batchSize || 50;
-    const totalToScore = gated.length;
-    const firstBatchSize = Math.min(batchSize, totalToScore);
-    
-    // Process first batch immediately
-    for (let i = 0; i < firstBatchSize; i++) {
-      const lead = gated[i];
+    for (const lead of gated) {
       const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
-      applyScoreToLead(lead, r);
+      lead.score = r.score;
+      lead.intent = r.intent;
+      lead.signals = r.signals || [];
+      lead.label = r.label || (r.score>=8?'Hot':r.score>=4?'Warm':'Cold');
+      lead.status = lead.label === 'Hot' ? 'ready' : lead.label === 'Warm' ? 'new' : 'cold';
+      lead.reasoning = r.reasoning || '';
+      lead.category = r.category || '';
+      lead.hiringType = r.hiringType || '';
+      lead.role = r.role || '';
+      lead.geo = r.geo || '';
+      lead.email = r.email || '';
+      lead.phone = r.phone || '';
+      lead.compName = r.compName || lead.company;
+      lead.buyerType = r.buyerType || 'Unknown';
+      lead.urgency = r.urgency || 'Medium';
+      lead.companySize = r.companySize || 'Unknown';
+      lead.painPoints = r.painPoints || [];
+      lead.lowOutreachContext = r.lowOutreachContext || false;
+      lead.recommendedAction = r.recommendedAction || 'Monitor';
+      lead.disqualifyReason = r.disqualifyReason || '';
+      lead.keywords = detectSignals(lead.post);
+      lead.signal_type = lead.signal_type || 'linkedin_post';
       scored++;
-      document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored (foreground)…';
+      document.getElementById('sc2').textContent = scored + ' scored…';
+      // Rate limit: 4.1s delay between Gemini calls to stay under 15 RPM free tier
       await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
     }
-    
-    // Queue remaining posts for background processing
-    if (cfg.backgroundProcessing && totalToScore > firstBatchSize) {
-      for (let i = firstBatchSize; i < gated.length; i++) {
-        batchQueue.push(gated[i]);
-      }
-      document.getElementById('sc2').textContent = scored + ' scored · ' + batchQueue.length + ' queued (background)';
-      // Start background processing without awaiting
-      processBackgroundBatch(gated, scored, totalToScore);
-    } else {
-      // Score all remaining in foreground if no background processing
-      for (let i = firstBatchSize; i < gated.length; i++) {
-        const lead = gated[i];
-        const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
-        applyScoreToLead(lead, r);
-        scored++;
-        document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored…';
-        await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
-      }
-    }
-    
     gated.sort((a, b) => b.score - a.score);
-    console.log('[Gate2] Scores:', gated.map(l => l.name + ':' + l.score + '(' + l.label + ')'));
-    const qualified4plus = gated.filter(l => l.score >= 4).length;
-    console.log('[Gate2] Qualified (4+):', qualified4plus, '/ Cold (0-3):', gated.length - qualified4plus);
-
-    // Mark all leads from this scan as NEW
-    gated.forEach(l => {
-      l.isNew = true;
-      if (l.postUrl) currentScanUrls.add(l.postUrl);
-    });
-
     stgDone(2, scored + ' leads scored');
 
     // Stage 3
@@ -2106,30 +1463,11 @@ async function runPipeline() {
     const nb = document.getElementById('nav-nb');
     nb.textContent = allLeads.length; nb.classList.add('show');
 
-    // Save qualified leads to Supabase then reload — merge Cold session leads back in
+    // Save only leads scoring 4+ to Supabase (Warm & Hot only — keeps DB clean)
     if (!isDemo) {
       const qualifiedLeads = allLeads.filter(l => l.score >= 4);
-      const coldLeads = allLeads.filter(l => l.score < 4);
-      if (qualifiedLeads.length > 0) {
-        await saveLeadsToSupabase(qualifiedLeads);
-        await loadLeadsFromSupabase();
-        // Merge Cold leads from this session back — they're not in DB but user should still see them
-        if (coldLeads.length > 0) {
-          const existingKeys = new Set(allLeads.map(l => l.postUrl || (l.name + '|' + l.headline)).filter(Boolean));
-          const newColds = coldLeads.filter(l => {
-            const key = l.postUrl || (l.name + '|' + l.headline);
-            return !existingKeys.has(key);
-          });
-          if (newColds.length > 0) {
-            allLeads = [...allLeads, ...newColds];
-            doFilter();
-            toast(newColds.length + ' Cold lead(s) visible in session only (not saved to DB)', 'w');
-          }
-        }
-      } else {
-        // All leads scored Cold — still show them in session, just don't save
-        toast('Pipeline complete — all leads scored Cold (not saved to DB)', 'w');
-      }
+      await saveLeadsToSupabase(qualifiedLeads);
+      await loadLeadsFromSupabase();
     }
 
     setTimeout(() => {
@@ -2145,392 +1483,96 @@ async function runPipeline() {
     toast(e.message.slice(0,80), 'e');
   } finally {
     btn.disabled = false;
-    _pipelineActive = false;
   }
 }
 
 function loadDemo() { cfg.apifyToken = ''; runPipeline(); }
 
-// ── Background batch processor (called from runPipeline when backgroundProcessing = true) ──
-async function processBackgroundBatch(gated, alreadyScored, totalToScore) {
-  if (isProcessingBatch) return;
-  isProcessingBatch = true;
-  let scored = alreadyScored;
-  try {
-    while (batchQueue.length > 0) {
-      const lead = batchQueue.shift();
-      const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
-      applyScoreToLead(lead, r);
-      scored++;
-      backgroundBatchCount++;
-      // Update stage 2 counter live
-      const sc2 = document.getElementById('sc2');
-      if (sc2) sc2.textContent = scored + ' / ' + totalToScore + ' scored (' + batchQueue.length + ' queued)…';
-      // Refresh table every 5 leads so UI stays live
-      if (backgroundBatchCount % 5 === 0) {
-        gated.sort((a, b) => b.score - a.score);
-        allLeads = gated;
-        doFilter();
-        updStats(gated.length, gated.length, false);
-      }
-      await new Promise(res => setTimeout(res, 4100));
-    }
-    // Final refresh + save after background processing completes
-    gated.sort((a, b) => b.score - a.score);
-    const qualifiedLeads = gated.filter(l => l.score >= 4);
-    if (qualifiedLeads.length > 0) {
-      await saveLeadsToSupabase(qualifiedLeads);
-      // Merge session Colds back before reloading DB
-      const coldSession = gated.filter(l => l.score < 4);
-      await loadLeadsFromSupabase();
-      // Re-merge cold leads that weren't saved
-      if (coldSession.length > 0) {
-        const existingKeys = new Set(allLeads.map(l => l.postUrl || (l.name + '|' + l.headline)).filter(Boolean));
-        const newColds = coldSession.filter(l => {
-          const key = l.postUrl || (l.name + '|' + l.headline);
-          return !existingKeys.has(key);
-        });
-        allLeads = [...allLeads, ...newColds];
-        doFilter();
-      }
-    }
-    toast('Background scoring complete — ' + scored + ' leads processed ✓', 'ok');
-  } catch(e) {
-    console.error('Background batch error:', e);
-    toast('Background scoring error: ' + e.message.slice(0,60), 'e');
-  } finally {
-    isProcessingBatch = false;
-    backgroundBatchCount = 0;
-  }
-}
-
-// ── Shared stage helpers ──
-const isClosed = l => {
-  const s = (l.leadStage||'').toLowerCase();
-  return s === 'closed' || s.includes('requirement closed');
-};
-const isNoise = l => ['Not Relevant','Unable to connect'].some(s => (l.leadStage||'').includes(s));
-
 function updStats(total, matched, isDemo) {
   const hot = allLeads.filter(l => l.label==='Hot').length;
+  const warm = allLeads.filter(l => l.label==='Warm').length;
+  // SNR = leads actioned by human (S0-S4 + Meeting) ÷ total fetched
+  const actioned = allLeads.filter(l => l.leadStage && !['Not Relevant','Requirement closed','Unable to connect'].includes(l.leadStage)).length;
   const fetchedTotal = total || allLeads.length;
-
-  // ── ACTION LEADS: S0, S1, S2, S3, S4, Meeting, Requirement closed (these are qualified actions)
-  const s0cnt   = allLeads.filter(l => (l.leadStage||'').includes('S0')).length;
-  const s1cnt   = allLeads.filter(l => (l.leadStage||'').includes('S1')).length;
-  const s2cnt   = allLeads.filter(l => (l.leadStage||'').includes('S2')).length;
-  const s3cnt   = allLeads.filter(l => (l.leadStage||'').includes('S3')).length;
-  const s4cnt   = allLeads.filter(l => (l.leadStage||'').includes('S4')).length;
-  const mtgCnt  = allLeads.filter(l => (l.leadStage||'').includes('Meeting')).length;
-  const closedCnt = allLeads.filter(isClosed).length;
-  const actionLeads = s0cnt + s1cnt + s2cnt + s3cnt + s4cnt + mtgCnt + closedCnt;
-
-  // ── NOISE: Not Relevant + Unable to Connect (these are not leads, just noise)
-  const noiseCnt = allLeads.filter(isNoise).length;
-
-  // ── SNR = action leads ÷ hot leads × 100
-  // Logic: Out of 229 hot leads, 17 are action (S0=15, S1=2) → SNR = 17/229 = 7.4%
-  // Per user's spec: SNR = action leads / hot leads (not fetched)
-  const snr = hot > 0 ? ((actionLeads / hot) * 100).toFixed(2) : '—';
-
+  const snr = fetchedTotal > 0 ? Math.round((actioned / fetchedTotal) * 100) : 0;
   document.getElementById('s0').textContent = fetchedTotal;
-  document.getElementById('s0-sub').textContent = 'total in database';
   document.getElementById('s1').textContent = hot;
-  document.getElementById('s1-sub').textContent = 'AI-identified hot';
-  document.getElementById('s3').textContent = hot > 0 ? snr + '%' : '—';
-  document.getElementById('s3-sub').textContent = actionLeads + ' action of ' + hot + ' hot leads';
-  document.getElementById('s4').textContent = actionLeads;
-  document.getElementById('s4-sub').textContent = 'S0+S1+S2+S3+S4+Mtg+Closed';
-  document.getElementById('s-noise').textContent = noiseCnt;
-  document.getElementById('s-noise-sub').textContent = 'not relevant · unable';
-
-  // SNR breakdown pills
-  const bd = document.getElementById('snr-breakdown');
-  if (bd) {
-    bd.innerHTML = '';
-    const stages = [
-      {label:'S0', count:s0cnt, color:''},
-      {label:'S1', count:s1cnt, color:''},
-      {label:'S2', count:s2cnt, color:''},
-      {label:'S3', count:s3cnt, color:''},
-      {label:'S4', count:s4cnt, color:''},
-      {label:'MTG', count:mtgCnt, color:''},
-    ].filter(x => x.count > 0);
-    stages.forEach(s => {
-      const p = document.createElement('span');
-      p.className = 'snr-pill';
-      p.textContent = s.label + ':' + s.count;
-      bd.appendChild(p);
-    });
-    if (noiseCnt > 0) {
-      const p = document.createElement('span');
-      p.className = 'snr-pill noise';
-      p.textContent = '🔇 ' + noiseCnt;
-      bd.appendChild(p);
-    }
-  }
-
-  // Update dash meta in header
-  const metaEl = document.getElementById('dash-meta-txt');
-  if (metaEl && hot > 0) metaEl.textContent = hot + ' hot · SNR ' + snr + '%';
-  else if (metaEl && fetchedTotal > 0) metaEl.textContent = fetchedTotal + ' leads loaded';
-
+  document.getElementById('s2').textContent = warm;
+  document.getElementById('s3').textContent = snr + '%';
+  document.getElementById('s3-sub').textContent = actioned + ' actioned of ' + fetchedTotal + ' fetched';
+  document.getElementById('s4').textContent = isDemo ? 'Demo' : 'Live';
   updPipeline();
-  updFunnel();
-  updChannelStats();
-  populateDateDropdown();
 }
 
 function updPipeline() {
   const count = stage => allLeads.filter(l => (l.leadStage||'').includes(stage)).length;
-  const closedCount = allLeads.filter(isClosed).length;
   document.getElementById('p-meeting').textContent = count('Meeting');
   document.getElementById('p-s0').textContent = count('S0');
   document.getElementById('p-s1').textContent = count('S1');
   document.getElementById('p-s2').textContent = count('S2');
   document.getElementById('p-s3').textContent = count('S3');
-  const s4el = document.getElementById('p-s4-row');
-  if (s4el) s4el.textContent = count('S4');
   document.getElementById('h-s4').textContent = count('S4');
-  const closedEl = document.getElementById('p-closed');
-  if (closedEl) closedEl.textContent = closedCount;
   document.getElementById('h-enrichment').textContent = allLeads.filter(l => l.lowOutreachContext).length;
-  document.getElementById('h-noise').textContent = allLeads.filter(isNoise).length;
-  updFunnel();
+  document.getElementById('h-noise').textContent = allLeads.filter(l => ['Not Relevant','Requirement closed','Unable to connect'].includes(l.leadStage)).length;
 }
 
-// ── Dropdown filter helpers ──
-function setDropFilter(type, val) {
-  if (type === 'label') { document.getElementById('dd-label').value = val === 'all' ? '' : val; }
-  else if (type === 'stage') {
-    const stageMap = {'S0':'S0','S1':'S1','S2':'S2','S3':'S3','S4':'S4','Meeting':'Meeting','closed':'closed','Not Relevant':'Not Relevant'};
-    document.getElementById('dd-stage').value = stageMap[val] || val;
-  }
-  highlightActiveDropdowns();
-  doFilter();
-}
-function resetAllFilters() {
-  document.getElementById('q').value = '';
-  document.getElementById('dd-date').value = '';
-  document.getElementById('dd-label').value = '';
-  document.getElementById('dd-stage').value = '';
-  document.getElementById('dd-cat').value = '';
-  document.getElementById('dd-signal').value = '';
-  document.getElementById('dd-sort').value = 'smart';
-  highlightActiveDropdowns();
-  doFilter();
-}
-function highlightActiveDropdowns() {
-  ['dd-date','dd-label','dd-stage','dd-cat','dd-signal'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('active', !!el.value);
-  });
-}
-// ── Sidebar collapse ──
-function toggleSidebar() {
-  const sb = document.getElementById('sidebar');
-  sb.classList.toggle('collapsed');
-  const toggle = sb.querySelector('.sb-toggle');
-  if (toggle) toggle.textContent = sb.classList.contains('collapsed') ? '▶' : '◀';
-}
-// ── Nav group collapse ──
-function toggleNavGroup(id) {
-  const g = document.getElementById(id);
-  const key = id.replace('nav-','');
-  const arrow = document.getElementById('nl-arrow-'+key);
-  if (!g) return;
-  g.classList.toggle('closed');
-  if (arrow) arrow.classList.toggle('closed');
-}
-// ── Dashboard panel collapse ──
-function toggleDash() {
-  const panel = document.getElementById('dash-panel');
-  const chev = document.getElementById('dash-chevron');
-  panel.classList.toggle('open');
-  panel.classList.toggle('closed');
-  if (chev) chev.textContent = panel.classList.contains('open') ? '▾' : '▸';
-}
-
-// ── Populate date dropdown from actual data ──
-function populateDateDropdown() {
-  const sel = document.getElementById('dd-date');
-  const cur = sel.value;
-  // Collect unique dates from scannedAt
-  const dates = new Set();
-  allLeads.forEach(l => {
-    const d = formatDate(l.scannedAt);
-    if (d) dates.add(d);
-  });
-  // Rebuild options
-  sel.innerHTML = '<option value="">📅 All Dates</option>';
-  // Sort newest first
-  const sorted = Array.from(dates).sort((a,b) => {
-    return new Date(b.replace(/(\d+) (\w+) (\d+)/,'$2 $1 $3')) - new Date(a.replace(/(\d+) (\w+) (\d+)/,'$2 $1 $3'));
-  });
-  sorted.forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = '📅 ' + d;
-    if (d === cur) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
-
-// ── DuxSoup-style Funnel updater ──
-function updFunnel() {
-  const total  = allLeads.length;
-  if (total === 0) return;
-  const hot    = allLeads.filter(l => l.label === 'Hot').length;
-  const s0     = allLeads.filter(l => (l.leadStage||'').includes('S0')).length;
-  const s1     = allLeads.filter(l => (l.leadStage||'').includes('S1')).length;
-  const s2     = allLeads.filter(l => (l.leadStage||'').includes('S2')).length;
-  const s3     = allLeads.filter(l => (l.leadStage||'').includes('S3')).length;
-  const s4     = allLeads.filter(l => (l.leadStage||'').includes('S4')).length;
-  const mtg    = allLeads.filter(l => (l.leadStage||'').includes('Meeting')).length;
-  const closed = allLeads.filter(isClosed).length;
-  const noise  = allLeads.filter(isNoise).length;
-
-  const stages = [
-    { id:'f-fetched', label:'Fetched',   count:total, color:'var(--accent)', opacity:'.45', filter:()=>{resetAllFilters();} },
-    { id:'f-hot',     label:'🔥 Hot',    count:hot,   color:'var(--red)',    opacity:'1',   filter:()=>{document.getElementById('dd-label').value='Hot';highlightActiveDropdowns();doFilter();} },
-    { id:'f-s0',      label:'S0',        count:s0,    color:'var(--accent)', opacity:'.8',  filter:()=>setDropFilter('stage','S0') },
-    { id:'f-s1',      label:'S1',        count:s1,    color:'var(--accent)', opacity:'1',   filter:()=>setDropFilter('stage','S1') },
-    { id:'f-s2',      label:'S2',        count:s2,    color:'var(--amber)',   opacity:'1',  filter:()=>setDropFilter('stage','S2') },
-    { id:'f-s3',      label:'S3',        count:s3,    color:'var(--purple)', opacity:'1',   filter:()=>setDropFilter('stage','S3') },
-    { id:'f-s4',      label:'S4',        count:s4,    color:'var(--green)',  opacity:'1',   filter:()=>setDropFilter('stage','S4') },
-    { id:'f-mtg',     label:'Mtg',       count:mtg,   color:'var(--green)',  opacity:'.75', filter:()=>setDropFilter('stage','Meeting') },
-  ];
-
-  const container = document.getElementById('funnel-stages');
-  if (!container) return;
-  container.innerHTML = '';
-
-  stages.forEach((st, i) => {
-    if (i > 0) {
-      // Add arrow separator (skip before noise block)
-      const arrow = document.createElement('div');
-      arrow.className = 'fs-arrow';
-      arrow.innerHTML = st.noise ? '<span style="color:var(--border3);padding:0 2px;font-size:9px">|</span>' : '›';
-      container.appendChild(arrow);
-    }
-    const pct = total > 0 ? Math.round((st.count / total) * 100) : 0;
-    const block = document.createElement('div');
-    block.className = 'fs-block' + (st.noise ? ' noise-block' : '');
-    block.id = st.id;
-    block.title = st.label + ': ' + st.count + ' (' + pct + '% of total)';
-    block.onclick = () => { st.filter(); };
-    block.innerHTML = `
-      <div class="fs-num" style="color:${st.color};opacity:${st.opacity}">${st.count}</div>
-      <div class="fs-label" style="color:${st.count > 0 ? st.color : 'var(--text3)'};">${st.label}</div>
-      <div class="fs-pct">${pct > 0 ? pct + '%' : ''}</div>
-      <div class="fs-bar" style="background:${st.color};opacity:${st.opacity}"></div>
-    `;
-    container.appendChild(block);
-  });
-
-  document.getElementById('funnel-wrap').style.display = 'block';
-}
-
-// ── Legacy setF stub (called from pipeline row clicks) ──
+// ── Filter / sort ──
 function setF(f, el) {
-  // Map old filter ids to new dropdown values
-  const stageMap = {'meeting':'Meeting','s0':'S0','s1':'S1','s2':'S2','s3':'S3','s4':'S4','closed':'closed','irrelevant':'Not Relevant'};
-  const labelMap = {'hot':'Hot','warm':'Warm','cold':'Cold'};
-  if (stageMap[f]) { document.getElementById('dd-stage').value = stageMap[f]; }
-  else if (labelMap[f]) { document.getElementById('dd-label').value = labelMap[f]; }
-  else if (f === 'new') { document.getElementById('dd-stage').value = 'new-unsorted'; }
-  else { resetAllFilters(); return; }
-  highlightActiveDropdowns();
-  doFilter();
+  curFilter = f;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+  el.classList.add('on'); doFilter();
 }
-
 function doFilter() {
-  highlightActiveDropdowns();
   const q = (document.getElementById('q').value||'').toLowerCase();
-  const ddDate = document.getElementById('dd-date').value;
-  const ddLabel = document.getElementById('dd-label').value;
-  const ddStage = document.getElementById('dd-stage').value;
-  const ddCat = document.getElementById('dd-cat').value;
-  const ddSignal = document.getElementById('dd-signal').value;
-  const ddSort = document.getElementById('dd-sort').value;
-
   filtered = allLeads.filter(l => {
-    // Date filter
-    if (ddDate) {
-      const d = formatDate(l.scannedAt);
-      if (d !== ddDate) return false;
-    }
-    // Label filter
-    if (ddLabel) {
-      if ((l.label||'') !== ddLabel) return false;
-    }
-    // Stage filter
-    if (ddStage) {
-      if (ddStage === 'new-unsorted') {
-        if (l.leadStage) return false; // has a stage = not "new/unsorted"
-      } else if (ddStage === 'closed') {
-        if (!(l.leadStage||'').toLowerCase().includes('closed')) return false;
-      } else if (ddStage === 'Not Relevant') {
-        if (!(l.leadStage||'').includes('Not Relevant')) return false;
-      } else {
-        if (!(l.leadStage||'').includes(ddStage)) return false;
-      }
-    }
-    // Category filter
-    if (ddCat) {
-      if ((l.category||'') !== ddCat) return false;
-    }
-    // Signal filter
-    if (ddSignal) {
-      if (!(l.signals||[]).includes(ddSignal) && !(l.keywords||[]).includes(ddSignal)) return false;
-    }
-    // Search
-    if (q) {
-      const match = l.name.toLowerCase().includes(q)||
-        l.company.toLowerCase().includes(q)||
-        (l.post||'').toLowerCase().includes(q)||
-        (l.postUrl||'').toLowerCase().includes(q)||
-        l.headline.toLowerCase().includes(q)||
-        (l.category||'').toLowerCase().includes(q)||
-        (l.role||'').toLowerCase().includes(q)||
-        (l.geo||'').toLowerCase().includes(q);
-      if (!match) return false;
-    }
-    return true;
+    let p = true;
+    if (curFilter==='hot') p = l.label==='Hot';
+    else if (curFilter==='warm') p = l.label==='Warm';
+    else if (curFilter==='cold') p = l.label==='Cold';
+    else if (curFilter==='remote') p = (l.signals||[]).includes('remote');
+    else if (curFilter==='india') p = (l.signals||[]).includes('india');
+    else if (curFilter==='hiring') p = (l.signals||[]).includes('hiring');
+    else if (curFilter==='jobpost') p = l.signal_type === 'job_posting';
+    else if (curFilter==='orgchange') p = l.signal_type === 'org_change';
+    else if (curFilter==='funding') p = l.signal_type === 'funding_event';
+    else if (curFilter==='g2') p = l.signal_type === 'g2_review';
+    else if (curFilter==='techstack') p = l.signal_type === 'tech_stack';
+    else if (curFilter==='meeting') p = (l.leadStage||'').includes('Meeting');
+    else if (curFilter==='s0') p = (l.leadStage||'').includes('S0');
+    else if (curFilter==='s1') p = (l.leadStage||'').includes('S1');
+    else if (curFilter==='s2') p = (l.leadStage||'').includes('S2');
+    else if (curFilter==='s3') p = (l.leadStage||'').includes('S3');
+    else if (curFilter==='s4') p = (l.leadStage||'').includes('S4');
+    else if (curFilter==='closed') p = (l.leadStage||'').toLowerCase().includes('closed');
+    else if (curFilter==='irrelevant') p = (l.leadStage||'').includes('Not Relevant');
+    if (q) p = p && (
+      l.name.toLowerCase().includes(q)||
+      l.company.toLowerCase().includes(q)||
+      l.post.toLowerCase().includes(q)||
+      (l.postUrl||'').toLowerCase().includes(q)||
+      l.headline.toLowerCase().includes(q)||
+      (l.category||'').toLowerCase().includes(q)||
+      (l.role||'').toLowerCase().includes(q)||
+      (l.geo||'').toLowerCase().includes(q)
+    );
+    return p;
   });
-
-  // Sort
-  if (ddSort === 'smart') {
-    filtered.sort((a, b) => {
-      if (a.isNew && !b.isNew) return -1;
-      if (!a.isNew && b.isNew) return 1;
-      const lo = {'Hot':0,'Warm':1,'Cold':2};
-      const la = lo[a.label]??2, lb = lo[b.label]??2;
-      if (la !== lb) return la - lb;
-      return parsePostedTime(a.created) - parsePostedTime(b.created);
-    });
-  } else if (ddSort === 'date-desc') {
-    filtered.sort((a,b) => new Date(b.scannedAt||0) - new Date(a.scannedAt||0));
-  } else if (ddSort === 'date-asc') {
-    filtered.sort((a,b) => new Date(a.scannedAt||0) - new Date(b.scannedAt||0));
-  } else if (ddSort === 'score-desc') {
-    filtered.sort((a,b) => b.score - a.score);
-  } else if (ddSort === 'score-asc') {
-    filtered.sort((a,b) => a.score - b.score);
-  } else if (ddSort === 'name') {
-    filtered.sort((a,b) => a.name.localeCompare(b.name));
-  }
-
+  // Default: Hot first, then freshest within each label
+  filtered.sort((a, b) => {
+    const lo = {'Hot':0,'Warm':1,'Cold':2};
+    const la = lo[a.label]??2, lb = lo[b.label]??2;
+    if (la !== lb) return la - lb;
+    return parsePostedTime(a.created) - parsePostedTime(b.created);
+  });
   renderTbl();
 }
 function sortBy(f) {
-  const sel = document.getElementById('dd-sort');
-  if (f==='score') sel.value = 'score-desc';
-  else if (f==='fresh') sel.value = 'date-desc';
-  else sel.value = 'name';
-  doFilter();
+  if (f==='score') filtered.sort((a,b)=>b.score-a.score);
+  else if (f==='fresh') filtered.sort((a,b)=>parsePostedTime(a.created)-parsePostedTime(b.created));
+  else filtered.sort((a,b)=>a.name.localeCompare(b.name));
+  renderTbl();
 }
-function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); updBulkBar(); }
+function chkAll(cb) { document.querySelectorAll('.rchk').forEach(c => c.checked=cb.checked); }
 
 // ── Parse "X minutes/hours ago" → minutes number ──
 function parsePostedTime(str) {
@@ -2549,48 +1591,17 @@ function parsePostedTime(str) {
 }
 
 // ── Posted time badge ──
-function formatDate(isoStr) {
-  if (!isoStr) return null;
-  try {
-    const d = new Date(isoStr);
-    if (isNaN(d)) return null;
-    // Format: "4 Apr 2026" — day + short month + year, no comma
-    const day = d.getDate();
-    const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-    const year = d.getFullYear();
-    return `${day} ${month} ${year}`;
-  } catch(e) { return null; }
-}
-
-function shortenAgo(str) {
-  if (!str || str === '—') return null;
-  return str.toLowerCase()
-    .replace(/minutes? ago/, 'm ago')
-    .replace(/hours? ago/, 'h ago')
-    .replace(/days? ago/, 'd ago')
-    .replace(/weeks? ago/, 'w ago')
-    .replace(/months? ago/, 'mo ago')
-    .replace(/seconds? ago/, 's ago')
-    .replace('just now', 'now')
-    .trim();
-}
-
-function postedBadge(lead) {
-  // Format: "4 Apr 2026" on top line, "10h ago" below — compact, no padding
-  // Date comes from scanned_at (DB save time) or created_at
-  const dateStr = formatDate(lead.scannedAt || lead.savedAt);
-  const agoStr = shortenAgo(lead.created);
-
-  if (!dateStr && !agoStr) {
-    return `<span style="color:var(--text3);font-size:10px;font-family:var(--mono)">—</span>`;
-  }
-  if (dateStr && agoStr) {
-    return `<span class="pt-badge"><span class="pt-date">${esc(dateStr)}</span><span class="pt-ago">${esc(agoStr)}</span></span>`;
-  }
-  if (dateStr) {
-    return `<span class="pt-badge"><span class="pt-date">${esc(dateStr)}</span></span>`;
-  }
-  return `<span class="pt-badge"><span class="pt-date">${esc(agoStr)}</span></span>`;
+function postedBadge(str) {
+  if (!str || str==='—') return `<span style="color:var(--text3);font-size:10.5px;font-family:var(--mono)">—</span>`;
+  const mins = parsePostedTime(str);
+  const cls = mins<=120?'pt-fresh':mins<=1440?'pt-recent':'pt-old';
+  let d = str.toLowerCase()
+    .replace(/minutes? ago/,'m ago').replace(/hours? ago/,'h ago')
+    .replace(/days? ago/,'d ago').replace(/weeks? ago/,'w ago')
+    .replace(/months? ago/,'mo ago').replace(/seconds? ago/,'s ago')
+    .replace('just now','now').trim();
+  if (d.length > 10) d = d.slice(0,10);
+  return `<span class="pt-badge ${cls}"><span class="pt-dot"></span>${esc(d)}</span>`;
 }
 
 // ── Render ──
@@ -2624,127 +1635,53 @@ function stageBadge(stage) {
 function renderTbl() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-  // By default hide Not Relevant / Unable to connect leads unless explicitly filtered for
-  const ddStage = document.getElementById('dd-stage').value;
-  const showIrrelevant = ddStage === 'Not Relevant';
-  const visibleLeads = filtered.filter(l => {
-    if (!showIrrelevant) {
-      const stage = (l.leadStage || '').toLowerCase();
-      if (stage.includes('not relevant') || stage.includes('unable to connect')) return false;
-    }
-    return true;
-  });
-  // Show/hide irrelevant notice
-  const irrelevantCount = filtered.filter(l => {
-    const stage = (l.leadStage || '').toLowerCase();
-    return stage.includes('not relevant') || stage.includes('unable to connect');
-  }).length;
-  const noticeEl = document.getElementById('irrelevant-notice');
-  if (noticeEl) {
-    if (!showIrrelevant && irrelevantCount > 0) {
-      noticeEl.style.display = 'flex';
-      noticeEl.innerHTML = `🔇 ${irrelevantCount} Not Relevant / Unable to Connect lead${irrelevantCount>1?'s':''} hidden. <a onclick="showIrrelevantLeads()">Show them</a> &nbsp;·&nbsp; <a onclick="bulkDeleteIrrelevant()">Delete all</a>`;
-    } else {
-      noticeEl.style.display = 'none';
-    }
-  }
-
-  if (!visibleLeads.length) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:36px;color:var(--text3);font-size:13px">No leads match this filter.</td></tr>`;
     return;
   }
-  visibleLeads.forEach(lead => {
+  filtered.forEach(lead => {
     const sc = lead.score>=7?'h':lead.score>=4?'m':'l';
     const lbl = lead.label || (lead.score>=7?'Hot':lead.score>=4?'Warm':'Cold');
+    const chips = (lead.signals||[]).map(s=>`<span class="chip c-${s==='hiring'?'hiring':s==='remote'?'expansion':s==='urgent'?'pain':s==='india'?'vendor':'funding'}">${s}</span>`).join('');
+    const snip = (lead.post||'').slice(0,65)+((lead.post||'').length>65?'…':'');
     let urlCell = '<span class="nu">—</span>';
     if (lead.postUrl) {
-      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,28)+'…';
+      const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,30)+'…';
       urlCell = `<a class="ul" href="${lead.postUrl}" target="_blank" onclick="event.stopPropagation()" title="${esc(lead.postUrl)}">${disp}</a>`;
     }
-    const remarksSnip = lead.remarks ? esc(lead.remarks.slice(0,60)) + (lead.remarks.length>60?'…':'') : '<span style="color:var(--text3);font-size:10.5px">—</span>';
+    // Signal type chip
+    const stMap = {
+      'linkedin_post': {cls:'c-hiring', icon:'💬', label:'LI Post'},
+      'job_posting': {cls:'c-jobpost', icon:'💼', label:'Job Post'},
+      'org_change': {cls:'c-orgchange', icon:'👤', label:'Org Change'},
+      'funding_event': {cls:'c-fundingevt', icon:'💰', label:'Funding'},
+      'g2_review': {cls:'c-g2', icon:'⭐', label:'G2 Review'},
+      'tech_stack': {cls:'c-techstack', icon:'🛠', label:'Tech Stack'},
+    };
+    const st = stMap[lead.signal_type] || stMap['linkedin_post'];
+    const stChip = `<span class="chip ${st.cls}">${st.icon} ${st.label}</span>`;
     const tr = document.createElement('tr');
     tr.className = 'lr';
     tr.onclick = () => openDP(lead);
     tr.innerHTML = `
-      <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
-      <td style="white-space:nowrap">${postedBadge(lead)}</td>
-      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}${lead.isNew?'<span class="new-badge">NEW</span>':''}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
+      <td><input type="checkbox" class="rchk" style="accent-color:var(--accent)" onclick="event.stopPropagation()"></td>
+      <td style="white-space:nowrap">${postedBadge(lead.created)}</td>
+      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
       <td><span class="sp ${sc}">${lead.score}/10</span></td>
       <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
+      <td>${stChip}</td>
       <td>${stageBadge(lead.leadStage)}</td>
       <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
       <td><span style="font-size:11.5px;color:var(--text2)">${esc(lead.role||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${esc(lead.geo||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3)">${esc(lead.hiringType||'—')}</span></td>
+      <td><div class="chips">${chips||'<span style="color:var(--text3);font-size:10.5px">—</span>'}</div></td>
       <td class="uc">${urlCell}</td>
-      <td style="display:flex;align-items:center;gap:8px;min-width:180px"><div class="snp" style="flex:1;font-size:11.5px;color:var(--text2)">${remarksSnip}</div><button class="row-del" onclick="event.stopPropagation();deleteLeadById(${JSON.stringify(lead._dbid)},${JSON.stringify(lead.name)})">🗑</button></td>
+      <td><div class="snp">${esc(snip)}</div></td>
+      <td><div class="ac"><button class="ab p" onclick="event.stopPropagation();qReach(${lead.id})">Reach Out</button><button class="ab" onclick="event.stopPropagation();openDP(allLeads[${lead.id}])">Detail</button></div></td>
     `;
     tbody.appendChild(tr);
   });
-}
-
-// ── Contact availability helpers ──
-function onEmailInput() {
-  const val = document.getElementById('dp-email-input').value.trim();
-  if (val) {
-    document.getElementById('email-na-check').checked = false;
-    document.getElementById('email-na-tag').style.display = 'none';
-  }
-}
-function onEmailNAChange() {
-  const checked = document.getElementById('email-na-check').checked;
-  document.getElementById('email-na-tag').style.display = checked ? 'inline-flex' : 'none';
-  if (checked) document.getElementById('dp-email-input').value = '';
-}
-function onPhoneInput() {
-  const val = document.getElementById('dp-phone-input').value.trim();
-  if (val) {
-    document.getElementById('phone-na-check').checked = false;
-    document.getElementById('phone-na-tag').style.display = 'none';
-  }
-}
-function onPhoneNAChange() {
-  const checked = document.getElementById('phone-na-check').checked;
-  document.getElementById('phone-na-tag').style.display = checked ? 'inline-flex' : 'none';
-  if (checked) document.getElementById('dp-phone-input').value = '';
-}
-
-// ── Outreach channel toggle (3-state: none → tried → connected → none) ──
-// channels stored on lead as: { linkedin: 'none'|'tried'|'connected', email: ..., call: ..., whatsapp: ... }
-const CHANNELS = ['linkedin','email','call','whatsapp'];
-function toggleChannel(ch) {
-  if (!activeDetail) return;
-  if (!activeDetail.channels) activeDetail.channels = {};
-  const cur = activeDetail.channels[ch] || 'none';
-  const next = cur === 'none' ? 'tried' : cur === 'tried' ? 'connected' : 'none';
-  activeDetail.channels[ch] = next;
-  renderChannel(ch, next);
-}
-function renderChannel(ch, state) {
-  const item = document.getElementById('oc-' + ch);
-  const status = document.getElementById('oc-' + ch + '-status');
-  if (!item || !status) return;
-  item.className = 'oc-item' + (state === 'tried' ? ' tried' : state === 'connected' ? ' connected' : '');
-  status.textContent = state === 'tried' ? 'Tried — no response' : state === 'connected' ? 'Connected ✓' : 'Not tried';
-}
-function renderAllChannels(lead) {
-  const channels = lead.channels || {};
-  CHANNELS.forEach(ch => renderChannel(ch, channels[ch] || 'none'));
-}
-
-// ── Update channel dashboard stats ──
-function updChannelStats() {
-  const tried = ch => allLeads.filter(l => (l.channels||{})[ch] && (l.channels||{})[ch] !== 'none').length;
-  const connected = ch => allLeads.filter(l => (l.channels||{})[ch] === 'connected').length;
-  const anyConn = allLeads.filter(l => CHANNELS.some(ch => (l.channels||{})[ch] === 'connected')).length;
-  CHANNELS.forEach(ch => {
-    const triedEl = document.getElementById('ch-' + ch);
-    const connEl = document.getElementById('ch-' + ch + '-c');
-    if (triedEl) triedEl.textContent = tried(ch);
-    if (connEl) connEl.textContent = connected(ch) + ' connected';
-  });
-  const anyEl = document.getElementById('ch-any');
-  if (anyEl) anyEl.textContent = anyConn;
 }
 
 // ── Detail panel ──
@@ -2753,7 +1690,7 @@ function openDP(lead) {
   const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
   document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
-  document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel||'').split('/').pop() + ') · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
+  document.getElementById('dp-gtag').textContent = cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
   document.getElementById('dp-kws').innerHTML = (lead.signals||[]).length
@@ -2767,6 +1704,7 @@ function openDP(lead) {
 
   document.getElementById('dp-rows').innerHTML = `
     <div class="dr"><span class="dl">Qualification</span><span class="dv" style="color:${lbl==='Hot'?'var(--red)':lbl==='Warm'?'var(--amber)':'var(--accent)'}">${lbl==='Hot'?'🔥':lbl==='Warm'?'🟡':'🔵'} ${lbl} (${lead.score}/10)</span></div>
+    <div class="dr"><span class="dl">Signal Type</span><span class="dv">${({linkedin_post:'💬 LinkedIn Post',job_posting:'💼 Job Posting',org_change:'👤 Org Change',funding_event:'💰 Funding Event',g2_review:'⭐ G2 Review',tech_stack:'🛠 Tech Stack Shift'})[lead.signal_type||'linkedin_post']||'💬 LinkedIn Post'}</span></div>
     <div class="dr"><span class="dl">Recommended Action</span><span class="dv" style="color:${actionColor}">${esc(lead.recommendedAction||'—')}</span></div>
     <div class="dr"><span class="dl">Buyer Type</span><span class="dv">${esc(lead.buyerType||'—')}</span></div>
     <div class="dr"><span class="dl">Urgency</span><span class="dv">${esc(lead.urgency||'—')}</span></div>
@@ -2783,10 +1721,8 @@ function openDP(lead) {
     <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
     <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
   `;
-  // Pain points section — remove old before inserting to prevent duplication
-  const oldPain = document.getElementById('dp-pain');
-  if (oldPain && oldPain.parentElement) oldPain.parentElement.remove();
-  if (document.getElementById('dp-kws') && document.getElementById('dp-kws').parentElement) {
+  // Pain points section
+  if (document.getElementById('dp-kws').parentElement) {
     document.getElementById('dp-kws').parentElement.insertAdjacentHTML('afterend',
       `<div><div class="dpl">Pain Point Signals</div><div class="kws" id="dp-pain">${painPointsHtml}</div></div>`
     );
@@ -2796,119 +1732,20 @@ function openDP(lead) {
   document.getElementById('dp-phone-input').value = lead.phone || '';
   document.getElementById('dp-stage-select').value = lead.leadStage || '';
   document.getElementById('dp-remarks-input').value = lead.remarks || '';
-
-  // Email / phone availability
-  const emailNA = lead.emailNA || false;
-  const phoneNA = lead.phoneNA || false;
-  document.getElementById('email-na-check').checked = emailNA;
-  document.getElementById('email-na-tag').style.display = emailNA ? 'inline-flex' : 'none';
-  document.getElementById('phone-na-check').checked = phoneNA;
-  document.getElementById('phone-na-tag').style.display = phoneNA ? 'inline-flex' : 'none';
-
-  // Country field — show for non-India leads
-  const isIndia = /india|bengaluru|bangalore|mumbai|delhi|pune|hyderabad|chennai|noida|gurgaon/i.test(lead.geo || '');
-  const countrySec = document.getElementById('country-sec');
-  if (countrySec) countrySec.style.display = isIndia ? 'none' : 'block';
-  const countryInput = document.getElementById('dp-country-input');
-  if (countryInput) countryInput.value = lead.country || '';
-
-  // Outreach channels
-  renderAllChannels(lead);
-
   document.getElementById('dpanel').classList.add('show');
 }
 function closeDP() { document.getElementById('dpanel').classList.remove('show'); activeDetail = null; }
-function updBulkBar() {
-  const checked = document.querySelectorAll('.rchk:checked');
-  const bar = document.getElementById('bulk-bar');
-  const cnt = document.getElementById('bulk-count');
-  if (checked.length > 0) {
-    bar.classList.add('show');
-    cnt.textContent = checked.length + ' lead' + (checked.length > 1 ? 's' : '') + ' selected';
-  } else {
-    bar.classList.remove('show');
-  }
-}
-
-function clearSelection() {
-  document.querySelectorAll('.rchk').forEach(c => c.checked = false);
-  const hdr = document.querySelector('thead input[type=checkbox]');
-  if (hdr) hdr.checked = false;
-  document.getElementById('bulk-bar').classList.remove('show');
-}
-
-async function deleteLeadById(dbid, name) {
-  if (!confirm('Delete ' + name + '? This cannot be undone.')) return;
-  const { error } = await _sb.from('leads').delete().eq('id', dbid);
-  if (error) { toast('Delete failed — check console', 'e'); return; }
-  allLeads = allLeads.filter(l => l._dbid !== dbid);
-  toast(name + ' deleted', 'w');
-  if (activeDetail && activeDetail._dbid === dbid) closeDP();
-  doFilter();
-  updStats(allLeads.length, allLeads.length, false);
-}
-
-async function bulkDeleteSelected() {
-  const checked = document.querySelectorAll('.rchk:checked');
-  if (!checked.length) return;
-  const dbids = Array.from(checked).map(c => c.dataset.dbid).filter(Boolean);
-  if (!confirm('Permanently delete ' + dbids.length + ' lead' + (dbids.length>1?'s':'') + '? This cannot be undone.')) return;
-  const { error } = await _sb.from('leads').delete().in('id', dbids);
-  if (error) { toast('Bulk delete failed', 'e'); return; }
-  allLeads = allLeads.filter(l => !dbids.includes(String(l._dbid)));
-  clearSelection();
-  toast(dbids.length + ' lead' + (dbids.length>1?'s':'') + ' deleted', 'w');
-  if (activeDetail && dbids.includes(String(activeDetail._dbid))) closeDP();
-  doFilter();
-  updStats(allLeads.length, allLeads.length, false);
-}
-
-function showIrrelevantLeads() {
-  document.getElementById('dd-stage').value = 'Not Relevant';
-  highlightActiveDropdowns();
-  doFilter();
-}
-
-async function archiveLead() {
+function markReach() {
   if (!activeDetail) return;
-  if (!confirm('Archive this lead? It will be hidden from the main view.')) return;
-  activeDetail.leadStage = 'Not Relevant';
-  const { error } = await _sb.from('leads').update({ lead_stage: 'Not Relevant' }).eq('id', activeDetail._dbid);
-  if (error) { toast('Archive failed — check console', 'e'); return; }
-  toast(activeDetail.name + ' archived', 'w');
-  closeDP();
-  doFilter();
-  updPipeline();
+  activeDetail.status = 'contacted';
+  doFilter(); updStats(); toast(activeDetail.name+' marked as reached out','ok'); closeDP();
 }
-
-async function deleteLead() {
+function qReach(id) { const l=allLeads[id]; if(!l)return; toast('Opening outreach for '+l.name,'ok'); }
+function copyMsg() {
   if (!activeDetail) return;
-  if (!confirm('Permanently delete ' + activeDetail.name + '? This cannot be undone.')) return;
-  const { error } = await _sb.from('leads').delete().eq('id', activeDetail._dbid);
-  if (error) { toast('Delete failed — check console', 'e'); return; }
-  allLeads = allLeads.filter(l => l._dbid !== activeDetail._dbid);
-  toast(activeDetail.name + ' deleted', 'w');
-  closeDP();
-  doFilter();
-  updStats(allLeads.length, allLeads.length, false);
-}
-
-async function bulkDeleteIrrelevant() {
-  const toDelete = allLeads.filter(l => {
-    const s = (l.leadStage || '').toLowerCase();
-    return s.includes('not relevant') || s.includes('unable to connect');
-  });
-  if (!toDelete.length) return;
-  if (!confirm('Permanently delete ' + toDelete.length + ' Not Relevant / Unable to Connect leads? This cannot be undone.')) return;
-  const ids = toDelete.map(l => l._dbid).filter(Boolean);
-  if (ids.length) {
-    const { error } = await _sb.from('leads').delete().in('id', ids);
-    if (error) { toast('Bulk delete failed', 'e'); return; }
-  }
-  allLeads = allLeads.filter(l => !toDelete.includes(l));
-  toast(toDelete.length + ' leads deleted', 'w');
-  doFilter();
-  updStats(allLeads.length, allLeads.length, false);
+  const l = activeDetail, kw = l.keywords&&l.keywords.length ? l.keywords[0] : 'your tech needs';
+  const msg = `Hi ${l.name.split(' ')[0]}, came across your post about ${kw} — at VAYUZ we've helped companies like yours build reliable products with dedicated dev teams. Would love to share how we can help. Open to a quick 15-min call?`;
+  navigator.clipboard.writeText(msg).then(()=>toast('Outreach message copied','ok'));
 }
 
 // ── Supabase Client ──
@@ -2945,7 +1782,8 @@ async function saveLeadsToSupabase(leads) {
     hiring_for: l.role || null,
     hiring_type: l.hiringType || null,
     client_geo: l.geo || null,
-    source: 'LinkedIn',
+    source: l.signal_type || 'LinkedIn',
+    signal_type: l.signal_type || 'linkedin_post',
     email: l.email || null,
     phone: l.phone || null,
     posted_at: l.created || null,
@@ -2960,15 +1798,7 @@ async function saveLeadsToSupabase(leads) {
   const { error } = await _sb.from('leads').upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false });
   if (error) {
     console.error('Supabase save error:', error.message, error.details);
-    // Retry without scanned_at if that column is missing
-    if (error.message && error.message.includes('scanned_at')) {
-      const rowsNoScan = rows.map(({scanned_at, ...rest}) => rest);
-      const { error: e2 } = await _sb.from('leads').upsert(rowsNoScan, { onConflict: 'post_url', ignoreDuplicates: false });
-      if (e2) { toast('DB save failed: ' + (e2.message||'check console'), 'e'); console.error('Retry error:', e2); }
-      else { toast(`${rows.length} leads saved ✓`, 'ok'); }
-    } else {
-      toast('DB save failed: ' + (error.message||'check console'), 'e');
-    }
+    toast('DB save failed: ' + (error.message||'check console'), 'e');
   } else {
     toast(`${rows.length} leads saved to database ✓`, 'ok');
   }
@@ -2977,8 +1807,8 @@ async function saveLeadsToSupabase(leads) {
 // ── Load leads from Supabase on page open ──
 async function loadLeadsFromSupabase() {
   try {
-    // Sort by created_at (always exists) — newest rows first
-    const { data, error } = await _sb.from('leads').select('*').order('created_at', { ascending: false });
+    // Sort by scanned_at — latest scan always first on refresh
+    const { data, error } = await _sb.from('leads').select('*').order('scanned_at', { ascending: false, nullsFirst: false });
     if (error) {
       console.error('Supabase load error:', error.message, error.details, error.hint);
       toast('Load failed: ' + (error.message||'check console'), 'e');
@@ -2995,7 +1825,7 @@ async function loadLeadsFromSupabase() {
       compName: l.company || '—',
       profileUrl: l.linkedin_url || l.Profile || '',
       postUrl: l.post_url || l['Post URL'] || '',
-      post: l.post_text || l.post || l.text || '',
+      post: '',
       // ── Scoring ──
       score: parseFloat(l.ai_score || l.Qualification || 0),
       label: (() => {
@@ -3013,8 +1843,8 @@ async function loadLeadsFromSupabase() {
       phone: l.phone || (l.Phone ? String(l.Phone) : ''),
       // ── Meta ──
       source: l.source || 'LinkedIn',
+      signal_type: l.signal_type || 'linkedin_post',
       created: l.posted_at || l.Posted || '—',
-      scannedAt: l.scanned_at || l.created_at || null,
       reasoning: l.qualification_reason || '',
       // ── UI ──
       avatar: ini(l.name || '—'),
@@ -3025,9 +1855,7 @@ async function loadLeadsFromSupabase() {
       // ── CRM ──
       status: parseFloat(l.ai_score || l.Qualification || 0) >= 7 ? 'ready' : 'new',
       leadStage: l.lead_stage || '',
-      remarks: l.remarks || '',
-      channels: {}, emailNA: false, phoneNA: false, country: '',
-      isNew: currentScanUrls.has(l.post_url || '') // mark as new if from current scan
+      remarks: l.remarks || ''
     }));
     doFilter();
     updStats(allLeads.length, allLeads.length, false);
@@ -3045,181 +1873,26 @@ async function saveLeadEdits() {
   const email = document.getElementById('dp-email-input').value.trim();
   const phone = document.getElementById('dp-phone-input').value.trim();
   const stage = document.getElementById('dp-stage-select').value;
-  const emailNA = document.getElementById('email-na-check').checked;
-  const phoneNA = document.getElementById('phone-na-check').checked;
-  const country = (document.getElementById('dp-country-input') || {}).value || '';
-
-  // Build channel context for remarks
-  const channels = activeDetail.channels || {};
-  const channelSummary = CHANNELS.map(ch => {
-    const s = channels[ch] || 'none';
-    if (s === 'connected') return ch.charAt(0).toUpperCase() + ch.slice(1) + ':Connected';
-    if (s === 'tried') return ch.charAt(0).toUpperCase() + ch.slice(1) + ':Tried';
-    return null;
-  }).filter(Boolean);
-
-  // Auto-append channel activity to remarks if not already there
-  let remarks = document.getElementById('dp-remarks-input').value.trim();
-  if (channelSummary.length) {
-    const channelLine = '[Channels: ' + channelSummary.join(' | ') + ']';
-    // Replace old channel line if present, else append
-    remarks = remarks.replace(/\[Channels:[^\]]*\]/g, '').trim();
-    remarks = remarks ? remarks + '\n' + channelLine : channelLine;
-    document.getElementById('dp-remarks-input').value = remarks;
-  }
+  const remarks = document.getElementById('dp-remarks-input').value.trim();
 
   // Update in-memory
   activeDetail.email = email;
   activeDetail.phone = phone;
-  activeDetail.emailNA = emailNA;
-  activeDetail.phoneNA = phoneNA;
-  activeDetail.country = country;
   activeDetail.leadStage = stage;
   activeDetail.remarks = remarks;
 
   // Update in Supabase by matching name + linkedin_url
   const { error } = await _sb.from('leads')
     .update({
-      email: emailNA ? null : (email || null),
-      phone: phoneNA ? null : (phone || null),
+      email: email || null,
+      phone: phone || null,
       lead_stage: stage || null,
       remarks: remarks || null
     })
     .eq('id', activeDetail._dbid);
 
   if (error) { toast('Save failed — check console', 'e'); console.error(error); }
-  else {
-    toast('Lead updated ✓', 'ok');
-    doFilter();
-    updPipeline();
-    updChannelStats();
-  }
-}
-
-// ── Add Lead Manually ──
-function showAddLead() {
-  // Reset all fields
-  ['al-name','al-company','al-headline','al-profile-url','al-post-url',
-   'al-email','al-phone','al-geo','al-post','al-remarks','al-score'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  document.getElementById('al-category').value = '';
-  document.getElementById('al-stage').value = '';
-  document.getElementById('al-hiring-type').value = 'Not Specified';
-  document.getElementById('al-label-preview').textContent = 'Auto';
-  document.getElementById('al-label-preview').style.color = 'var(--text3)';
-  document.getElementById('al-save-btn').disabled = false;
-  document.getElementById('addlead-mb').classList.add('show');
-  setTimeout(() => document.getElementById('al-name').focus(), 100);
-}
-
-function closeAddLead() {
-  document.getElementById('addlead-mb').classList.remove('show');
-}
-
-function updateAlLabel() {
-  const scoreVal = parseFloat(document.getElementById('al-score').value);
-  const preview = document.getElementById('al-label-preview');
-  if (isNaN(scoreVal) || document.getElementById('al-score').value === '') {
-    preview.textContent = 'Auto'; preview.style.color = 'var(--text3)';
-  } else if (scoreVal >= 7) {
-    preview.textContent = '🔥 Hot'; preview.style.color = 'var(--red)';
-  } else if (scoreVal >= 4) {
-    preview.textContent = '🟡 Warm'; preview.style.color = 'var(--amber)';
-  } else {
-    preview.textContent = '🔵 Cold'; preview.style.color = 'var(--accent)';
-  }
-}
-
-async function saveManualLead() {
-  const name    = document.getElementById('al-name').value.trim();
-  const company = document.getElementById('al-company').value.trim();
-  if (!name || !company) {
-    toast('Name and Company are required', 'e'); return;
-  }
-
-  const btn = document.getElementById('al-save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-
-  const headline    = document.getElementById('al-headline').value.trim();
-  const profileUrl  = document.getElementById('al-profile-url').value.trim();
-  const postUrl     = document.getElementById('al-post-url').value.trim();
-  const email       = document.getElementById('al-email').value.trim();
-  const phone       = document.getElementById('al-phone').value.trim();
-  const category    = document.getElementById('al-category').value;
-  const geo         = document.getElementById('al-geo').value.trim();
-  const stage       = document.getElementById('al-stage').value;
-  const hiringType  = document.getElementById('al-hiring-type').value;
-  const post        = document.getElementById('al-post').value.trim();
-  const remarks     = document.getElementById('al-remarks').value.trim();
-
-  // Score: use manual value if set, else run rule-based scoring
-  let score, label, reasoning;
-  const manualScoreRaw = document.getElementById('al-score').value;
-  if (manualScoreRaw !== '' && !isNaN(parseFloat(manualScoreRaw))) {
-    score = Math.min(10, Math.max(0, parseFloat(manualScoreRaw)));
-    label = score >= 7 ? 'Hot' : score >= 4 ? 'Warm' : 'Cold';
-    reasoning = 'Manually entered lead — score set by user.';
-  } else {
-    // Auto-score using VAYUZ rule engine
-    const detectedCat = category || classifyCategory(post || company + ' ' + headline);
-    const detectedHT  = hiringType !== 'Not Specified' ? hiringType : classifyHiringType(post);
-    const result = vayuzScore(post || headline, headline, detectedCat, detectedHT);
-    score = result.score;
-    label = result.label;
-    reasoning = (result.reasons||[]).join('. ') || 'Rule-based VAYUZ scoring applied.';
-  }
-
-  const nowISO = new Date().toISOString();
-  const row = {
-    name:                 name,
-    title:                headline || null,
-    company:              company,
-    linkedin_url:         profileUrl || null,
-    post_url:             postUrl || null,
-    post_text:            post || null,
-    ai_score:             Math.round(score),
-    qualification_label:  label,
-    qualification_reason: reasoning,
-    category:             category || null,
-    hiring_for:           null,
-    hiring_type:          hiringType !== 'Not Specified' ? hiringType : null,
-    client_geo:           geo || null,
-    source:               'Manual',
-    email:                email || null,
-    phone:                phone || null,
-    posted_at:            null,
-    engagement:           null,
-    lead_stage:           stage || null,
-    remarks:              remarks || null,
-    scanned_at:           nowISO
-  };
-
-  // Upsert — use post_url if provided, else insert fresh row
-  let error;
-  if (postUrl) {
-    const res = await _sb.from('leads').upsert(row, { onConflict: 'post_url', ignoreDuplicates: false });
-    error = res.error;
-  } else {
-    const res = await _sb.from('leads').insert(row);
-    error = res.error;
-  }
-
-  if (error) {
-    console.error('Manual lead save error:', error);
-    toast('Save failed: ' + (error.message||'check console'), 'e');
-    btn.disabled = false;
-    btn.textContent = '💾 Save Lead to Database';
-    return;
-  }
-
-  toast(name + ' added ✓ (' + label + ' · ' + score + '/10)', 'ok');
-  closeAddLead();
-
-  // Reload from DB so new lead appears in table
-  await loadLeadsFromSupabase();
+  else { toast('Lead updated ✓', 'ok'); doFilter(); updPipeline(); }
 }
 
 // ── Toast ──
@@ -3247,12 +1920,396 @@ function clearKey(inputId, badgeId) {
   if (!confirm('Clear this API key?')) return;
   document.getElementById(inputId).value = '';
   document.getElementById(badgeId).style.display = 'none';
+  // Remove from cfg and storage
   if (inputId === 'c-apify') cfg.apifyToken = '';
   if (inputId === 'c-gemini') cfg.geminiKey = '';
-  if (inputId === 'c-claude') cfg.claudeKey = '';
-  if (inputId === 'c-openrouter') cfg.openRouterKey = '';
   saveToStorage();
   toast('API key cleared', 'w');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIGNAL ENGINE v6 — MULTI-SIGNAL FETCHERS
+// ═══════════════════════════════════════════════════════════
+
+// ── Shared Apify runner (start → poll → fetch) ──
+async function apifyRun(actor, input) {
+  const ACTOR = actor.replace('/',  '~');
+  const runRes = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/runs?token=${cfg.apifyToken}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input)
+  });
+  const runData = await runRes.json();
+  if (!runRes.ok) throw new Error(runData?.error?.message || 'Apify run failed: ' + actor);
+  const runId = runData.data?.id;
+  if (!runId) throw new Error('No run ID from Apify for: ' + actor);
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const sr = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${cfg.apifyToken}`);
+    const sd = await sr.json();
+    const status = sd.data?.status;
+    if (status === 'SUCCEEDED') break;
+    if (status === 'FAILED' || status === 'ABORTED') throw new Error('Apify run ' + status + ': ' + actor);
+    if (i === 59) throw new Error('Apify timed out: ' + actor);
+  }
+  const dsId = runData.data?.defaultDatasetId;
+  const dr = await fetch(`https://api.apify.com/v2/datasets/${dsId}/items?token=${cfg.apifyToken}&format=json`);
+  const items = await dr.json();
+  return Array.isArray(items) ? items : [];
+}
+
+// ── 1. Job Postings (apify/linkedin-jobs-scraper) ──
+async function fetchJobPostings(companies) {
+  if (!cfg.apifyToken) throw new Error('NO_TOKEN');
+  const queries = companies.length > 0
+    ? companies.map(c => c + ' logistics software engineer')
+    : ['logistics software engineer India', 'supply chain developer India', 'fleet management developer'];
+  const items = await apifyRun('apify/linkedin-jobs-scraper', {
+    queries: queries.slice(0, 5),
+    limit: Math.min(cfg.maxPosts, 50)
+  });
+  return items.map((item, i) => {
+    const company = item.companyName || item.company || '—';
+    const title = item.title || item.jobTitle || '—';
+    const location = item.location || item.jobLocation || '';
+    const desc = item.description || item.descriptionText || '';
+    // Tech stack signal from JD keywords
+    const techKeywords = [];
+    if (/kafka|kubernetes|k8s/i.test(desc)) techKeywords.push('kafka/k8s');
+    if (/react|angular|vue/i.test(desc)) techKeywords.push('react/angular');
+    if (/python|fastapi|django/i.test(desc)) techKeywords.push('python');
+    if (/aws|azure|gcp|cloud/i.test(desc)) techKeywords.push('cloud');
+    if (/microservices|docker/i.test(desc)) techKeywords.push('microservices');
+    const hasTechShift = techKeywords.length >= 2;
+    return {
+      id: i,
+      name: item.posterName || company,
+      headline: title,
+      company,
+      compName: company,
+      profileUrl: item.companyUrl || item.posterProfileUrl || '',
+      postUrl: item.jobUrl || item.url || '',
+      post: desc.slice(0, 400) || `${company} is hiring: ${title}`,
+      score: hasTechShift ? 7 : 5,
+      label: hasTechShift ? 'Hot' : 'Warm',
+      status: hasTechShift ? 'ready' : 'new',
+      signal_type: hasTechShift ? 'tech_stack' : 'job_posting',
+      category: 'Logistics Tech Hiring',
+      role: title,
+      hiringType: 'Full-Time',
+      geo: location,
+      signals: hasTechShift ? ['hiring', 'techshift'] : ['hiring'],
+      keywords: techKeywords,
+      reasoning: hasTechShift
+        ? `Tech stack shift detected: ${techKeywords.join(', ')} — indicates platform modernisation. High intent.`
+        : `Active hiring signal from ${company} for ${title}`,
+      buyerType: 'Decision Maker', urgency: 'Medium', companySize: 'Unknown',
+      painPoints: [], lowOutreachContext: false,
+      recommendedAction: hasTechShift ? 'Reach Out Now' : 'Monitor',
+      likes: 0, comments: 0,
+      created: 'recent', avatar: ini(company), color: avc(i),
+      email: '', phone: '', leadStage: '', remarks: '',
+      disqualifyReason: ''
+    };
+  }).filter(l => l.score >= 4);
+}
+
+// ── 2. Org Changes — LinkedIn profile title diff ──
+// Uses apify/linkedin-profile-scraper; compares against last saved title in Supabase
+async function fetchOrgChanges(profileUrls) {
+  if (!cfg.apifyToken) throw new Error('NO_TOKEN');
+  if (!profileUrls || profileUrls.length === 0) {
+    toast('No saved profile URLs to track org changes. Run LinkedIn scan first.', 'w');
+    return [];
+  }
+  const items = await apifyRun('apify/linkedin-profile-scraper', {
+    profileUrls: profileUrls.slice(0, 20)
+  });
+  // Load existing titles from Supabase for comparison
+  const { data: existing } = await _sb.from('leads')
+    .select('linkedin_url, title')
+    .in('linkedin_url', profileUrls.slice(0, 20));
+  const prevTitles = {};
+  (existing || []).forEach(r => { if (r.linkedin_url) prevTitles[r.linkedin_url] = r.title; });
+
+  const changed = [];
+  items.forEach((item, i) => {
+    const profileUrl = item.linkedinUrl || item.profileUrl || item.url || '';
+    const newTitle = item.headline || item.jobTitle || item.currentPosition || '';
+    const oldTitle = prevTitles[profileUrl] || '';
+    const hasChanged = oldTitle && newTitle && oldTitle !== newTitle;
+    if (!hasChanged && !(!oldTitle && newTitle)) return; // skip unchanged
+    const name = item.fullName || item.name || '—';
+    const company = item.currentCompany || item.company || item.positions?.[0]?.companyName || '—';
+    changed.push({
+      id: i,
+      name, headline: newTitle, company, compName: company,
+      profileUrl, postUrl: profileUrl,
+      post: hasChanged
+        ? `Org change detected: ${name} moved from "${oldTitle}" to "${newTitle}" at ${company}.`
+        : `New profile indexed: ${name} is "${newTitle}" at ${company}.`,
+      score: 8,
+      label: 'Hot',
+      status: 'ready',
+      signal_type: 'org_change',
+      category: 'Org Change — New Decision Maker',
+      role: newTitle,
+      hiringType: '—',
+      geo: item.location || '',
+      signals: ['org_change', 'hiring'],
+      keywords: ['role change', 'new title'],
+      reasoning: hasChanged
+        ? `Title changed from "${oldTitle}" to "${newTitle}". New role = new priorities = window to pitch VAYUZ.`
+        : `New decision maker indexed at ${company}. Good time to connect.`,
+      buyerType: 'Decision Maker', urgency: 'High', companySize: 'Unknown',
+      painPoints: ['vendor evaluation', 'new mandate'],
+      lowOutreachContext: false,
+      recommendedAction: 'Reach Out Now',
+      likes: 0, comments: 0,
+      created: 'just now', avatar: ini(name), color: avc(i + 100),
+      email: '', phone: '', leadStage: '', remarks: '',
+      disqualifyReason: ''
+    });
+  });
+  return changed;
+}
+
+// ── 3. Funding Events — TechCrunch RSS + Crunchbase ──
+async function fetchFundingEvents() {
+  // Free: Parse TechCrunch RSS for logistics/supply chain funding news
+  // We fetch a public RSS-to-JSON proxy endpoint (no auth needed)
+  const RSS_URL = 'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ftechcrunch.com%2Ffeed%2F&count=50';
+  let items = [];
+  try {
+    const res = await fetch(RSS_URL);
+    const data = await res.json();
+    items = (data.items || []).filter(item => {
+      const t = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+      return /logistics|supply chain|warehouse|freight|fleet|delivery|last.?mile|cold chain|3pl/i.test(t) &&
+             /fund|raise|series|seed|investment|crore|million|capital/i.test(t);
+    });
+  } catch(e) {
+    console.warn('RSS fetch failed, trying Apify fallback:', e.message);
+    if (cfg.apifyToken) {
+      try {
+        const apifyItems = await apifyRun('apify/website-content-crawler', {
+          startUrls: [{ url: 'https://techcrunch.com/tag/logistics/' }],
+          maxCrawlPages: 3
+        });
+        items = apifyItems.filter(item => {
+          const t = (item.text || '').toLowerCase();
+          return /fund|raise|series|seed/i.test(t);
+        });
+      } catch(e2) { console.warn('Apify RSS fallback also failed:', e2.message); }
+    }
+  }
+  return items.slice(0, 10).map((item, i) => {
+    const title = item.title || 'Funding event';
+    const description = item.description || item.content || item.text || '';
+    const companyMatch = title.match(/^([A-Z][a-zA-Z0-9\s]+?)\s+(raises|secures|closes|lands|gets|bags)/i);
+    const company = companyMatch ? companyMatch[1].trim() : 'Unknown Company';
+    const amountMatch = description.match(/\$[\d\.]+\s*(million|billion|M|B|\bcrore\b)/i);
+    const amount = amountMatch ? amountMatch[0] : '';
+    return {
+      id: i,
+      name: company,
+      headline: 'Funding Event — ' + (amount || 'undisclosed'),
+      company, compName: company,
+      profileUrl: '',
+      postUrl: item.link || item.url || '',
+      post: `${title}. ${description.slice(0, 300)}`,
+      score: 9,
+      label: 'Hot',
+      status: 'ready',
+      signal_type: 'funding_event',
+      category: 'Funded Company — Budget Available',
+      role: '—',
+      hiringType: '—',
+      geo: '',
+      signals: ['funding', 'enterprise'],
+      keywords: ['funded', amount].filter(Boolean),
+      reasoning: `${company} just raised ${amount || 'capital'}. Post-funding = tech vendor evaluation window. Typical 30–60 day outreach window.`,
+      buyerType: 'Decision Maker', urgency: 'High', companySize: 'Funded Startup',
+      painPoints: ['scaling infra', 'vendor evaluation'],
+      lowOutreachContext: false,
+      recommendedAction: 'Reach Out Now',
+      likes: 0, comments: 0,
+      created: item.pubDate ? new Date(item.pubDate).toLocaleDateString() : 'recent',
+      avatar: ini(company), color: avc(i + 200),
+      email: '', phone: '', leadStage: '', remarks: '',
+      disqualifyReason: ''
+    };
+  });
+}
+
+// ── 4. G2 Reviews — competitor dissatisfaction ──
+async function fetchG2Reviews() {
+  if (!cfg.apifyToken) throw new Error('NO_TOKEN');
+  // Target: reviews of logistics SaaS competitors — 1-3 star signals = switch intent
+  const COMPETITORS = [
+    'https://www.g2.com/products/locus-sh/reviews?utf8=%E2%9C%93&filters%5Bstar_ratings%5D%5B%5D=1&filters%5Bstar_ratings%5D%5B%5D=2&filters%5Bstar_ratings%5D%5B%5D=3',
+    'https://www.g2.com/products/fareye/reviews?utf8=%E2%9C%93&filters%5Bstar_ratings%5D%5B%5D=1&filters%5Bstar_ratings%5D%5B%5D=2&filters%5Bstar_ratings%5D%5B%5D=3',
+    'https://www.g2.com/products/loadshare-networks/reviews?utf8=%E2%9C%93&filters%5Bstar_ratings%5D%5B%5D=1&filters%5Bstar_ratings%5D%5B%5D=2&filters%5Bstar_ratings%5D%5B%5D=3',
+  ];
+  const items = await apifyRun('apify/website-content-crawler', {
+    startUrls: COMPETITORS.map(url => ({ url })),
+    maxCrawlPages: COMPETITORS.length * 2,
+    maxCrawlDepth: 1
+  });
+  const reviews = [];
+  items.forEach((page, i) => {
+    const text = page.text || page.content || '';
+    const competitorMatch = (page.url || '').match(/g2\.com\/products\/([^/]+)/);
+    const competitor = competitorMatch ? competitorMatch[1].replace(/-/g,' ') : 'competitor';
+    // Extract individual review blocks
+    const reviewBlocks = text.split(/\d+\.\d+\s*star|reviewed by|review by/i).slice(1, 8);
+    reviewBlocks.forEach((block, j) => {
+      const painMatch = block.match(/(slow|expensive|broken|unreliable|poor support|missing feature|hard to use|no API|bad|worst|disappointing)[^.]{0,120}/i);
+      if (!painMatch) return;
+      const pain = painMatch[0].trim();
+      const reviewerMatch = block.match(/([A-Z][a-z]+ [A-Z][a-z]+)/);
+      const reviewerName = reviewerMatch ? reviewerMatch[1] : 'Anonymous Reviewer';
+      reviews.push({
+        id: reviews.length,
+        name: reviewerName,
+        headline: `${competitor.toUpperCase()} user — unhappy`,
+        company: competitor,
+        compName: competitor,
+        profileUrl: '',
+        postUrl: page.url || '',
+        post: `G2 review of ${competitor}: "${pain}"`,
+        score: 8,
+        label: 'Hot',
+        status: 'ready',
+        signal_type: 'g2_review',
+        category: 'Competitor Dissatisfaction',
+        role: '—',
+        hiringType: '—',
+        geo: '',
+        signals: ['g2_review', 'vendor'],
+        keywords: ['switch intent', competitor, 'unhappy'],
+        reasoning: `Low-star G2 review on ${competitor}: "${pain.slice(0,80)}…" — active switch intent. Reach out with pain-specific pitch.`,
+        buyerType: 'Unknown', urgency: 'High', companySize: 'Unknown',
+        painPoints: [pain.slice(0, 60)],
+        lowOutreachContext: true,
+        recommendedAction: 'Reach Out Now',
+        likes: 0, comments: 0,
+        created: 'recent', avatar: ini(reviewerName), color: avc(reviews.length + 300),
+        email: '', phone: '', leadStage: '', remarks: '',
+        disqualifyReason: ''
+      });
+    });
+  });
+  return reviews.slice(0, 15);
+}
+
+// ── Multi-Signal stage helpers ──
+function msRun(i) {
+  const el = document.getElementById('ms'+i);
+  el.classList.add('run');
+  document.getElementById('msd'+i).innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:var(--purple);animation:gl 1s infinite"></div>';
+}
+function msDone(i, txt) {
+  const el = document.getElementById('ms'+i);
+  el.classList.remove('run'); el.classList.add('done');
+  document.getElementById('msd'+i).textContent = '✓';
+  document.getElementById('msc'+i).textContent = txt;
+  document.getElementById('mpf').style.width = ((i+1)/5*100)+'%';
+  document.getElementById('mpl').textContent = (i+1)+' / 5 signals';
+}
+function msErr(i, msg) {
+  const el = document.getElementById('ms'+i);
+  el.classList.remove('run');
+  document.getElementById('msd'+i).textContent = '✗';
+  document.getElementById('msc'+i).textContent = '⚠ ' + msg.slice(0,60);
+}
+function resetMulti() {
+  [0,1,2,3,4].forEach(i => {
+    document.getElementById('ms'+i).classList.remove('run','done');
+    document.getElementById('msd'+i).textContent = i+1;
+    document.getElementById('msc'+i).textContent = '';
+  });
+  document.getElementById('mpf').style.width = '0%';
+  document.getElementById('mpl').textContent = '0 / 5 signals';
+  const er = document.getElementById('mer'); er.classList.remove('show'); er.textContent = '';
+}
+
+// ── Multi-Signal Orchestrator ──
+async function runMultiSignal() {
+  if (!cfg.apifyToken) {
+    toast('Apify token required for multi-signal scan. Open Configure.', 'w');
+    showCfg();
+    return;
+  }
+  const btn = document.getElementById('multi-btn');
+  btn.disabled = true;
+  resetMulti();
+  document.getElementById('multi-mb').classList.add('show');
+
+  const newLeads = [];
+  // Get existing profile URLs from Supabase for org change tracking
+  const existingProfileUrls = allLeads
+    .filter(l => l.profileUrl && l.profileUrl.includes('linkedin.com/in/'))
+    .map(l => l.profileUrl)
+    .slice(0, 20);
+  const icpCompanies = ['Porter', 'Snowman Logistics', 'Savaari', 'Delhivery', 'Ecom Express', 'Rivigo', 'WayCool', 'Mahindra Logistics'];
+
+  // 1 — Job Postings
+  msRun(0);
+  try {
+    const jobs = await fetchJobPostings(icpCompanies);
+    jobs.forEach(l => newLeads.push(l));
+    msDone(0, jobs.length + ' job posting signals');
+  } catch(e) { msErr(0, e.message); toast('Job Postings: ' + e.message.slice(0,60), 'w'); }
+
+  // 2 — Org Changes
+  msRun(1);
+  try {
+    if (existingProfileUrls.length === 0) {
+      msDone(1, '0 profiles tracked yet — run LinkedIn scan first');
+    } else {
+      const changes = await fetchOrgChanges(existingProfileUrls);
+      changes.forEach(l => newLeads.push(l));
+      msDone(1, changes.length + ' org change signals');
+    }
+  } catch(e) { msErr(1, e.message); toast('Org Changes: ' + e.message.slice(0,60), 'w'); }
+
+  // 3 — Funding Events
+  msRun(2);
+  try {
+    const funding = await fetchFundingEvents();
+    funding.forEach(l => newLeads.push(l));
+    msDone(2, funding.length + ' funding events detected');
+  } catch(e) { msErr(2, e.message); toast('Funding Events: ' + e.message.slice(0,60), 'w'); }
+
+  // 4 — G2 Reviews
+  msRun(3);
+  try {
+    const g2 = await fetchG2Reviews();
+    g2.forEach(l => newLeads.push(l));
+    msDone(3, g2.length + ' competitor dissatisfaction signals');
+  } catch(e) { msErr(3, e.message); toast('G2 Reviews: ' + e.message.slice(0,60), 'w'); }
+
+  // 5 — Tech Stack (already embedded in Job Postings — flag the ones detected)
+  msRun(4);
+  const techLeads = newLeads.filter(l => l.signal_type === 'tech_stack');
+  msDone(4, techLeads.length + ' tech stack shift signals (from JD NLP)');
+
+  // Merge new signals into allLeads (avoid duplicates by postUrl)
+  const existingUrls = new Set(allLeads.map(l => l.postUrl).filter(Boolean));
+  const dedupedNew = newLeads.filter(l => !l.postUrl || !existingUrls.has(l.postUrl));
+  dedupedNew.forEach((l, i) => { l.id = allLeads.length + i; });
+  allLeads = [...dedupedNew, ...allLeads];
+  doFilter();
+  updStats(allLeads.length, allLeads.length, false);
+  document.getElementById('emp').style.display = 'none';
+  document.getElementById('tbl').style.display = 'table';
+  const nb = document.getElementById('nav-nb');
+  nb.textContent = allLeads.length; nb.classList.add('show');
+
+  // Save to Supabase
+  if (dedupedNew.length > 0) await saveLeadsToSupabase(dedupedNew);
+
+  toast(`Multi-Signal complete — ${dedupedNew.length} new signals added (${newLeads.filter(l=>l.label==='Hot').length} Hot)`, 'ok');
+  btn.disabled = false;
 }
 
 // ── Init — load saved config on every page load ──
@@ -3276,19 +2333,11 @@ async function initLoad() {
     toast('Failed to connect to database', 'e');
   }
   // Show key loaded toast
-  if (cfg.apifyToken || cfg.geminiKey || cfg.claudeKey || cfg.openRouterKey) {
-    const provider = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel.split('/').pop() || 'model') + ')' : cfg.geminiKey ? 'Gemini' : 'Rule-based';
-    setTimeout(() => { toast('API keys loaded · AI: ' + provider + ' ✓', 'ok'); }, 1200);
+  if (cfg.apifyToken || cfg.geminiKey) {
+    setTimeout(() => { toast('API keys loaded from saved config ✓', 'ok'); }, 1200);
   }
 }
 initLoad();
 </script>
-<!-- Bulk Action Bar -->
-<div class="bulk-bar" id="bulk-bar">
-  <span id="bulk-count">0 selected</span>
-  <button class="bulk-del" onclick="bulkDeleteSelected()">🗑 Delete Selected</button>
-  <button class="bulk-cancel" onclick="clearSelection()">Cancel</button>
-</div>
-
 </body>
 </html>
