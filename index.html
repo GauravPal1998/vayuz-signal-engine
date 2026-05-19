@@ -243,6 +243,28 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .al-cancel:hover{background:var(--bg4);color:var(--text)}
 .al-req{color:var(--red)}
 .al-hint{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px;line-height:1.5}
+/* Smart Paste Zone */
+.paste-zone{background:var(--bg3);border:1.5px dashed var(--border2);border-radius:10px;padding:16px 18px;margin-bottom:16px;transition:border-color .15s}
+.paste-zone:focus-within{border-color:rgba(79,142,247,.4);background:var(--bg4)}
+.paste-icon{font-size:18px;margin-bottom:2px}
+.paste-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.paste-hint{font-size:10.5px;color:var(--text3);font-family:var(--mono);margin-bottom:10px;line-height:1.5}
+.paste-input{width:100%;padding:9px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--font);font-size:12px;outline:none;resize:vertical;line-height:1.6;box-sizing:border-box;transition:border-color .13s}
+.paste-input:focus{border-color:rgba(79,142,247,.4)}
+.paste-input::placeholder{color:var(--text3)}
+.paste-actions{display:flex;gap:8px;margin-top:10px;align-items:center}
+.paste-btn{padding:7px 16px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
+.paste-btn:hover{background:#3578e5}
+.paste-btn:disabled{opacity:.5;pointer-events:none}
+.paste-clear-btn{padding:7px 12px;border-radius:7px;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:11.5px;font-family:var(--font);cursor:pointer;transition:all .13s}
+.paste-clear-btn:hover{border-color:var(--border3);color:var(--text)}
+.paste-status{font-size:11px;font-family:var(--mono);margin-top:8px;min-height:16px;line-height:1.5}
+.paste-status.ok{color:var(--green)}
+.paste-status.err{color:var(--red)}
+.paste-status.loading{color:var(--accent)}
+.al-divider{display:flex;align-items:center;gap:10px;margin:4px 0 16px;color:var(--text3);font-size:10.5px;font-family:var(--mono)}
+.al-divider::before,.al-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.al-field-filled{border-color:rgba(13,158,114,.4)!important;background:rgba(13,158,114,.04)!important}
 
 /* ── Detail panel ── */
 .dp{width:340px;height:100vh;min-height:0;background:var(--bg2);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0}
@@ -390,6 +412,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .bulk-bar{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:10px;padding:10px 18px;font-size:12.5px;font-weight:600;font-family:var(--font);align-items:center;gap:14px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.22);white-space:nowrap}
 .bulk-bar.show{display:flex}
 .bulk-bar span{color:rgba(255,255,255,.65);font-size:12px}
+.bulk-arch{padding:6px 14px;border-radius:6px;background:var(--amber);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
+.bulk-arch:hover{background:#b45309}
+.low-score-row{border-left:2px solid rgba(245,158,11,.35)!important;opacity:.82}
 .bulk-del{padding:6px 14px;border-radius:6px;background:var(--red);border:none;color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .13s}
 .bulk-del:hover{background:#b91c1c}
 .bulk-cancel{padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:12px;font-family:var(--font);cursor:pointer;transition:all .13s}
@@ -666,6 +691,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <option value="name">A→Z Name</option>
     </select>
     <button class="btn" style="padding:6px 10px;font-size:11px;color:var(--text3)" onclick="resetAllFilters()" title="Clear all filters">✕ Clear</button>
+    <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--amber);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07)" onclick="filterLowScore()" title="Show leads scoring below 6 — bulk archive or review">⚡ Low Score</button>
+    <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--purple);border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.07)" onclick="selectAllVisible()" title="Select all visible leads">☑ Select All</button>
   </div>
 
   <!-- Persistent Gate 1 fallback warning -->
@@ -715,6 +742,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <!-- Bulk Action Bar (must be in DOM before script runs) -->
 <div class="bulk-bar" id="bulk-bar">
   <span id="bulk-count">0 selected</span>
+  <button class="bulk-arch" onclick="bulkArchiveSelected()">📦 Archive Selected</button>
   <button class="bulk-del" onclick="bulkDeleteSelected()">🗑 Delete Selected</button>
   <button class="bulk-cancel" onclick="clearSelection()">Cancel</button>
 </div>
@@ -825,8 +853,23 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <!-- Add Lead Modal -->
 <div class="mb" id="addlead-mb" onclick="if(event.target===this)closeAddLead()">
   <div class="al-modal">
-    <div class="al-title">➕ Add Lead Manually</div>
-    <div class="al-sub">Manually entered leads are saved directly to the database and scored using VAYUZ rule-based logic.</div>
+    <div class="al-title">➕ Add Lead</div>
+    <div class="al-sub">Paste a raw LinkedIn post, WhatsApp message, or any lead text — Signal will auto-fill the fields.</div>
+
+    <!-- Smart Paste Zone -->
+    <div class="paste-zone" id="paste-zone">
+      <div class="paste-icon">⚡</div>
+      <div class="paste-label">Smart Paste</div>
+      <div class="paste-hint">Paste raw post, chat message, or LinkedIn text and Signal auto-fills all fields below</div>
+      <textarea class="paste-input" id="paste-input" rows="4" placeholder="Paste lead text here…&#10;&#10;e.g. 💼 VOIS India Hiring | DevOps Engineers…&#10;Or: Hey, we need a React team of 5 for 6 months, budget confirmed, remote ok…"></textarea>
+      <div class="paste-actions">
+        <button class="paste-btn" id="paste-parse-btn" onclick="smartParseLead()">⚡ Parse &amp; Fill Fields</button>
+        <button class="paste-clear-btn" onclick="clearPasteZone()">✕ Clear</button>
+      </div>
+      <div class="paste-status" id="paste-status"></div>
+    </div>
+
+    <div class="al-divider"><span>or fill manually</span></div>
 
     <div class="al-grid">
       <!-- Name -->
@@ -2577,6 +2620,51 @@ async function runPipeline() {
 
     // Stage 2: VAYUZ Qualification Engine — Batch processing
     stgRun(2);
+
+    // ── Duplicate guard: load all existing post_urls + name|company keys from Supabase ──
+    // Leads already in the DB are skipped — prevents re-scoring and token waste
+    let existingLeadKeys = new Set();
+    if (!isDemo) {
+      try {
+        const { data: existingRows } = await _sb
+          .from('leads')
+          .select('post_url, name, company')
+          .not('lead_stage', 'is', null); // only committed leads (have a stage)
+        if (existingRows && existingRows.length) {
+          existingRows.forEach(r => {
+            if (r.post_url) existingLeadKeys.add(r.post_url);
+            if (r.name && r.company) existingLeadKeys.add((r.name + '|' + r.company).toLowerCase());
+          });
+        }
+        // Also add all archived (Not Relevant) leads — always block re-scoring these
+        const { data: archivedRows } = await _sb
+          .from('leads')
+          .select('post_url, name, company')
+          .eq('lead_stage', 'Not Relevant');
+        if (archivedRows && archivedRows.length) {
+          archivedRows.forEach(r => {
+            if (r.post_url) existingLeadKeys.add(r.post_url);
+            if (r.name && r.company) existingLeadKeys.add((r.name + '|' + r.company).toLowerCase());
+          });
+        }
+        console.log('[DupGuard] Loaded', existingLeadKeys.size, 'existing lead keys from DB');
+      } catch(e) { console.warn('[DupGuard] Could not load existing keys:', e); }
+    }
+
+    // Filter out duplicates from gated leads
+    const preDedup = gated.length;
+    gated = gated.filter(l => {
+      if (!existingLeadKeys.size) return true;
+      const byUrl = l.postUrl && existingLeadKeys.has(l.postUrl);
+      const byKey = l.name && l.company && existingLeadKeys.has((l.name + '|' + (l.compName || l.company || '')).toLowerCase());
+      return !byUrl && !byKey;
+    });
+    const dupSkipped = preDedup - gated.length;
+    if (dupSkipped > 0) {
+      stgDone(1, (stgDone._last || gated.length) + ' passed gate · 🚫 ' + dupSkipped + ' duplicates skipped');
+      toast('🚫 ' + dupSkipped + ' duplicate lead' + (dupSkipped > 1 ? 's' : '') + ' skipped — already in platform', 'w');
+    }
+
     let scored = 0;
     const batchSize = cfg.batchSize || 50;
     const totalToScore = gated.length;
@@ -2847,6 +2935,7 @@ function setDropFilter(type, val) {
   doFilter();
 }
 function resetAllFilters() {
+  window._lowScoreFilter = false;
   document.getElementById('q').value = '';
   document.getElementById('dd-date').value = '';
   document.getElementById('dd-label').value = '';
@@ -3006,6 +3095,14 @@ function doFilter() {
   const ddSort = document.getElementById('dd-sort').value;
 
   filtered = allLeads.filter(l => {
+    // ── Low-score filter (score < 6, excluding already archived) ──
+    if (window._lowScoreFilter) {
+      if ((l.leadStage||'').includes('Not Relevant')) return false;
+      if ((l.score || 0) >= 6) return false;
+      return true;
+    }
+    // Default: hide Not Relevant unless explicitly filtering for them
+    if (!ddStage && (l.leadStage||'').includes('Not Relevant')) return false;
     // Date filter
     if (ddDate) {
       const d = formatDate(l.scannedAt);
@@ -3018,7 +3115,7 @@ function doFilter() {
     // Stage filter
     if (ddStage) {
       if (ddStage === 'new-unsorted') {
-        if (l.leadStage) return false; // has a stage = not "new/unsorted"
+        if (l.leadStage) return false;
       } else if (ddStage === 'closed') {
         if (!(l.leadStage||'').toLowerCase().includes('closed')) return false;
       } else if (ddStage === 'Not Relevant') {
@@ -3215,7 +3312,8 @@ function renderTbl() {
     }
     const remarksSnip = lead.remarks ? esc(lead.remarks.slice(0,60)) + (lead.remarks.length>60?'…':'') : '<span style="color:var(--text3);font-size:10.5px">—</span>';
     const tr = document.createElement('tr');
-    tr.className = 'lr';
+    tr.className = 'lr' + ((lead.score < 6 && !(lead.leadStage||'').includes('Not Relevant')) ? ' low-score-row' : '');
+    tr.dataset.posturl = lead.postUrl || '';
     tr.onclick = () => openDP(lead);
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
@@ -3407,17 +3505,20 @@ async function deleteLeadById(dbid, name) {
 async function bulkDeleteSelected() {
   const checked = document.querySelectorAll('.rchk:checked');
   if (!checked.length) return;
-  const dbids = Array.from(checked).map(c => c.dataset.dbid).filter(Boolean);
+  const dbids = Array.from(checked)
+    .map(c => parseInt(c.dataset.dbid, 10))
+    .filter(id => !isNaN(id));
+  if (!dbids.length) { toast('No valid DB leads selected to delete', 'w'); return; }
   if (!confirm('Permanently delete ' + dbids.length + ' lead' + (dbids.length>1?'s':'') + '? This cannot be undone.')) return;
   const { error } = await _sb.from('leads').delete().in('id', dbids);
   if (error) { toast('Bulk delete failed', 'e'); return; }
-  allLeads = allLeads.filter(l => !dbids.includes(String(l._dbid)));
+  allLeads = allLeads.filter(l => !dbids.includes(parseInt(l._dbid, 10)));
   removeLeadMetaByIds(dbids);
   clearSelection();
   toast(dbids.length + ' lead' + (dbids.length>1?'s':'') + ' deleted', 'w');
-  if (activeDetail && dbids.includes(String(activeDetail._dbid))) closeDP();
+  if (activeDetail && dbids.includes(parseInt(activeDetail._dbid, 10))) closeDP();
   doFilter();
-  updStats(allLeads.length, allLeads.length, false);
+  updStats(allLeads.length, filtered.length, false);
 }
 
 function showIrrelevantLeads() {
@@ -3426,11 +3527,123 @@ function showIrrelevantLeads() {
   doFilter();
 }
 
+// ── Filter to show only low-score leads (score < 6) ──
+function filterLowScore() {
+  resetAllFilters();
+  // Store custom low-score filter flag
+  window._lowScoreFilter = true;
+  doFilter();
+  highlightActiveDropdowns();
+  // Show select-all prompt
+  const count = filtered.length;
+  toast(count + ' low-score lead' + (count !== 1 ? 's' : '') + ' shown — use ☑ Select All to bulk archive', 'w');
+}
+
+// ── Select all currently visible leads ──
+function selectAllVisible() {
+  const checkboxes = document.querySelectorAll('.rchk');
+  const anyUnchecked = Array.from(checkboxes).some(c => !c.checked);
+  checkboxes.forEach(c => c.checked = anyUnchecked);
+  updBulkBar();
+  if (anyUnchecked) {
+    toast(checkboxes.length + ' lead' + (checkboxes.length !== 1 ? 's' : '') + ' selected', 'ok');
+  }
+}
+
+// ── Bulk archive selected leads (mark as Not Relevant, keep in DB) ──
+async function bulkArchiveSelected() {
+  const checked = Array.from(document.querySelectorAll('.rchk:checked'));
+  if (!checked.length) return;
+
+  if (!confirm('Archive ' + checked.length + ' lead' + (checked.length > 1 ? 's' : '') + '?\nThey will be marked Not Relevant and hidden from main view.\nKept in DB to prevent duplicates.')) return;
+
+  // Split into two groups: leads with a real numeric DB id, and leads only identifiable by post_url
+  const withId   = [];  // { dbid (int), lead }
+  const withUrl  = [];  // { postUrl, lead }
+
+  checked.forEach(c => {
+    const raw = c.dataset.dbid;
+    const id  = raw && raw !== 'undefined' && raw !== 'null' ? parseInt(raw, 10) : NaN;
+    const row = c.closest('tr');
+    const postUrl = row ? row.dataset.posturl : '';
+
+    // Find the in-memory lead object
+    const lead = allLeads.find(l =>
+      (!isNaN(id) && l._dbid == id) ||
+      (postUrl && l.postUrl === postUrl)
+    );
+
+    if (!isNaN(id)) {
+      withId.push({ dbid: id, lead });
+    } else if (postUrl) {
+      withUrl.push({ postUrl, lead });
+    }
+  });
+
+  let archived = 0;
+  let failed   = 0;
+
+  // ── Archive by DB id (batch) ──
+  if (withId.length) {
+    const ids = withId.map(x => x.dbid);
+    const { error } = await _sb.from('leads')
+      .update({ lead_stage: 'Not Relevant' })
+      .in('id', ids);
+
+    if (error) {
+      console.error('[BulkArchive] id-based update failed:', error);
+      failed += withId.length;
+    } else {
+      // Update in-memory immediately (type-safe comparison)
+      withId.forEach(({ dbid, lead }) => {
+        if (lead) lead.leadStage = 'Not Relevant';
+        else allLeads.forEach(l => { if (l._dbid == dbid) l.leadStage = 'Not Relevant'; });
+      });
+      archived += withId.length;
+    }
+  }
+
+  // ── Archive by post_url (one-by-one fallback) ──
+  for (const { postUrl, lead } of withUrl) {
+    const { error } = await _sb.from('leads')
+      .update({ lead_stage: 'Not Relevant' })
+      .eq('post_url', postUrl);
+
+    if (error) {
+      console.error('[BulkArchive] url-based update failed for', postUrl, error);
+      failed++;
+    } else {
+      if (lead) lead.leadStage = 'Not Relevant';
+      else allLeads.forEach(l => { if (l.postUrl === postUrl) l.leadStage = 'Not Relevant'; });
+      archived++;
+    }
+  }
+
+  clearSelection();
+  window._lowScoreFilter = false;
+  doFilter();
+  updStats(allLeads.length, filtered.length, false);
+
+  if (failed > 0) {
+    toast('⚠ ' + archived + ' archived, ' + failed + ' failed — check console', 'w');
+  } else {
+    toast('📦 ' + archived + ' lead' + (archived !== 1 ? 's' : '') + ' archived — hidden, kept in DB', 'ok');
+  }
+}
+
 async function archiveLead() {
   if (!activeDetail) return;
   if (!confirm('Archive this lead? It will be hidden from the main view.')) return;
   activeDetail.leadStage = 'Not Relevant';
-  const { error } = await _sb.from('leads').update({ lead_stage: 'Not Relevant' }).eq('id', activeDetail._dbid);
+  let archiveQuery = _sb.from('leads').update({ lead_stage: 'Not Relevant' });
+  if (activeDetail._dbid) {
+    archiveQuery = archiveQuery.eq('id', activeDetail._dbid);
+  } else if (activeDetail.postUrl && activeDetail.postUrl !== '—') {
+    archiveQuery = archiveQuery.eq('post_url', activeDetail.postUrl);
+  } else {
+    archiveQuery = archiveQuery.eq('name', activeDetail.name || '').eq('company', activeDetail.compName || activeDetail.company || '');
+  }
+  const { error } = await archiveQuery;
   if (error) { toast('Archive failed — check console', 'e'); return; }
   // 🧠 Brain learns from this marking
   triggerBrainLearn(activeDetail);
@@ -3521,13 +3734,38 @@ async function saveLeadsToSupabase(leads) {
     scanned_at: nowISO
   }));
 
-  const { error } = await _sb.from('leads').upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false });
+  const { data: upsertData, error } = await _sb.from('leads')
+    .upsert(rows, { onConflict: 'post_url', ignoreDuplicates: false })
+    .select('id, post_url, name');
+
+  // Backfill _dbid on in-memory leads using returned ids
+  if (upsertData && upsertData.length) {
+    const idByUrl  = {};
+    const idByName = {};
+    upsertData.forEach(r => {
+      if (r.post_url) idByUrl[r.post_url]  = r.id;
+      if (r.name)     idByName[r.name]      = r.id;
+    });
+    allLeads.forEach(l => {
+      if (!l._dbid) {
+        l._dbid = idByUrl[l.postUrl] || idByName[l.name] || null;
+      }
+    });
+  }
+
   if (error) {
     console.error('Supabase save error:', error.message, error.details);
     // Retry without scanned_at if that column is missing
     if (error.message && error.message.includes('scanned_at')) {
       const rowsNoScan = rows.map(({scanned_at, ...rest}) => rest);
-      const { error: e2 } = await _sb.from('leads').upsert(rowsNoScan, { onConflict: 'post_url', ignoreDuplicates: false });
+      const { data: d2, error: e2 } = await _sb.from('leads')
+        .upsert(rowsNoScan, { onConflict: 'post_url', ignoreDuplicates: false })
+        .select('id, post_url, name');
+      if (d2) {
+        const idByUrl2 = {}; const idByName2 = {};
+        d2.forEach(r => { if (r.post_url) idByUrl2[r.post_url] = r.id; if (r.name) idByName2[r.name] = r.id; });
+        allLeads.forEach(l => { if (!l._dbid) l._dbid = idByUrl2[l.postUrl] || idByName2[l.name] || null; });
+      }
       if (e2) { toast('DB save failed: ' + (e2.message||'check console'), 'e'); console.error('Retry error:', e2); }
       else { toast(`${rows.length} leads saved ✓`, 'ok'); }
     } else {
@@ -3653,15 +3891,28 @@ async function saveLeadEdits() {
   activeDetail.remarks = remarks;
   persistLeadMeta(activeDetail);
 
-  // Update in Supabase by matching name + linkedin_url
-  const { error } = await _sb.from('leads')
-    .update({
-      email: emailNA ? null : (email || null),
-      phone: phoneNA ? null : (phone || null),
-      lead_stage: stage || null,
-      remarks: remarks || null
-    })
-    .eq('id', activeDetail._dbid);
+  // Update in Supabase — prefer _dbid, fall back to post_url, then name+company
+  let updateQuery = _sb.from('leads').update({
+    email: emailNA ? null : (email || null),
+    phone: phoneNA ? null : (phone || null),
+    lead_stage: stage || null,
+    remarks: remarks || null
+  });
+
+  if (activeDetail._dbid) {
+    updateQuery = updateQuery.eq('id', activeDetail._dbid);
+  } else if (activeDetail.postUrl && activeDetail.postUrl !== '—') {
+    updateQuery = updateQuery.eq('post_url', activeDetail.postUrl);
+  } else {
+    // Last resort: match by name + company
+    updateQuery = updateQuery
+      .eq('name', activeDetail.name || '')
+      .eq('company', activeDetail.compName || activeDetail.company || '');
+  }
+
+  const { data: updData, error } = await updateQuery.select('id').maybeSingle();
+  // Backfill _dbid if we got it back
+  if (updData && updData.id) activeDetail._dbid = updData.id;
 
   if (error) { toast('Save failed — check console', 'e'); console.error(error); }
   else {
@@ -3676,6 +3927,253 @@ async function saveLeadEdits() {
 }
 
 // ── Add Lead Manually ──
+// ══════════════════════════════════════════════════
+// SMART PASTE — Hybrid Parser
+// Regex handles: email, phone, URLs, location, tech
+// OpenRouter free AI handles: name, company, headline,
+// category, hiring type, relevance, team size, budget
+// ══════════════════════════════════════════════════
+
+function clearPasteZone() {
+  document.getElementById('paste-input').value = '';
+  setPasteStatus('', '');
+}
+
+function setPasteStatus(msg, type) {
+  const el = document.getElementById('paste-status');
+  el.textContent = msg;
+  el.className = 'paste-status' + (type ? ' ' + type : '');
+}
+
+function highlightFilledField(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.value) return;
+  el.classList.add('al-field-filled');
+  setTimeout(() => el.classList.remove('al-field-filled'), 2500);
+}
+
+// ── LAYER 1: Pure regex extraction (free, instant, reliable) ──
+function regexExtract(text) {
+  const result = {};
+
+  // Email — anything@domain.tld
+  const emailMatch = text.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/);
+  if (emailMatch) result.email = emailMatch[0].trim();
+
+  // Phone — +91, 10-digit Indian, international formats
+  const phoneMatch = text.match(/(?:\+91[\s-]?)?(?:\+[\d]{1,3}[\s-]?)?\d[\d\s\-().]{8,14}\d/);
+  if (phoneMatch) {
+    // Clean to digits + leading +
+    const cleaned = phoneMatch[0].replace(/[\s\-().]/g, '');
+    result.phone = cleaned;
+  }
+
+  // LinkedIn profile URL
+  const profileMatch = text.match(/https?:\/\/(?:www\.)?linkedin\.com\/in\/[\w-]+\/?(?:\?[^\s]*)*/i);
+  if (profileMatch) result.linkedin_profile = profileMatch[0];
+
+  // LinkedIn post URL
+  const postMatch = text.match(/https?:\/\/(?:www\.)?linkedin\.com\/posts\/[\w\-~%]+/i);
+  if (postMatch) result.linkedin_post = postMatch[0];
+
+  // Location — after 📍 or "Location:" or "Based in"
+  const geoMatch = text.match(/(?:📍|Location[:\s]+|Based in[:\s]+|📌\s*Location[:\s]*)([A-Za-z\s,|]+?)(?:\n|Experience:|Budget|$)/i);
+  if (geoMatch) result.geo = geoMatch[1].replace(/[|]/g, '').trim().split('\n')[0].trim();
+
+  // Tech stack — known tech keywords
+  const TECH_KEYWORDS = [
+    'React','React Native','Angular','Vue','Next.js','Node.js','Python','Django','FastAPI',
+    'Java','Spring Boot','PHP','Laravel','Ruby on Rails','Go','Rust','TypeScript',
+    'AWS','GCP','Azure','Kubernetes','Docker','Terraform','Helm','ArgoCD','CI/CD',
+    'PostgreSQL','MySQL','MongoDB','Redis','Cassandra','Couchbase','DynamoDB',
+    'Grafana','Prometheus','EKS','RDS','S3','Lambda','GraphQL','REST API',
+    'Flutter','Swift','Kotlin','iOS','Android','DevOps','MLOps','AIOps',
+    'Kafka','RabbitMQ','Elasticsearch','Snowflake','dbt','Airflow','Spark',
+    'Salesforce','SAP','Shopify','WordPress','Magento','WooCommerce'
+  ];
+  const found = TECH_KEYWORDS.filter(t => new RegExp('\\b' + t.replace('.', '\\.') + '\\b', 'i').test(text));
+  if (found.length) result.tech_stack = found.join(', ');
+
+  // Experience range (e.g. "2–7 Years") — signals job posting
+  const expMatch = text.match(/(\d+)\s*[–\-to]+\s*(\d+)\s*(?:years?|yrs?)/i);
+  if (expMatch) result.experience_range = expMatch[0];
+
+  // Team size (e.g. "team of 5", "5 developers")
+  const teamMatch = text.match(/(?:team of|need|require|looking for)\s+(\d+)\s*(?:developer|engineer|resource|people|person)/i);
+  if (teamMatch) result.team_size = teamMatch[1] + ' people';
+
+  // Budget signals
+  const budgetMatch = text.match(/(?:budget[:\s]+|₹|INR\s?|USD\s?|\$)[\d,.]+(?:\s*(?:L|Lakh|Cr|Crore|K|M|million|lakhs))?/i);
+  if (budgetMatch) result.budget = budgetMatch[0].trim();
+
+  // Timeline
+  const timelineMatch = text.match(/(?:timeline[:\s]+|by\s+|deadline[:\s]+|Q[1-4]\s*\d{4}|within\s+\d+\s*(?:weeks?|months?))/i);
+  if (timelineMatch) result.timeline = timelineMatch[0].trim();
+
+  return result;
+}
+
+// ── LAYER 2: OpenRouter free AI for semantic fields only ──
+async function aiExtract(text, regexData) {
+  // Get OpenRouter key from Signal config
+  const configRaw = localStorage.getItem('vayuz_signal_cfg');
+  let orKey = '';
+  let orModel = 'meta-llama/llama-3.3-70b-instruct:free';
+  if (configRaw) {
+    try {
+      const cfg = JSON.parse(configRaw);
+      orKey   = cfg.openRouterKey || '';
+      orModel = cfg.openRouterModel || orModel;
+    } catch(e) {}
+  }
+
+  if (!orKey) {
+    // No OpenRouter key — return empty, regex fields already filled
+    return { _noKey: true };
+  }
+
+  // Only ask AI for fields regex can't reliably get
+  const alreadyHave = [];
+  if (regexData.email)    alreadyHave.push('email');
+  if (regexData.phone)    alreadyHave.push('phone');
+  if (regexData.geo)      alreadyHave.push('geo');
+  if (regexData.tech_stack) alreadyHave.push('tech_stack');
+
+  const prompt = `Extract the following fields from this lead/post text. Return ONLY valid JSON, no markdown.
+
+Fields to extract:
+- name: contact person's full name (not company name)
+- company: organization name
+- headline: their job title or role
+- category: best match from [App Development, Web Development, WordPress Development, Product Development, Staff Augmentation, Dedicated Teams, Digital Transformation, IT Consulting, Legacy System Modernization] or empty string
+- hiring_type: one of [Remote, Project-Based, Full-Time, Contract, Staff Augmentation, Dedicated Team, Not Specified]
+- is_job_posting: true if this is a company hiring individual candidates (looking for resumes/CVs), false if this could be an outsourcing/vendor opportunity
+- team_size: number of people needed (if not already extracted: ${regexData.team_size || 'not found'})
+- budget: budget info (if not already extracted: ${regexData.budget || 'not found'})
+- timeline: deadline or timeline (if not already extracted: ${regexData.timeline || 'not found'})
+
+Text:
+${text.slice(0, 1200)}`;
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + orKey,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.href,
+      'X-Title': 'VAYUZ Signal'
+    },
+    body: JSON.stringify({
+      model: orModel,
+      max_tokens: 400,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!res.ok) throw new Error('OpenRouter ' + res.status);
+  const data = await res.json();
+  const raw  = (data.choices?.[0]?.message?.content || '').trim();
+  const clean = raw.replace(/```json|```/g, '').trim();
+
+  // Extract JSON from response (may have surrounding text)
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON in AI response');
+  return JSON.parse(jsonMatch[0]);
+}
+
+// ── Main parser — runs regex first, then AI for remaining fields ──
+async function smartParseLead() {
+  const raw = (document.getElementById('paste-input').value || '').trim();
+  if (!raw) { setPasteStatus('Paste some text first', 'err'); return; }
+
+  const btn = document.getElementById('paste-parse-btn');
+  btn.disabled = true;
+  btn.textContent = 'Parsing…';
+  setPasteStatus('Step 1 — extracting structured data…', 'loading');
+
+  const fill = (id, val) => {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (el) { el.value = val; highlightFilledField(id); }
+  };
+
+  const setSelect = (id, val) => {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const opts = Array.from(el.options);
+    const match = opts.find(o => o.value === val) ||
+                  opts.find(o => o.value.toLowerCase().includes((val||'').toLowerCase()) ||
+                                 (val||'').toLowerCase().includes(o.value.toLowerCase()));
+    if (match) { el.value = match.value; highlightFilledField(id); }
+  };
+
+  // ── Layer 1: Regex (always runs, free) ──
+  const rx = regexExtract(raw);
+
+  fill('al-email',       rx.email);
+  fill('al-phone',       rx.phone);
+  fill('al-profile-url', rx.linkedin_profile);
+  fill('al-post-url',    rx.linkedin_post);
+  fill('al-geo',         rx.geo);
+  fill('al-post',        raw);
+
+  const regexFilled = [rx.email, rx.phone, rx.linkedin_profile, rx.geo, rx.tech_stack].filter(Boolean).length;
+  setPasteStatus('Step 1 done — ' + regexFilled + ' fields from regex. Step 2 — AI parsing name, company, category…', 'loading');
+
+  // ── Layer 2: OpenRouter AI (semantic fields) ──
+  let ai = {};
+  let aiUsed = false;
+  try {
+    ai = await aiExtract(raw, rx);
+    aiUsed = !ai._noKey;
+  } catch(e) {
+    console.warn('[SmartPaste] AI extract failed:', e.message);
+    setPasteStatus('AI step failed (' + e.message + ') — regex fields filled only', 'err');
+  }
+
+  // Fill AI fields
+  fill('al-name',     ai.name);
+  fill('al-company',  ai.company);
+  fill('al-headline', ai.headline);
+  setSelect('al-category',    ai.category);
+  setSelect('al-hiring-type', ai.hiring_type);
+
+  // Prefer AI values for these if regex didn't find them
+  if (!rx.team_size && ai.team_size) fill('al-remarks', 'Team size: ' + ai.team_size);
+  if (!rx.budget    && ai.budget)    {
+    const cur = document.getElementById('al-remarks').value;
+    document.getElementById('al-remarks').value = (cur ? cur + ' · ' : '') + 'Budget: ' + ai.budget;
+    highlightFilledField('al-remarks');
+  }
+
+  // Build remarks from all metadata
+  const metaParts = [];
+  if (rx.tech_stack)               metaParts.push('Tech: ' + rx.tech_stack);
+  if (rx.team_size || ai.team_size) metaParts.push('Team: ' + (rx.team_size || ai.team_size));
+  if (rx.budget    || ai.budget)    metaParts.push('Budget: ' + (rx.budget || ai.budget));
+  if (rx.timeline  || ai.timeline)  metaParts.push('Timeline: ' + (rx.timeline || ai.timeline));
+  if (rx.experience_range)          metaParts.push('Exp range: ' + rx.experience_range);
+  if (metaParts.length) fill('al-remarks', metaParts.join(' · '));
+
+  // Count total filled
+  const totalFilled = ['al-name','al-company','al-headline','al-email','al-phone','al-geo']
+    .filter(id => document.getElementById(id)?.value?.trim()).length;
+
+  // Final status
+  const isJobPosting = ai.is_job_posting === true || !!rx.experience_range;
+  if (isJobPosting) {
+    setPasteStatus('⚠ Looks like a job posting (direct hire) — not an outsourcing opportunity. Review before saving.', 'err');
+  } else {
+    const src = aiUsed ? 'regex + AI' : 'regex only' + (aiUsed === false ? ' (add OpenRouter key in Configure for AI fields)' : '');
+    setPasteStatus('✓ ' + totalFilled + ' fields filled via ' + src + ' — review and save', 'ok');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ Parse & Fill Fields';
+}
+
+
 function showAddLead() {
   // Reset all fields
   ['al-name','al-company','al-headline','al-profile-url','al-post-url',
@@ -3688,7 +4186,11 @@ function showAddLead() {
   document.getElementById('al-hiring-type').value = 'Not Specified';
   document.getElementById('al-label-preview').textContent = 'Auto';
   document.getElementById('al-label-preview').style.color = 'var(--text3)';
-  document.getElementById('al-save-btn').disabled = false;
+  document.getElementById('paste-input').value = '';
+  setPasteStatus('', '');
+  const btn = document.getElementById('al-save-btn');
+  btn.disabled = false;
+  btn.textContent = '💾 Save Lead to Database';
   document.getElementById('addlead-mb').classList.add('show');
   setTimeout(() => document.getElementById('al-name').focus(), 100);
 }
@@ -3714,13 +4216,16 @@ function updateAlLabel() {
 async function saveManualLead() {
   const name    = document.getElementById('al-name').value.trim();
   const company = document.getElementById('al-company').value.trim();
-  if (!name || !company) {
-    toast('Name and Company are required', 'e'); return;
-  }
+  if (!name || !company) { toast('Name and Company are required', 'e'); return; }
 
   const btn = document.getElementById('al-save-btn');
   btn.disabled = true;
   btn.textContent = 'Saving…';
+
+  const resetBtn = () => {
+    btn.disabled = false;
+    btn.textContent = '💾 Save Lead to Database';
+  };
 
   const headline    = document.getElementById('al-headline').value.trim();
   const profileUrl  = document.getElementById('al-profile-url').value.trim();
@@ -3734,70 +4239,110 @@ async function saveManualLead() {
   const post        = document.getElementById('al-post').value.trim();
   const remarks     = document.getElementById('al-remarks').value.trim();
 
-  // Score: use manual value if set, else run rule-based scoring
+  // ── Duplicate check: warn if name+company or post_url already exists ──
+  try {
+    let dupQuery = _sb.from('leads').select('id, name, company').limit(1);
+    if (postUrl) {
+      dupQuery = dupQuery.eq('post_url', postUrl);
+    } else {
+      dupQuery = dupQuery.eq('name', name).ilike('company', company);
+    }
+    const { data: dupRows } = await dupQuery;
+    if (dupRows && dupRows.length > 0) {
+      const proceed = confirm(
+        'A lead named "' + (dupRows[0].name || name) + '" at "' + (dupRows[0].company || company) + '" already exists in the database.\n\nSave anyway and update their record?'
+      );
+      if (!proceed) { resetBtn(); return; }
+    }
+  } catch(e) { /* non-fatal — proceed with save */ }
+
+  // ── Score: manual override or auto rule-based ──
   let score, label, reasoning;
   const manualScoreRaw = document.getElementById('al-score').value;
   if (manualScoreRaw !== '' && !isNaN(parseFloat(manualScoreRaw))) {
-    score = Math.min(10, Math.max(0, parseFloat(manualScoreRaw)));
-    label = score >= 7 ? 'Hot' : score >= 4 ? 'Warm' : 'Cold';
+    score     = Math.min(10, Math.max(0, parseFloat(manualScoreRaw)));
+    label     = score >= 7 ? 'Hot' : score >= 4 ? 'Warm' : 'Cold';
     reasoning = 'Manually entered lead — score set by user.';
   } else {
-    // Auto-score using VAYUZ rule engine
-    const detectedCat = category || classifyCategory(post || company + ' ' + headline);
-    const detectedHT  = hiringType !== 'Not Specified' ? hiringType : classifyHiringType(post);
-    const result = vayuzScore(post || headline, headline, detectedCat, detectedHT);
-    score = result.score;
-    label = result.label;
-    reasoning = (result.reasons||[]).join('. ') || 'Rule-based VAYUZ scoring applied.';
+    try {
+      const detectedCat = category || classifyCategory((post || '') + ' ' + company + ' ' + headline);
+      const detectedHT  = hiringType !== 'Not Specified' ? hiringType : classifyHiringType(post || '');
+      const result      = vayuzScore((post || headline || company), headline || '', detectedCat, detectedHT);
+      score     = result.score     || 3;
+      label     = result.label     || 'Cold';
+      reasoning = (result.reasons  || []).join('. ') || 'Rule-based VAYUZ scoring.';
+    } catch(e) {
+      score = 3; label = 'Cold'; reasoning = 'Auto-score failed — default applied.';
+      console.warn('[AddLead] Auto-score error:', e);
+    }
   }
 
   const nowISO = new Date().toISOString();
   const row = {
-    name:                 name,
-    title:                headline || null,
-    company:              company,
+    name,
+    title:                headline   || null,
+    company,
     linkedin_url:         profileUrl || null,
-    post_url:             postUrl || null,
-    post_text:            post || null,
+    post_url:             postUrl    || null,
     ai_score:             Math.round(score),
     qualification_label:  label,
     qualification_reason: reasoning,
-    category:             category || null,
+    category:             category   || null,
     hiring_for:           null,
     hiring_type:          hiringType !== 'Not Specified' ? hiringType : null,
-    client_geo:           geo || null,
+    client_geo:           geo        || null,
     source:               'Manual',
-    email:                email || null,
-    phone:                phone || null,
+    email:                email      || null,
+    phone:                phone      || null,
     posted_at:            null,
     engagement:           null,
-    lead_stage:           stage || null,
-    remarks:              remarks || null,
-    scanned_at:           nowISO
+    lead_stage:           stage      || null,
+    remarks:              remarks    || null,
+    scanned_at:           nowISO,
   };
 
-  // Upsert — use post_url if provided, else insert fresh row
-  let error;
-  if (postUrl) {
-    const res = await _sb.from('leads').upsert(row, { onConflict: 'post_url', ignoreDuplicates: false });
-    error = res.error;
-  } else {
-    const res = await _sb.from('leads').insert(row);
-    error = res.error;
+  // ── Save to Supabase — upsert if postUrl, insert otherwise ──
+  const doSave = async (rowData) => {
+    if (postUrl) {
+      return _sb.from('leads')
+        .upsert(rowData, { onConflict: 'post_url', ignoreDuplicates: false })
+        .select('id').maybeSingle();
+    } else {
+      return _sb.from('leads')
+        .insert(rowData)
+        .select('id').maybeSingle();
+    }
+  };
+
+  let res = await doSave(row);
+
+  // Retry without scanned_at if column doesn't exist yet
+  if (res.error && res.error.message && res.error.message.includes('scanned_at')) {
+    const { scanned_at, ...rowNoScan } = row;
+    res = await doSave(rowNoScan);
   }
 
-  if (error) {
-    console.error('Manual lead save error:', error);
-    toast('Save failed: ' + (error.message||'check console'), 'e');
-    btn.disabled = false;
-    btn.textContent = '💾 Save Lead to Database';
+  if (res.error) {
+    console.error('[AddLead] Save error:', res.error);
+    toast('Save failed: ' + (res.error.message || 'check console'), 'e');
+    resetBtn();
     return;
   }
 
-  toast(name + ' added ✓ (' + label + ' · ' + score + '/10)', 'ok');
+  // Backfill _dbid into any matching in-memory lead
+  const savedId = res.data && res.data.id;
+  if (savedId) {
+    const existing = allLeads.find(l =>
+      (postUrl && l.postUrl === postUrl) ||
+      (l.name === name && (l.compName || l.company) === company)
+    );
+    if (existing) existing._dbid = savedId;
+  }
+
+  toast(name + ' added ✓ — ' + label + ' · ' + Math.round(score) + '/10', 'ok');
   closeAddLead();
 
-  // Reload from DB so new lead appears in table
+  // Reload from DB so new lead appears with correct _dbid
   await loadLeadsFromSupabase();
 }
 
