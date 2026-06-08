@@ -363,7 +363,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 /* ── Posted time badge ── */
 .pt-badge{display:inline-flex;flex-direction:column;gap:0px;white-space:nowrap}
 .pt-date{font-size:10.5px;font-weight:600;font-family:var(--mono);color:var(--text2);line-height:1.3}
-.pt-ago{font-size:10px;font-family:var(--mono);color:var(--text3);line-height:1.3}
+.pt-ago{font-size:9.5px;font-family:var(--mono);color:var(--text3);line-height:1.3}
 /* ── NEW lead badge ── */
 .new-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;background:rgba(220,38,38,.12);color:var(--red);border:1px solid rgba(220,38,38,.3);margin-left:5px;vertical-align:middle;animation:pulse-new 2s ease-in-out 3}
 @keyframes pulse-new{0%,100%{opacity:1}50%{opacity:.5}}
@@ -408,6 +408,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .row-del{opacity:0;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(220,38,38,.25);background:var(--rdim);color:var(--red);transition:all .12s;white-space:nowrap;font-family:var(--font)}
 .row-del:hover{background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.45)}
 .lr:hover .row-del{opacity:1}
+.row-scan-profile{opacity:0;padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(37,99,235,.2);background:var(--adim);color:var(--accent);transition:all .12s;white-space:nowrap;font-family:var(--font)}
+.row-scan-profile:hover{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.4)}
+.lr:hover .row-scan-profile{opacity:1}
 /* ── Bulk action bar ── */
 .bulk-bar{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:10px;padding:10px 18px;font-size:12.5px;font-weight:600;font-family:var(--font);align-items:center;gap:14px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.22);white-space:nowrap}
 .bulk-bar.show{display:flex}
@@ -517,6 +520,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="tb-info">
       <div class="tb-t">Signal</div>
       <div class="tb-s" id="tb-subtitle">Apify → Rule Gate → AI Score → Outreach Ready</div>
+      <div style="font-size:9px;font-family:var(--mono);color:var(--accent);margin-top:1px;display:flex;align-items:center;gap:4px"><span id="tb-mode-pill" style="background:var(--adim);border:1px solid rgba(37,99,235,.2);border-radius:3px;padding:1px 5px">🔍 Post Search</span><span id="tb-last-run" style="color:var(--text3)"></span></div>
     </div>
     <div class="tb-right">
       <button class="btn" onclick="showAddLead()">
@@ -640,6 +644,12 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     <select class="dd-filter" id="dd-date" onchange="doFilter()" title="Filter by scan date">
       <option value="">📅 All Dates</option>
     </select>
+    <!-- Source filter -->
+    <select class="dd-filter" id="dd-source" onchange="doFilter()">
+      <option value="">📡 All Sources</option>
+      <option value="post_search">🔍 Post Search</option>
+      <option value="profile_scan">👤 Profile Scan</option>
+    </select>
     <!-- Label filter -->
     <select class="dd-filter" id="dd-label" onchange="doFilter()">
       <option value="">🏷 All Labels</option>
@@ -691,6 +701,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <option value="name">A→Z Name</option>
     </select>
     <button class="btn" style="padding:6px 10px;font-size:11px;color:var(--text3)" onclick="resetAllFilters()" title="Clear all filters">✕ Clear</button>
+    <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--green);border-color:rgba(13,158,114,.3);background:rgba(13,158,114,.07)" onclick="exportCSV()" title="Export visible leads to CSV">↓ Export CSV</button>
     <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--amber);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07)" onclick="filterLowScore()" title="Show leads scoring below 6 — bulk archive or review">⚡ Low Score</button>
     <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--purple);border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.07)" onclick="selectAllVisible()" title="Select all visible leads">☑ Select All</button>
   </div>
@@ -708,7 +719,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <div class="step"><div class="sno">1</div><div class="stxt">Get your Apify API token<small>apify.com → Settings → Integrations → API tokens</small></div></div>
         <div class="step"><div class="sno">2</div><div class="stxt">Enter your search keywords in Configure<small>e.g. "hire developers", "app development", "need tech partner"</small></div></div>
         <div class="step"><div class="sno">3</div><div class="stxt">Add an AI key in Configure for smarter scoring<small>Gemini (free) · Claude · OpenRouter (300+ models, free tier available)</small></div></div>
-        <div class="step"><div class="sno">4</div><div class="stxt">Click Run Pipeline — real posts load in ~30s<small>Actor: harvestapi/linkedin-post-search · No cookies needed</small></div></div>
+        <div class="step"><div class="sno">4</div><div class="stxt">Click Run Pipeline — real posts load in ~30s<small id="empty-actor-hint">Actor: harvestapi/linkedin-post-search · No cookies needed</small></div></div>
       </div>
       <div class="eb">
         <button class="btn bp" onclick="runPipeline()"><svg viewBox="0 0 14 14" fill="currentColor" style="width:11px;height:11px"><polygon points="4,2 12,7 4,12"/></svg> Run Pipeline</button>
@@ -723,8 +734,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
           <th style="width:28px"><input type="checkbox" style="accent-color:var(--accent)" onchange="chkAll(this)"></th>
           <th class="s" onclick="sortBy('fresh')" style="white-space:nowrap">Posted ↓</th>
           <th class="s" onclick="sortBy('name')">Lead</th>
-          <th class="s" onclick="sortBy('score')">Score ↓</th>
-          <th>Label</th>
+          <th class="s" onclick="sortBy('score')">Score</th>
           <th>Stage</th>
           <th>Category</th>
           <th>Role</th>
@@ -845,6 +855,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
 
     <button class="save-btn" onclick="saveLeadEdits()">💾 Save Changes</button>
+    <button class="cbtn" onclick="copyLeadInfo()" style="color:var(--accent);border-color:rgba(37,99,235,.3);margin-top:4px">📋 Copy Lead Info</button>
+    <button class="cbtn" id="dp-scan-profile-btn" onclick="runProfileScan(window._currentDPLead)" style="color:var(--accent);border-color:rgba(37,99,235,.3);margin-top:4px">🔍 Scan Profile Posts</button>
     <button class="cbtn" onclick="archiveLead()" style="color:var(--amber);border-color:rgba(192,123,16,.3)">🗃 Archive Lead</button>
     <button class="cbtn" onclick="deleteLead()" style="color:var(--red);border-color:rgba(220,38,38,.25);margin-top:4px">🗑 Delete Lead</button>
   </div>
@@ -1065,10 +1077,22 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <div class="mb" id="cfg-mb">
   <div class="cc">
     <div class="ct">Pipeline Configuration</div>
-    <div class="csu">All fields except API token are optional. Uses <strong>harvestapi/linkedin-post-search</strong> — no LinkedIn cookies needed.</div>
+    <div class="csu">Choose your Apify scraping mode — keyword search or profile-based. Both use no LinkedIn cookies.</div>
 
-    <div class="actor-info">
-      ✓ Actor: <strong>harvestapi/linkedin-post-search</strong> — No cookies required · $2 / 1k posts · Takes keywords directly, no LinkedIn URL needed.
+    <div class="csec">Apify Scraping Mode</div>
+    <div class="cf" style="margin-bottom:14px">
+      <label class="cl" style="margin-bottom:8px">Active Scraper</label>
+      <div style="display:flex;gap:8px">
+        <button id="toggle-post-search" class="btn bp" style="flex:1;justify-content:center;font-size:12px" onclick="setApifyMode('post-search');saveToStorage()">
+          🔍 Post Search
+        </button>
+        <button id="toggle-profile-posts" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setApifyMode('profile-posts');saveToStorage()">
+          👤 Profile Posts
+        </button>
+      </div>
+      <div id="apify-mode-info" class="ch" style="margin-top:8px;padding:7px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border2)">
+        Actor: <strong>harvestapi/linkedin-post-search</strong> — Keyword-based · No cookies · $2/1k posts
+      </div>
     </div>
 
     <div class="csec">Scraping Settings</div>
@@ -1108,11 +1132,8 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <input class="ci" type="password" id="c-apify" placeholder="apify_api_xxxxxxxxxxxxxxxxxxxx" oninput="document.getElementById('apify-saved').style.display='none'">
       <div class="ch">Get from → <a href="https://console.apify.com/account/integrations" target="_blank">console.apify.com → Account → Integrations</a></div>
     </div>
-    <div class="cf">
-      <label class="cl">Max Posts to Fetch</label>
-      <input class="ci" type="number" id="c-max" value="50" min="10" max="200">
-      <div class="ch">Each page = ~50 posts. Recommended: 50–100 for a first run.</div>
-    </div>
+
+    <div id="cfg-postsearch-extra">
     <div class="cf">
       <label class="cl">Posts From (recency filter)</label>
       <select class="ci" id="c-age">
@@ -1129,6 +1150,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <option value="relevance">Relevance</option>
       </select>
     </div>
+    </div><!-- end cfg-postsearch-extra -->
 
     <div class="csec">AI Scoring Engine</div>
 
@@ -1218,6 +1240,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
     </div>
 
+    <div id="cfg-kw-section">
     <div class="csec">Search Keywords (sent to Apify + used in Gate 1)</div>
     <div class="ch" style="margin-bottom:10px">Each keyword = one Apify search query. Gate 1 checks posts contain at least one keyword OR author matches a title.</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -1241,6 +1264,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
     </div>
 
+    </div><!-- end cfg-kw-section -->
+
+    <div id="cfg-title-section">
     <div class="csec">Decision-Maker Title Filter (Gate 1 · optional)</div>
     <div class="ch" style="margin-bottom:10px">Posts pass Gate 1 if they match a keyword OR a title. Leave empty to skip title check.</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -1264,6 +1290,37 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
     </div>
 
+    </div><!-- end cfg-title-section -->
+
+    <!-- Profile URLs section (shown in profile-posts mode) -->
+    <div id="cfg-profile-section" style="display:none">
+      <div class="csec">Target Profile URLs</div>
+      <div class="ch" style="margin-bottom:10px">Add LinkedIn profile URLs to scan. Pipeline will fetch posts from each profile and score them through the same AI pipeline.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="pu-count">0 profiles</span>
+        <button class="btn" style="padding:4px 10px;font-size:11px;color:var(--red);border-color:rgba(220,38,38,.25)" onclick="clearAllProfiles()">Clear All</button>
+      </div>
+      <div class="tags" id="pu-tags"></div>
+      <div class="ta">
+        <input id="pu-inp" type="url" placeholder="https://linkedin.com/in/username" onkeydown="if(event.key==='Enter')addProfile()">
+        <button class="btn" onclick="addProfile()">Add</button>
+      </div>
+      <div style="margin-top:10px">
+        <textarea id="bulk-pu-inp" style="width:100%;height:90px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical" placeholder="Paste multiple profile URLs one per line:&#10;https://linkedin.com/in/johndoe&#10;https://linkedin.com/in/janedoe"></textarea>
+        <div style="display:flex;gap:7px;margin-top:7px">
+          <button class="btn bp" style="font-size:11.5px;padding:6px 14px" onclick="applyBulkProfiles()">Add All</button>
+        </div>
+      </div>
+      <div class="cf" style="margin-top:12px">
+        <label class="cl">Max posts per profile</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="ci" type="number" id="c-profilemaxposts2" min="5" max="50" placeholder="20" style="width:70px">
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Posts fetched per profile (5–50)</span>
+        </div>
+        <div class="ch">Lower = faster + cheaper. Recommended 10–20.</div>
+      </div>
+    </div><!-- end cfg-profile-section -->
+
     <div class="cr">
       <button class="btn bp" onclick="saveCfg()">Save & Close</button>
       <button class="btn" onclick="document.getElementById('cfg-mb').classList.remove('show')">Cancel</button>
@@ -1277,10 +1334,11 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <script>
 // ── Config ──
 let cfg = {
-  apifyToken: '', maxPosts: 50, postAge: 'week', sortBy: 'date',
+  apifyToken: '', apifyMode: 'post-search', maxPosts: 50, postAge: 'week', sortBy: 'date',
   geminiKey: '', claudeKey: '', openRouterKey: '', openRouterModel: 'meta-llama/llama-3.3-70b-instruct:free',
   aiProvider: 'gemini', minScore: 7, skipGate: false,
-  batchSize: 50, backgroundProcessing: true,
+  batchSize: 50, backgroundProcessing: true, profileMaxPosts: 20,
+  profileUrls: [],
   keywords: ['app development','mobile app','web development','digital transformation','hire developers','build product','offshore team','tech partner','dedicated team','software development'],
   titles: ['Founder','Co-Founder','CEO','CTO','CPO','CIO','MD','Director','VP','Head of','President','Partner','Owner','Engineer','Manager','Lead']
 };
@@ -1343,7 +1401,7 @@ const BRAIN_REASON_CATS = {
 
 const BRAIN_COMPRESSED_PATTERNS = {
   persona:      'Reject: non-decision-makers (individual contributors, junior roles, analysts) — score max 3.',
-  recruiter:    'Reject: staffing/recruitment/RPO firms posting client vacancies — middlemen not end-buyers — score max 2.',
+  recruiter:    'Reject: recruiters, talent sourcing/acquisition, HR recruiters, staffing/RPO firms — these people hire candidates, they do NOT buy development services — score 0.',
   budget:       'Reject: low/no-budget signals ("affordable", "cheapest", "tight budget", no funding context) — score max 2.',
   engagement:   'Reject: onsite-only roles, single freelancer needs, or one-off gigs — VAYUZ needs team engagements — score max 3.',
   vague:        'Reject: vague thought-leadership posts with no concrete requirement or hiring signal — score max 2.',
@@ -1354,7 +1412,7 @@ const BRAIN_COMPRESSED_PATTERNS = {
 
 const BRAIN_CAT_SIGNALS = {
   persona:      ['individual contributor','analyst','coordinator','associate','junior','assistant','intern'],
-  recruiter:    ['recruiter','talent acquisition','staffing','placement','rpo','headhunter','sourcing specialist','manpower'],
+  recruiter:    ['recruiter','talent acquisition','talent sourcing','sourcing specialist','staffing','placement','rpo','headhunter','technical recruiter','hr recruiter','people sourcing','recruitment specialist','hiring specialist','manpower'],
   budget:       ['affordable','cheapest','lowest quote','tight budget','minimum cost','very low budget'],
   engagement:   ['onsite only','single developer','one freelancer','part time','freelance basis','work from office only'],
   vague:        ['thoughts?','what do you think','sharing my journey','excited to announce','proud to share'],
@@ -1681,6 +1739,9 @@ function saveToStorage() {
       skipGate: cfg.skipGate,
       batchSize: cfg.batchSize,
       backgroundProcessing: cfg.backgroundProcessing,
+      profileMaxPosts: cfg.profileMaxPosts,
+      apifyMode: cfg.apifyMode,
+      profileUrls: cfg.profileUrls || [],
       keywords: cfg.keywords,
       titles: cfg.titles
     }));
@@ -1688,7 +1749,97 @@ function saveToStorage() {
   saveSessionSecrets();
 }
 
+// ── Apify Mode Toggle ──
+function setApifyMode(mode) {
+  cfg.apifyMode = mode;
+  const psBtn = document.getElementById('toggle-post-search');
+  const ppBtn = document.getElementById('toggle-profile-posts');
+  const infoEl = document.getElementById('apify-mode-info');
+  const kwSec = document.getElementById('cfg-kw-section');
+  const titleSec = document.getElementById('cfg-title-section');
+  const profileSec = document.getElementById('cfg-profile-section');
+  const psScraping = document.getElementById('cfg-postsearch-extra');
+
+  const modePill = document.getElementById('tb-mode-pill');
+  if (mode === 'post-search') {
+    if (modePill) modePill.textContent = '🔍 Post Search';
+    const eh = document.getElementById('empty-actor-hint'); if (eh) eh.textContent = 'Actor: harvestapi/linkedin-post-search · No cookies needed';
+    if (psBtn) { psBtn.classList.add('bp'); psBtn.classList.remove('btn'); psBtn.className = 'btn bp'; }
+    if (ppBtn) { ppBtn.className = 'btn'; }
+    if (infoEl) infoEl.innerHTML = 'Actor: <strong>harvestapi/linkedin-post-search</strong> — Keyword-based · No cookies · $2/1k posts';
+    if (kwSec) kwSec.style.display = '';
+    if (titleSec) titleSec.style.display = '';
+    if (profileSec) profileSec.style.display = 'none';
+    if (psScraping) psScraping.style.display = '';
+  } else {
+    if (modePill) modePill.textContent = '👤 Profile Posts';
+    const ehp = document.getElementById('empty-actor-hint'); if (ehp) ehp.textContent = 'Actor: harvestapi/linkedin-profile-posts · Add profile URLs in Configure';
+    if (ppBtn) { ppBtn.classList.add('bp'); ppBtn.className = 'btn bp'; }
+    if (psBtn) { psBtn.className = 'btn'; }
+    if (infoEl) infoEl.innerHTML = 'Actor: <strong>harvestapi/linkedin-profile-posts</strong> — Profile-based · No cookies · $1.50/1k posts · Includes reposts';
+    if (kwSec) kwSec.style.display = 'none';
+    if (titleSec) titleSec.style.display = 'none';
+    if (profileSec) profileSec.style.display = '';
+    if (psScraping) psScraping.style.display = 'none';
+  }
+}
+
+// ── Profile URL management ──
+function rProfileTags() {
+  const container = document.getElementById('pu-tags');
+  if (!container) return;
+  container.innerHTML = (cfg.profileUrls||[]).map((u,i) => {
+    const short = u.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//,'').replace('/','');
+    return '<div class="tag">' + esc(short) + '<span class="tx" onclick="rmProfile(' + i + ')">×</span></div>';
+  }).join('');
+  const cnt = document.getElementById('pu-count');
+  if (cnt) cnt.textContent = (cfg.profileUrls||[]).length + ' profile' + ((cfg.profileUrls||[]).length !== 1 ? 's' : '');
+}
+
+function addProfile() {
+  const inp = document.getElementById('pu-inp');
+  const v = (inp.value||'').trim();
+  if (!v) return;
+  if (!v.includes('linkedin.com/in/')) { toast('Must be a LinkedIn profile URL (linkedin.com/in/…)', 'e'); return; }
+  if (!cfg.profileUrls) cfg.profileUrls = [];
+  if (!cfg.profileUrls.includes(v)) { cfg.profileUrls.push(v); rProfileTags(); }
+  inp.value = '';
+}
+
+function rmProfile(i) {
+  if (!cfg.profileUrls) return;
+  cfg.profileUrls.splice(i, 1);
+  rProfileTags();
+}
+
+function clearAllProfiles() {
+  if (!confirm('Clear all ' + (cfg.profileUrls||[]).length + ' profiles?')) return;
+  cfg.profileUrls = [];
+  rProfileTags();
+  toast('All profiles cleared', 'w');
+}
+
+function applyBulkProfiles() {
+  const raw = document.getElementById('bulk-pu-inp').value;
+  const items = raw.split(/[\n,]+/).map(s => s.trim()).filter(s => s.includes('linkedin.com/in/'));
+  if (!cfg.profileUrls) cfg.profileUrls = [];
+  let added = 0;
+  items.forEach(v => { if (!cfg.profileUrls.includes(v)) { cfg.profileUrls.push(v); added++; } });
+  rProfileTags();
+  document.getElementById('bulk-pu-inp').value = '';
+  toast(added + ' profiles added', 'ok');
+}
+
 function loadFromStorage() {
+  // Restore last run timestamp
+  const lastRun = localStorage.getItem('signal_last_run');
+  if (lastRun) {
+    const d = new Date(lastRun);
+    const diff = Math.round((Date.now() - d) / 60000);
+    const label = diff < 60 ? diff + 'm ago' : Math.round(diff/60) + 'h ago';
+    const el = document.getElementById('tb-last-run');
+    if (el) el.textContent = 'Last run: ' + label;
+  }
   try {
     const saved = localStorage.getItem(STORE_KEY);
     if (!saved) { loadSessionSecrets(); return; }
@@ -1702,6 +1853,9 @@ function loadFromStorage() {
     if (d.skipGate !== undefined) cfg.skipGate = d.skipGate;
     if (d.batchSize) cfg.batchSize = d.batchSize;
     if (d.backgroundProcessing !== undefined) cfg.backgroundProcessing = d.backgroundProcessing;
+    if (d.profileMaxPosts) cfg.profileMaxPosts = d.profileMaxPosts;
+    if (d.apifyMode) cfg.apifyMode = d.apifyMode;
+    if (d.profileUrls) cfg.profileUrls = d.profileUrls;
     if (d.keywords?.length) cfg.keywords = d.keywords;
     if (d.titles?.length) cfg.titles = d.titles;
   } catch(e) { console.warn('Storage load failed:', e); }
@@ -1805,6 +1959,10 @@ function showCfg() {
   if (cfg.claudeKey) showSavedBadge('claude-saved');
   if (cfg.openRouterKey) showSavedBadge('or-saved');
   setProviderToggle(cfg.aiProvider);
+  setApifyMode(cfg.apifyMode || 'post-search');
+  rProfileTags();
+  const pp2 = document.getElementById('c-profilemaxposts2');
+  if (pp2) pp2.value = cfg.profileMaxPosts || 20;
   refreshUI();
   document.getElementById('cfg-mb').classList.add('show');
 }
@@ -1821,9 +1979,12 @@ function saveCfg() {
   cfg.skipGate = document.getElementById('c-skipgate').checked;
   cfg.batchSize = Math.min(100, Math.max(10, parseInt(document.getElementById('c-batchsize').value)||50));
   cfg.backgroundProcessing = document.getElementById('c-background').checked;
+  const pmEl2 = document.getElementById('c-profilemaxposts2');
+  cfg.profileMaxPosts = Math.min(50, Math.max(5, parseInt((pmEl2 && pmEl2.value) || 20)));
   saveToStorage();
   document.getElementById('cfg-mb').classList.remove('show');
-  toast('Configuration saved · AI: ' + cfg.aiProvider.toUpperCase() + ' · Batch: ' + cfg.batchSize, 'ok');
+  const modeLabel = cfg.apifyMode === 'profile-posts' ? '👤 Profile Posts' : '🔍 Post Search';
+  toast('Config saved · ' + modeLabel + ' · AI: ' + cfg.aiProvider.toUpperCase(), 'ok');
 }
 function setProviderToggle(provider) {
   cfg.aiProvider = provider;
@@ -1904,8 +2065,14 @@ function isHardDisqualified(post, headline, company, isAgencyBuyer) {
 
   // DQ-8: Staffing middleman — recruiter posting client requirement
   if (/our client is looking|on behalf of our client|sharing a requirement|please share (your |candidate |)profile|profiles? (may |can |)apply|c2c|corp to corp|w2 only|w-2 only/i.test(t)) return 'DQ-8 Middleman — recruiter forwarding client JD';
-  // HR at staffing firm (not end-client)
-  if (/(recruiter|talent acquisition|headhunter|staffing consultant|placement officer|hr executive|rpo|hr at .*(staffing|recruitment|talent|manpower|resource))/i.test(h)) return 'DQ-8 Middleman — staffing/recruitment firm HR';
+  // HR / Recruiter / Talent person at any staffing-adjacent company — hard DQ
+  if (/(recruiter|talent acquisition|talent sourcing|sourcing specialist|headhunter|staffing consultant|placement officer|hr executive|rpo specialist|hr at .*(staffing|recruitment|talent|manpower|resource)|talent partner|people sourcing|recruitment specialist|hr recruiter|technical recruiter)/i.test(h)) return 'DQ-8 HR/Recruiter persona — not a buyer';
+  // HR at Operations / People Ops is valid (end-client) only if company is clearly NOT a staffing firm
+  if (/(hr.*(manager|director|head|vp|lead)|human resources.*(manager|director)|people ops|operations manager)/i.test(h)) {
+    // Check if company is a staffing firm
+    if (/(staffing|recruitment|manpower|placement|talent solutions|hr solutions|rpo|search firm|hiring firm)/i.test(c)) return 'DQ-8 HR Operations at staffing firm';
+    // Otherwise allow through — genuine end-client HR
+  }
 
   // DQ-9: Paid subscription requirement
   if (/paid (group|community|subscribers only|members only)|subscribe to (view|see|access)/i.test(t)) return 'DQ-9 Paid subscription gate';
@@ -1951,9 +2118,10 @@ function buyerPersonaCheck(post, headline, company) {
   // Decision maker titles — highest authority
   const isDecisionMaker = /(founder|co-founder|ceo|cto|cpo|vp|vice president|director|head of|md |managing director|president|owner|principal|chief)/i.test(h);
 
-  // HR at genuine end-client company (valid, max score 7)
-  const isHRAtEndClient = /(hr|human resources|talent acquisition|people ops|recruiter)/i.test(h) &&
-    !/(staffing|recruitment|rpo|manpower|headhunter|placement|hiring firm|search firm)/i.test(h + ' ' + company);
+  // HR at genuine end-client company (valid, max score 6)
+  // Excludes: recruiters, talent sourcing, talent acquisition — they are hiring managers not buyers
+  const isHRAtEndClient = /(hr manager|hr director|hr head|hr vp|head of hr|chief people|people ops|chro)/i.test(h) &&
+    !/(staffing|recruitment|rpo|manpower|headhunter|placement|hiring firm|search firm|talent acquisition|talent sourcing|sourcing specialist|recruiter)/i.test(h + ' ' + company);
 
   // Agency buyer signals — skips DQ-1, DQ-2, DQ-6
   const isAgencyBuyer = /(looking for (a |an )?(software development company|tech partner|development agency|product engineering)|outsource|hire a team|development partner|technology partner)/i.test(t);
@@ -2379,9 +2547,14 @@ India-based company or India-open post: apply full +4 geo bonus
 USA / UK / GCC / APAC remote-open: apply full +4 remote bonus
 Onsite required outside India (Staff Aug / Dedicated / Consulting): score = 0
 
-═══ HR AUTHOR RULE ═══
-HR / Recruiter at genuine product company: VALID, restrict to Staff Aug/Dedicated/IT Consulting, max score 7
-HR / Recruiter at staffing/recruitment/RPO firm: score = 0, label = Cold, DQ-8 Middleman
+═══ HR / RECRUITER AUTHOR RULE — CRITICAL ═══
+If the author headline contains ANY of: recruiter, talent acquisition, talent sourcing, sourcing specialist, headhunter, staffing, placement, RPO, HR executive, HR recruiter, technical recruiter:
+→ score = 0, label = Cold, disqualify_reason = "DQ-8 HR/Recruiter persona — not a buyer"
+→ These people hire candidates, they do not buy development services
+
+HR Manager / HR Director / People Ops / CHRO at a genuine product company (NOT a staffing firm):
+→ VALID but score MAX 6, restrict category to Staff Aug / Dedicated Teams / IT Consulting only
+→ They can influence but rarely have budget authority for dev partnerships
 
 ═══ HARD DISQUALIFY — score 0, Cold ═══
 - Post is a blog, article, guide, thought leadership, or company news
@@ -2414,28 +2587,50 @@ ${buildBrainPromptBlock(post, headline, company)}
 function parseScoringResponse(txt, post, category, hiringType, isDecisionMaker, isHRAtEndClient, company, fallback) {
   try {
     const p = JSON.parse(txt);
+
+    // ── Hard post-scoring enforcement ──
+    // If AI ignores the HR/Recruiter rule and gives a high score, override it here
+    const headlineRaw = (txt.match(/"author_headline"\s*:\s*"([^"]+)"/) || [])[1] || '';
+    const isRecruiterHeadline = /(recruiter|talent acquisition|talent sourcing|sourcing specialist|headhunter|staffing consultant|placement officer|hr recruiter|technical recruiter|rpo specialist|people sourcing)/i.test(headlineRaw);
+
+    let finalScore = p.score || 0;
+    let finalLabel = p.label || 'Cold';
+    let finalDQ    = p.disqualify_reason || '';
+    let finalAction = p.recommended_action || 'Monitor';
+
+    if (isRecruiterHeadline || (!isHRAtEndClient && /(recruiter|talent acquisition|talent sourcing|sourcing specialist|headhunter|hr recruiter|technical recruiter)/i.test(company))) {
+      finalScore  = 0;
+      finalLabel  = 'Cold';
+      finalDQ     = 'DQ-8 HR/Recruiter persona — not a buyer (post-scoring enforcement)';
+      finalAction = 'Skip';
+    } else if (isHRAtEndClient && finalScore > 6) {
+      // HR at genuine end-client — cap at 6
+      finalScore = 6;
+      finalLabel = 'Warm';
+    }
+
     return {
-      score: p.score||0,
-      intent: parseFloat(((p.score||0)/10).toFixed(2)),
-      signals: detectSignals(post),
-      label: ['Hot','Warm','Cold'].includes(p.label) ? p.label : (p.score>=8?'Hot':p.score>=4?'Warm':'Cold'),
-      category: p.lead_category||category,
-      hiringType: p.hiring_type||hiringType,
-      role: p.role_hiring_for||extractRole(post),
-      geo: p.client_geo||extractGeo(post),
-      email: p.email||'',
-      phone: p.phone||'',
-      firstName: p.first_name||'',
-      lastName: p.last_name||'',
-      compName: p.comp_name||company,
-      reasoning: p.qualification_reason||'',
-      disqualifyReason: p.disqualify_reason||'',
-      buyerType: p.buyer_type||'Unknown',
-      urgency: p.urgency||'Medium',
-      companySize: p.company_size_signal||'Unknown',
-      painPoints: p.pain_points_detected||[],
+      score:            finalScore,
+      intent:           parseFloat((finalScore/10).toFixed(2)),
+      signals:          detectSignals(post),
+      label:            ['Hot','Warm','Cold'].includes(finalLabel) ? finalLabel : (finalScore>=8?'Hot':finalScore>=4?'Warm':'Cold'),
+      category:         p.lead_category||category,
+      hiringType:       p.hiring_type||hiringType,
+      role:             p.role_hiring_for||extractRole(post),
+      geo:              p.client_geo||extractGeo(post),
+      email:            p.email||'',
+      phone:            p.phone||'',
+      firstName:        p.first_name||'',
+      lastName:         p.last_name||'',
+      compName:         p.comp_name||company,
+      reasoning:        p.qualification_reason||'',
+      disqualifyReason: finalDQ,
+      buyerType:        p.buyer_type||'Unknown',
+      urgency:          p.urgency||'Medium',
+      companySize:      p.company_size_signal||'Unknown',
+      painPoints:       p.pain_points_detected||[],
       lowOutreachContext: p.low_outreach_context||false,
-      recommendedAction: p.recommended_action||'Monitor'
+      recommendedAction: finalAction
     };
   } catch(e) {
     console.warn('JSON parse failed:', e.message);
@@ -2500,16 +2695,304 @@ async function fetchApify() {
   return items;
 }
 
+// ── fetchApifyProfiles — batch fetch posts from all configured profile URLs ──
+async function fetchApifyProfiles() {
+  if (!cfg.apifyToken) throw new Error('NO_TOKEN');
+  if (!(cfg.profileUrls||[]).length) throw new Error('No profile URLs configured. Add them in Configure → Profile Posts.');
+
+  const ACTOR = 'harvestapi~linkedin-profile-posts';
+  const maxPosts = cfg.profileMaxPosts || 20;
+  const input = {
+    targetUrls: cfg.profileUrls,
+    maxPosts: maxPosts,
+    includeReposts: true,
+    scrapeComments: false,
+    scrapeReactions: false
+  };
+
+  const runRes = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/runs?token=${cfg.apifyToken}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input)
+  });
+  const runData = await runRes.json();
+  if (!runRes.ok) throw new Error(runData?.error?.message || 'Apify profile fetch failed. Check your API token.');
+  const runId = runData.data?.id;
+  if (!runId) throw new Error('Apify did not return a run ID.');
+
+  // Poll (max 120s)
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const sr = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${cfg.apifyToken}`);
+    const sd = await sr.json();
+    const status = sd.data?.status;
+    if (status === 'SUCCEEDED') break;
+    if (status === 'FAILED' || status === 'ABORTED') throw new Error('Profile actor run ' + status + '. Check token balance.');
+    if (i === 59) throw new Error('Profile fetch timed out. Try fewer profiles or reduce max posts per profile.');
+  }
+
+  const dsId = runData.data?.defaultDatasetId;
+  const dr = await fetch(`https://api.apify.com/v2/datasets/${dsId}/items?token=${cfg.apifyToken}&format=json`);
+  const items = await dr.json();
+  if (!Array.isArray(items) || items.length === 0) throw new Error('Apify returned 0 posts. Profiles may be private or have no recent posts.');
+  return items;
+}
+
+// ── Profile Scan: fetch posts from a specific LinkedIn profile ──
+async function fetchProfilePosts(profileUrl) {
+  if (!cfg.apifyToken) throw new Error('NO_TOKEN');
+  if (!profileUrl || !profileUrl.includes('linkedin.com/in/')) throw new Error('No LinkedIn profile URL found for this lead. Add one in the lead detail panel first.');
+
+  const ACTOR = 'harvestapi~linkedin-profile-posts';
+  const maxPosts = cfg.profileMaxPosts || 20;
+  const input = {
+    targetUrls: [profileUrl],
+    maxPosts: maxPosts,
+    includeReposts: true,
+    scrapeComments: false,
+    scrapeReactions: false
+  };
+
+  const runRes = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/runs?token=${cfg.apifyToken}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input)
+  });
+  const runData = await runRes.json();
+  if (!runRes.ok) throw new Error(runData?.error?.message || 'Apify profile scan failed. Check your API token.');
+  const runId = runData.data?.id;
+  if (!runId) throw new Error('Apify did not return a run ID.');
+
+  // Poll (max 120s)
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const sr = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${cfg.apifyToken}`);
+    const sd = await sr.json();
+    const status = sd.data?.status;
+    if (status === 'SUCCEEDED') break;
+    if (status === 'FAILED' || status === 'ABORTED') throw new Error('Profile scan actor run ' + status + '.');
+    if (i === 59) throw new Error('Profile scan timed out.');
+  }
+
+  const dsId = runData.data?.defaultDatasetId;
+  const dr = await fetch(`https://api.apify.com/v2/datasets/${dsId}/items?token=${cfg.apifyToken}&format=json`);
+  const items = await dr.json();
+  if (!Array.isArray(items) || items.length === 0) throw new Error('No posts found on this profile. Profile may be private or have no recent posts.');
+  return items;
+}
+
+// ── Profile Scan Runner — triggered from lead card or detail panel ──
+async function runProfileScan(lead) {
+  if (!lead) { toast('No lead selected', 'e'); return; }
+
+  const profileUrl = lead.profileUrl || lead.profile_url || '';
+  if (!profileUrl) {
+    toast('No LinkedIn profile URL for this lead — add it in the detail panel first.', 'e');
+    return;
+  }
+  if (!cfg.apifyToken) {
+    toast('No Apify token — open Configure and add your token first.', 'e');
+    return;
+  }
+
+  // Show pipeline modal in profile scan mode
+  const pipeModal = document.getElementById('pipe-mb');
+  document.getElementById('pipe-src').textContent = 'Profile scan: ' + profileUrl.replace('https://www.linkedin.com/in/','').replace('https://linkedin.com/in/','').replace(/\//g,'');
+  document.getElementById('dn').classList.remove('show');
+  pipeModal.classList.add('show');
+  resetPipe();
+
+  try {
+    // Stage 0: Fetch profile posts
+    stgRun(0);
+    document.getElementById('sd0').textContent = '1';
+    const items = await fetchProfilePosts(profileUrl);
+    stgDone(0, items.length + ' posts fetched from profile');
+
+    // Map items — use lead's own name/headline/company as author fallback
+    const mapped = items.map((item, i) => {
+      const mapped = mapItem(item, i);
+      // Preserve lead identity for posts where author data may be sparse
+      if (!mapped.name || mapped.name === 'Unknown') mapped.name = lead.name;
+      if (!mapped.headline || mapped.headline === '—') mapped.headline = lead.headline;
+      if (!mapped.company || mapped.company === '—') mapped.company = lead.company;
+      mapped.profileUrl = profileUrl;
+      mapped.source = 'profile_scan';
+      return mapped;
+    });
+
+    // Stage 1: Gate filter (same pipeline as normal scan)
+    stgRun(1);
+    await new Promise(r => setTimeout(r, 300));
+    // Profile mode: filter only non-tech/non-staffing posts
+    let gated = mapped.filter(l => !isNonTechPost(l.post));
+    stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate');
+
+    if (gated.length === 0) {
+      setTimeout(() => { pipeModal.classList.remove('show'); }, 800);
+      toast('Profile scan complete — 0 posts passed qualification gate', 'w');
+      return;
+    }
+
+    // Load existing keys to prevent duplicates
+    let existingLeadKeys = new Set();
+    try {
+      const { data: existingRows } = await _sb.from('leads').select('post_url, name, company');
+      if (existingRows) {
+        existingRows.forEach(r => {
+          if (r.post_url) existingLeadKeys.add(r.post_url);
+          if (r.name && r.company) existingLeadKeys.add((r.name + '|' + r.company).toLowerCase());
+        });
+      }
+    } catch(e) { /* non-fatal */ }
+
+    const newLeads = gated.filter(l => {
+      if (l.postUrl && existingLeadKeys.has(l.postUrl)) return false;
+      const nameKey = (l.name + '|' + l.company).toLowerCase();
+      return !existingLeadKeys.has(nameKey);
+    });
+
+    if (newLeads.length === 0) {
+      setTimeout(() => { pipeModal.classList.remove('show'); }, 800);
+      toast('Profile scan complete — all posts already in Signal (no new leads)', 'w');
+      return;
+    }
+
+    // Stage 2: Rule-based profile mode scoring (no AI, instant)
+    stgRun(2);
+    const st2el = document.getElementById('st2-label');
+    if (st2el) st2el.textContent = 'Gate 2: Profile scoring ' + newLeads.length + ' post(s)';
+
+    let scored = 0;
+    for (const l of newLeads) {
+      const r = profileModeScore(l.post, l.headline);
+      applyScoreToLead(l, r);
+      l.source = 'profile_scan';
+      scored++;
+      const sc2 = document.getElementById('sc2');
+      if (sc2) sc2.textContent = scored + ' / ' + newLeads.length + ' scored (rule-based)';
+    }
+    stgDone(2, scored + ' leads scored · no AI tokens used');
+
+    // Stage 3: Save
+    stgRun(3);
+    const qualified = newLeads.filter(l => l.score >= 4);
+    let saved = 0;
+    if (qualified.length > 0) {
+      await saveLeadsToSupabase(qualified);
+      saved = qualified.length;
+    }
+    stgDone(3, saved + ' saved · ' + (newLeads.length - saved) + ' cold (not saved)');
+
+    // Reload and merge
+    await loadLeadsFromSupabase();
+    const coldLeads = newLeads.filter(l => l.score < 4);
+    if (coldLeads.length > 0) {
+      const existing = new Set(allLeads.map(l => l.postUrl || (l.name + '|' + l.headline)).filter(Boolean));
+      const newColds = coldLeads.filter(l => !existing.has(l.postUrl || (l.name + '|' + l.headline)));
+      allLeads = [...allLeads, ...newColds];
+    }
+    doFilter();
+
+    const hotCnt = newLeads.filter(l => l.label === 'Hot').length;
+    const warmCnt = newLeads.filter(l => l.label === 'Warm').length;
+    setTimeout(() => {
+      pipeModal.classList.remove('show');
+      toast('Profile scan done — ' + hotCnt + ' Hot · ' + warmCnt + ' Warm from ' + items.length + ' posts', 'ok');
+    }, 800);
+
+  } catch(e) {
+    showErr(e.message);
+    toast(e.message.slice(0,80), 'e');
+  }
+}
+
+// ── Extract profileUrl from a lead object (handles multiple field names) ──
+function getProfileUrl(lead) {
+  return lead.profileUrl || lead.profile_url || lead.linkedinUrl || lead.linkedin_url || '';
+}
+
+// ── Extract company name from headline (most reliable source) ──
+// Handles formats:
+//   "Sr. Manager @ VAYUZ Technologies"
+//   "CTO | Acme Corp"
+//   "Head of Engineering - Smith+Nephew"
+//   "VP Engineering, Google"
+//   "Founder & CEO at Startup Inc."
+function extractCompanyFromHeadline(headline) {
+  if (!headline || headline === '—') return null;
+
+  // Pattern 1: @ separator (most common on LinkedIn)
+  const atMatch = headline.match(/[@]\s*([^|@\n,]+)/);
+  if (atMatch) return atMatch[1].trim();
+
+  // Pattern 2: " at " keyword
+  const atWordMatch = headline.match(/\bat\s+([A-Z][^\n|@,]{2,40})/);
+  if (atWordMatch) return atWordMatch[1].trim();
+
+  // Pattern 3: | separator — company is usually the part after the last |
+  const pipes = headline.split('|').map(p => p.trim()).filter(Boolean);
+  if (pipes.length >= 2) {
+    // Company is the last meaningful segment that isn't a job title keyword
+    const titleWords = /engineer|manager|director|developer|consultant|analyst|specialist|officer|lead|head|vp|cto|ceo|coo|founder|partner|associate|executive|president|architect|designer|strategist|recruiter|sourcing/i;
+    const nonTitle = pipes.slice(1).find(p => !titleWords.test(p));
+    if (nonTitle && nonTitle.length > 2) return nonTitle;
+    // Fall back to last segment
+    const last = pipes[pipes.length - 1];
+    if (last.length > 2 && last.length < 60) return last;
+  }
+
+  // Pattern 4: " - " or " – " separator
+  const dashMatch = headline.match(/[-–]\s*([A-Z][^-–\n|@]{2,40})$/);
+  if (dashMatch) return dashMatch[1].trim();
+
+  return null;
+}
+
+// ── Extract company name from post text ──
+// Catches: "VCreaTek Consulting is looking for..."
+//          "At VAYUZ Technologies, we are hiring..."
+//          "VOIS India Hiring | DevOps Engineers"
+function extractCompanyFromPost(post) {
+  if (!post) return null;
+
+  // First line company mention — "CompanyName is looking for / is hiring / announces"
+  const firstLine = post.split('\n')[0].trim();
+
+  // Pattern: "CompanyName Hiring | ..." or "CompanyName is looking..."
+  const hiringMatch = firstLine.match(/^([A-Z][A-Za-z0-9\s&.+,-]{1,40}?)\s+(?:is\s+)?(?:hiring|looking for|seeking|announcing|expanding)/i);
+  if (hiringMatch) return hiringMatch[1].trim();
+
+  // Pattern: "At CompanyName, we..."
+  const atMatch = post.match(/\bat\s+([A-Z][A-Za-z0-9\s&.+,-]{2,40}?),/);
+  if (atMatch) return atMatch[1].trim();
+
+  // Pattern: "CompanyName | Role Title" in first line
+  const pipeFirst = firstLine.split('|')[0].trim();
+  if (pipeFirst && pipeFirst.length > 2 && pipeFirst.length < 50 &&
+      /^[A-Z]/.test(pipeFirst) && !/hiring|looking|we are|join us/i.test(pipeFirst)) {
+    return pipeFirst;
+  }
+
+  return null;
+}
+
 function mapItem(item, idx) {
   if (idx === 0) console.log('[SignalEngine] First raw item keys:', Object.keys(item), '| sample:', JSON.stringify(item).slice(0,300));
   const author = item.author || item.profile || {};
   const name = author.name || author.fullName || item.authorName || item.firstName + ' ' + item.lastName || 'Unknown';
   const headline = author.headline || author.position || author.title || author.info || item.authorHeadline || item.authorTitle || '—';
-  const company = author.company || author.companyName || item.authorCompany || '—';
   const post = item.text || item.postText || item.content || item.commentary || item.description || '';
-  // item.linkedinUrl is the POST url in harvestapi schema
   const postUrl = item.postUrl || item.url || item.shareUrl || (item.type === 'post' ? item.linkedinUrl : '') || item.postLink || '';
   const profileUrl = author.linkedinUrl || author.profileUrl || author.url || item.authorUrl || item.authorProfileUrl || '';
+
+  // ── Company: try API fields first, then extract from headline, then from post ──
+  const rawCompany = author.company || author.companyName || item.authorCompany || '';
+  const company = (rawCompany && rawCompany !== '—' && rawCompany.length > 1)
+    ? rawCompany
+    : (extractCompanyFromHeadline(headline) || extractCompanyFromPost(post) || '—');
+
+  if (idx === 0) console.log('[SignalEngine] Company resolved:', company, '| from headline:', extractCompanyFromHeadline(headline), '| from post:', extractCompanyFromPost(post));
 
   // ── Extract clean posted time ──
   // Apify returns: "22 minutes ago • Edited • Visible to anyone on or off LinkedIn"
@@ -2549,6 +3032,168 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// ══════════════════════════════════════════════════════════════════
+// PROFILE MODE SCORING ENGINE
+// Used when apifyMode = 'profile-posts'
+// No keyword gate, no geo check, no AI needed.
+// 3 parameters only: tech relevance, designation, seriousness
+// ══════════════════════════════════════════════════════════════════
+
+function isNonTechPost(post) {
+  // Returns true if post is clearly NOT tech/staffing related
+  // i.e. it should be filtered OUT
+  const t = (post || '').toLowerCase();
+
+  // Must have at least one tech/business/staffing signal to pass
+  const techSignals = /(app|application|software|platform|product|web|mobile|api|cloud|ai|ml|llm|genai|automation|digital|tech|developer|engineer|devops|data|saas|erp|crm|mvp|backend|frontend|full.?stack|react|node|python|java|flutter|ios|android|kubernetes|aws|azure|gcp|microservice|database|integration|dashboard|portal|system|infrastructure|vendor|outsource|agency|partner|staffing|augment|hiring|team|resource|talent|sprint|deployment|architecture|solution|implementation|project|requirement|scope|budget|timeline|deliverable|contract|proposal|poc|pilot|scale|build|develop|launch|migrate|modernize|transform)/i;
+
+  if (techSignals.test(t)) return false; // has tech signal — keep it
+
+  // Clearly non-relevant post patterns
+  const noiseSignals = /(congratulations|happy birthday|proud of|blessed|grateful|thankful|motivat|inspir|quote|wisdom|lesson learned|life advice|personal growth|mindset|hustle|grind|journey|reflection|celebrate|anniversary|wedding|holiday|festival|diwali|eid|christmas|new year|good morning|good night|monday motivation|friday feeling|weekend|vacation|travel|food|recipe|fitness|workout|health tip|book recommendation|podcast|movie|show|sport|cricket|football|ipl|politics|election|news|weather|climate|environment)/i;
+
+  if (noiseSignals.test(t)) return true; // clearly noise — filter out
+
+  // Short posts with no substance (< 30 words and no tech signal already checked above)
+  const wordCount = t.split(/\s+/).filter(w => w.length > 2).length;
+  if (wordCount < 15) return true;
+
+  // Default: keep it (don't over-filter)
+  return false;
+}
+
+function profileModeScore(post, headline) {
+  const t = (post || '').toLowerCase();
+  const h = (headline || '').toLowerCase();
+  let score = 0;
+  const signals = [];
+  const reasons = [];
+
+  // ── Parameter 1: Requirement Clarity (0–4) ──
+  // How clear is the tech/staffing need
+  if (/(looking for|we need|seeking|require|hiring|open to|interested in|need a|want to|searching for|exploring|evaluating|shortlisting|rfp|rfq|proposal|quotation|vendor selection|partnership)/i.test(t)) {
+    score += 4; signals.push('clear-requirement'); reasons.push('Clear requirement or vendor intent stated');
+  } else if (/(build|develop|create|launch|scale|migrate|automate|integrate|implement|deploy|upgrade|replace|rebuild)/i.test(t)) {
+    score += 3; signals.push('build-intent'); reasons.push('Build/develop intent present');
+  } else if (/(challenge|problem|issue|struggle|pain|slow|broken|manual|inefficient|expensive|complex)/i.test(t)) {
+    score += 2; signals.push('pain-point'); reasons.push('Business pain point mentioned');
+  } else if (/(tech|software|platform|product|digital|app|system)/i.test(t)) {
+    score += 1; signals.push('tech-context'); reasons.push('General tech context');
+  }
+
+  // ── Parameter 2: Designation (0–3) ──
+  const isTopDecision = /(founder|co-founder|ceo|cto|cpo|cio|md|managing director|president|owner|partner|principal)/i.test(h);
+  const isMidDecision = /(vp|vice president|director|head of|svp|evp|gm|general manager|chief)/i.test(h);
+  const isManager     = /(manager|lead|senior manager|delivery manager|project manager|product manager|program manager|engineering manager)/i.test(h);
+
+  if (isTopDecision) {
+    score += 3; signals.push('c-level'); reasons.push('C-level / Founder — top decision maker');
+  } else if (isMidDecision) {
+    score += 2; signals.push('director-level'); reasons.push('Director / VP / Head of — mid decision maker');
+  } else if (isManager) {
+    score += 1; signals.push('manager-level'); reasons.push('Manager / Lead level');
+  }
+
+  // ── Parameter 3: Seriousness (0–3) ──
+  // Urgency, budget, team size, timeline, concrete ask
+  let seriousness = 0;
+  if (/(urgent|asap|immediately|this (week|month|quarter)|deadline|q[1-4]|by [a-z]+ \d{4})/i.test(t)) {
+    seriousness++; signals.push('urgent'); reasons.push('Urgency / timeline mentioned');
+  }
+  if (/(budget|cost|price|rate|₹|inr|\$|usd|gbp|lakh|crore|k\/month|per month|fixed price|retainer)/i.test(t)) {
+    seriousness++; signals.push('budget'); reasons.push('Budget / cost signal present');
+  }
+  if (/(\d+\s*(developer|engineer|resource|member|person|people|head)|team of \d+|bench strength|\d+\s*ftee?)/i.test(t)) {
+    seriousness++; signals.push('team-size'); reasons.push('Team size / headcount mentioned');
+  }
+  if (/(contract|sow|nda|agreement|onboard|kickoff|poc|pilot|discovery call|proposal|scope of work)/i.test(t)) {
+    seriousness++; signals.push('deal-stage'); reasons.push('Deal stage / process signal');
+  }
+  score += Math.min(3, seriousness);
+
+  // Cap and label
+  score = Math.min(10, score);
+  const label = score >= 7 ? 'Hot' : score >= 4 ? 'Warm' : 'Cold';
+
+  return {
+    score: parseFloat(score.toFixed(1)),
+    label,
+    signals,
+    reasoning: reasons.join('. ') || 'Profile mode rule-based scoring.',
+    category: classifyCategory(post),
+    hiringType: classifyHiringType(post),
+    role: extractRole(post),
+    geo: extractGeo(post),
+    buyerType: isTopDecision ? 'Decision Maker' : isMidDecision ? 'Mid-level Decision Maker' : isManager ? 'Manager' : 'Unknown',
+    urgency: signals.includes('urgent') ? 'High' : signals.includes('budget') ? 'Medium' : 'Low',
+    companySize: 'Unknown',
+    painPoints: [],
+    lowOutreachContext: score < 5,
+    recommendedAction: score >= 7 ? 'Reach Out Now' : score >= 4 ? 'Monitor' : 'Skip',
+    intent: parseFloat((score / 10).toFixed(2)),
+    source: 'profile_scan'
+  };
+}
+
+
+
+// ── Copy lead info for outreach ──
+function copyLeadInfo() {
+  const lead = window._currentDPLead;
+  if (!lead) return;
+  const pUrl = getProfileUrl(lead) || '—';
+  const lines = [
+    lead.name || '—',
+    lead.company || '—',
+    lead.headline || '—',
+    pUrl !== '—' ? pUrl : '',
+    lead.email || '',
+    lead.phone || ''
+  ].filter(Boolean);
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    toast('Lead info copied to clipboard', 'ok');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = lines.join('\n');
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Lead info copied', 'ok');
+  });
+}
+// ── CSV Export ──
+function exportCSV() {
+  const rows = getVisibleLeads();
+  if (!rows.length) { toast('No leads to export — check your filters', 'w'); return; }
+  const cols = ['Name','Company','Headline','Score','Label','Stage','Category','Geo','Hiring Type','Email','Phone','Post URL','Profile URL','Remarks','Source','Scanned At'];
+  const escape = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+  const lines = [cols.map(escape).join(',')];
+  rows.forEach(l => {
+    lines.push([
+      l.name, l.company, l.headline, l.score, l.label,
+      l.stage||'', l.category||'', l.geo||'', l.hiringType||'',
+      l.email||'', l.phone||'', l.postUrl||'', l.profileUrl||getProfileUrl(l)||'',
+      (l.remarks||'').replace(/\n/g,' '), l.source||'post_search',
+      l.scannedAt ? new Date(l.scannedAt).toLocaleDateString('en-IN') : ''
+    ].map(escape).join(','));
+  });
+  const csv = lines.join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'signal-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Exported ' + rows.length + ' leads to CSV', 'ok');
+}
+
+// ── Get currently visible/filtered leads ──
+function getVisibleLeads() {
+  const tbody = document.getElementById('tbody');
+  if (!tbody) return [];
+  // Get lead indices from rendered rows
+  const visibleNames = new Set(Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.name).filter(Boolean));
+  return allLeads.filter(l => visibleNames.has(l.name + '|' + (l.company||'')));
+}
+
 async function runPipeline() {
   const btn = document.getElementById('run-btn');
   btn.disabled = true;
@@ -2566,8 +3211,18 @@ async function runPipeline() {
   if (tbSub) tbSub.textContent = 'Apify → Rule Gate → ' + providerName + ' Score → Outreach Ready';
 
   document.getElementById('pipe-mb').classList.add('show');
+  const isProfileMode = cfg.apifyMode === 'profile-posts';
+  // Update stage labels for profile mode
+  {
+    const st1el = document.getElementById('st1');
+    if (st1el) { const st1txt = st1el.querySelector('.stxt2'); if (st1txt) st1txt.textContent = isProfileMode ? 'Gate 1: Non-tech / noise filter (blog, event, vendor promo, job seeker…)' : 'Gate 1: Keyword OR title filter (auto-fallback)'; }
+    const st2lbl = document.getElementById('st2-label');
+    if (st2lbl) st2lbl.textContent = isProfileMode ? 'Gate 2: Profile scoring (designation + clarity + seriousness)' : 'Gate 2: ' + providerName + ' intent + signal scoring';
+  }
   document.getElementById('pipe-src').textContent = cfg.apifyToken
-    ? 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5)
+    ? (isProfileMode
+        ? 'Actor: harvestapi/linkedin-profile-posts · Profiles: ' + (cfg.profileUrls||[]).length
+        : 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5))
     : 'Demo mode (no token set)';
   let isDemo = false;
 
@@ -2582,7 +3237,16 @@ async function runPipeline() {
       stgDone(0, raw.length + ' posts (demo)');
       document.getElementById('dn').classList.add('show');
     } else {
-      raw = await fetchApify();
+      if (isProfileMode) {
+        if (!(cfg.profileUrls||[]).length) throw new Error('No profile URLs set. Open Configure → Profile Posts and add LinkedIn profile URLs.');
+        raw = await fetchApifyProfiles();
+      } else {
+        raw = await fetchApify();
+      }
+      // In profile mode, auto-enable skip-gate since profile posts may not contain keywords
+      if (isProfileMode && !cfg.skipGate) {
+        console.log('[ProfileMode] Auto-bypassing Gate 1 keyword filter — profile posts scored directly by AI');
+      }
       stgDone(0, raw.length + ' posts fetched');
     }
 
@@ -2593,7 +3257,9 @@ async function runPipeline() {
     await new Promise(r => setTimeout(r, 400));
     let gated;
     // Apply Gate 1 in both live and demo mode — demo data is realistic enough to filter
-    gated = mapped.filter(l => rulePass(l.post, l.headline, l.company));
+    gated = isProfileMode
+      ? mapped.filter(l => !isNonTechPost(l.post))
+      : mapped.filter(l => rulePass(l.post, l.headline, l.company));
     if (!isDemo) {
       console.log('[Gate1] Mapped:', mapped.length, '→ Passed:', gated.length, '→ Filtered out:', mapped.length - gated.length);
       if (gated.length === 0 && mapped.length > 0) {
@@ -2609,7 +3275,9 @@ async function runPipeline() {
         const gw = document.getElementById('gate-warn');
         if (gw) { gw.textContent = warnMsg; gw.style.display = 'block'; }
       } else {
-        stgDone(1, gated.length + ' / ' + mapped.length + ' passed gate');
+        stgDone(1, isProfileMode
+          ? gated.length + ' / ' + mapped.length + ' tech-relevant posts'
+          : gated.length + ' / ' + mapped.length + ' passed gate');
         // Clear any previous gate warning
         const gw = document.getElementById('gate-warn');
         if (gw) gw.style.display = 'none';
@@ -2670,33 +3338,44 @@ async function runPipeline() {
     const totalToScore = gated.length;
     const firstBatchSize = Math.min(batchSize, totalToScore);
     
-    // Process first batch immediately
-    for (let i = 0; i < firstBatchSize; i++) {
-      const lead = gated[i];
-      const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
-      applyScoreToLead(lead, r);
-      scored++;
-      document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored (foreground)…';
-      await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
-    }
-    
-    // Queue remaining posts for background processing
-    if (cfg.backgroundProcessing && totalToScore > firstBatchSize) {
-      for (let i = firstBatchSize; i < gated.length; i++) {
-        batchQueue.push(gated[i]);
+    if (isProfileMode) {
+      // ── Profile Mode: instant rule-based scoring (no AI, no delays) ──
+      for (let i = 0; i < totalToScore; i++) {
+        const lead = gated[i];
+        const r = profileModeScore(lead.post, lead.headline);
+        applyScoreToLead(lead, r);
+        lead.source = 'profile_scan'; // tag source
+        scored++;
+        document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored (profile mode)';
       }
-      document.getElementById('sc2').textContent = scored + ' scored · ' + batchQueue.length + ' queued (background)';
-      // Start background processing without awaiting
-      processBackgroundBatch(gated, scored, totalToScore);
     } else {
-      // Score all remaining in foreground if no background processing
-      for (let i = firstBatchSize; i < gated.length; i++) {
+      // ── Post Search Mode: AI scoring with batching ──
+      // Process first batch immediately
+      for (let i = 0; i < firstBatchSize; i++) {
         const lead = gated[i];
         const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
         applyScoreToLead(lead, r);
         scored++;
-        document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored…';
+        document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored (foreground)…';
         await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
+      }
+
+      // Queue remaining posts for background processing
+      if (cfg.backgroundProcessing && totalToScore > firstBatchSize) {
+        for (let i = firstBatchSize; i < gated.length; i++) {
+          batchQueue.push(gated[i]);
+        }
+        document.getElementById('sc2').textContent = scored + ' scored · ' + batchQueue.length + ' queued (background)';
+        processBackgroundBatch(gated, scored, totalToScore);
+      } else {
+        for (let i = firstBatchSize; i < gated.length; i++) {
+          const lead = gated[i];
+          const r = await geminiScore(lead.post, lead.name, lead.headline, lead.company, lead.postUrl);
+          applyScoreToLead(lead, r);
+          scored++;
+          document.getElementById('sc2').textContent = scored + ' / ' + totalToScore + ' scored…';
+          await new Promise(r => setTimeout(r, isDemo ? 80 : 4100));
+        }
       }
     }
     
@@ -2938,6 +3617,7 @@ function resetAllFilters() {
   window._lowScoreFilter = false;
   document.getElementById('q').value = '';
   document.getElementById('dd-date').value = '';
+  document.getElementById('dd-source').value = '';
   document.getElementById('dd-label').value = '';
   document.getElementById('dd-stage').value = '';
   document.getElementById('dd-cat').value = '';
@@ -3203,11 +3883,9 @@ function formatDate(isoStr) {
   try {
     const d = new Date(isoStr);
     if (isNaN(d)) return null;
-    // Format: "4 Apr 2026" — day + short month + year, no comma
     const day = d.getDate();
     const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-    const year = d.getFullYear();
-    return `${day} ${month} ${year}`;
+    return `${month} ${day}`;
   } catch(e) { return null; }
 }
 
@@ -3315,19 +3993,19 @@ function renderTbl() {
     tr.className = 'lr' + ((lead.score < 6 && !(lead.leadStage||'').includes('Not Relevant')) ? ' low-score-row' : '');
     tr.dataset.posturl = lead.postUrl || '';
     tr.onclick = () => openDP(lead);
+    tr.dataset.name = lead.name + '|' + (lead.company||'');
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
       <td style="white-space:nowrap">${postedBadge(lead)}</td>
-      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${esc(lead.name)}${lead.isNew?'<span class="new-badge">NEW</span>':''}</div><div class="lsub">${esc(lead.headline)}${lead.company&&lead.company!=='—'?' · '+esc(lead.company):''}</div></div></div></td>
-      <td><span class="sp ${sc}">${lead.score}/10</span></td>
-      <td><span class="sp ${sc}" style="font-size:11px">${labelIcon(lbl)} ${lbl}</span></td>
+      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
+      <td style="text-align:center"><div style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:13px">${labelIcon(lbl)}</span><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:${lbl==='Hot'?'var(--green)':lbl==='Warm'?'var(--amber)':'var(--text3)'}">${lead.score}/10</span></div></td>
       <td>${stageBadge(lead.leadStage)}</td>
       <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
       <td><span style="font-size:11.5px;color:var(--text2)">${esc(lead.role||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${esc(lead.geo||'—')}</span></td>
       <td><span style="font-size:11px;color:var(--text3)">${esc(lead.hiringType||'—')}</span></td>
       <td class="uc">${urlCell}</td>
-      <td style="display:flex;align-items:center;gap:8px;min-width:180px"><div class="snp" style="flex:1;font-size:11.5px;color:var(--text2)">${remarksSnip}</div><button class="row-del" onclick="event.stopPropagation();deleteLeadById(${JSON.stringify(lead._dbid)},${JSON.stringify(lead.name)})">🗑</button></td>
+      <td style="display:flex;align-items:center;gap:8px;min-width:180px"><div class="snp" style="flex:1;font-size:11.5px;color:var(--text2)">${remarksSnip}</div><button class="row-scan-profile" onclick="event.stopPropagation();runProfileScan(lead)" title="${getProfileUrl(lead)?'Scan profile posts from '+esc(lead.name):'No profile URL — add in detail panel'}" style="${getProfileUrl(lead)?'':' opacity:.35;pointer-events:none'}">🔍</button><button class="row-del" onclick="event.stopPropagation();deleteLeadById(${JSON.stringify(lead._dbid)},${JSON.stringify(lead.name)})">🗑</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -3402,9 +4080,20 @@ function updChannelStats(sourceLeads) {
 // ── Detail panel ──
 function openDP(lead) {
   activeDetail = lead;
+  window._currentDPLead = lead;
+  // Update scan button state based on profile URL availability
+  const scanBtn = document.getElementById('dp-scan-profile-btn');
+  if (scanBtn) {
+    const pUrl = getProfileUrl(lead);
+    scanBtn.disabled = !pUrl;
+    scanBtn.style.opacity = pUrl ? '1' : '0.45';
+    scanBtn.style.pointerEvents = pUrl ? '' : 'none';
+    scanBtn.title = pUrl ? ('Scan posts from ' + lead.name + "'s LinkedIn profile") : 'No LinkedIn profile URL — add one in the profile URL field above';
+    scanBtn.textContent = pUrl ? '🔍 Scan Profile Posts' : '🔍 Scan Profile Posts (add profile URL above to enable)';
+  }
   const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
-  document.getElementById('dp-name').textContent = lead.name + ' — ' + lead.headline;
-  document.getElementById('dp-co').textContent = (lead.compName||lead.company||'—') + ' · ' + lbl + ' · ' + lead.score + '/10';
+  document.getElementById('dp-name').textContent = (lead.compName||lead.company||'—');
+  document.getElementById('dp-co').textContent = lead.name + ' · ' + lead.headline + ' · ' + lbl + ' · ' + lead.score + '/10';
   document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel||'').split('/').pop() + ') · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
@@ -3429,7 +4118,7 @@ function openDP(lead) {
     <div class="dr"><span class="dl">Client Geo</span><span class="dv">${esc(lead.geo||'—')}</span></div>
     <div class="dr"><span class="dl">Low Outreach Context</span><span class="dv" style="color:${lead.lowOutreachContext?'var(--amber)':'var(--green)'}">${lead.lowOutreachContext?'⚠ Yes — needs enrichment':'✓ Good context'}</span></div>
     ${lead.disqualifyReason?`<div class="dr"><span class="dl">DQ Reason</span><span class="dv" style="color:var(--red);font-size:10.5px">${esc(lead.disqualifyReason)}</span></div>`:''}
-    <div class="dr"><span class="dl">Source</span><span class="dv">LinkedIn${cfg.apifyToken?' (Live)':' (Demo)'}</span></div>
+    <div class="dr"><span class="dl">Source</span><span class="dv">${lead.source==='profile_scan'?'👤 Profile Scan (harvestapi/linkedin-profile-posts)':'🔍 Post Search (harvestapi/linkedin-post-search)'}${cfg.apifyToken?'':' · Demo'}</span></div>
     <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
     <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
     <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
@@ -3722,7 +4411,7 @@ async function saveLeadsToSupabase(leads) {
     hiring_for: l.role || null,
     hiring_type: l.hiringType || null,
     client_geo: l.geo || null,
-    source: 'LinkedIn',
+    source: l.source === 'profile_scan' ? 'Profile Scan' : 'LinkedIn',
     email: l.email || null,
     phone: l.phone || null,
     posted_at: l.created || null,
@@ -3794,8 +4483,16 @@ async function loadLeadsFromSupabase() {
       // ── Identity ──
       name: l.name || '—',
       headline: l.title || '—',
-      company: l.company || '—',
-      compName: l.company || '—',
+      company: (() => {
+        const raw = l.company || '';
+        if (raw && raw !== '—' && raw.length > 1) return raw;
+        return extractCompanyFromHeadline(l.title || '') || '—';
+      })(),
+      compName: (() => {
+        const raw = l.company || '';
+        if (raw && raw !== '—' && raw.length > 1) return raw;
+        return extractCompanyFromHeadline(l.title || '') || '—';
+      })(),
       profileUrl: l.linkedin_url || l.Profile || '',
       postUrl: l.post_url || l['Post URL'] || '',
       post: l.post_text || l.post || l.text || '',
@@ -3818,6 +4515,7 @@ async function loadLeadsFromSupabase() {
       source: l.source || 'LinkedIn',
       created: l.posted_at || l.Posted || '—',
       scannedAt: l.scanned_at || l.created_at || null,
+      source: l.source === 'Profile Scan' ? 'profile_scan' : 'post_search',
       reasoning: l.qualification_reason || '',
       // ── UI ──
       avatar: ini(l.name || '—'),
