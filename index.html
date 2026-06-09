@@ -132,7 +132,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .lr:hover td{background:rgba(37,99,235,.03)}
 .lr{cursor:pointer}
 .lc{display:flex;align-items:center;gap:9px}
-.la{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono)}
+.la{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono);overflow:hidden;position:relative}
+.la img{width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0}
+.la-txt{position:relative;z-index:1}
 .ln{font-size:12.5px;font-weight:600}
 .lsub{font-size:11px;color:var(--text3);margin-top:1px}
 .sp{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;font-family:var(--mono)}
@@ -760,9 +762,12 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 <!-- Detail Panel -->
 <div class="dp" id="dpanel">
   <div class="dph">
-    <div>
-      <div style="font-size:13.5px;font-weight:700" id="dp-name">—</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)" id="dp-co">—</div>
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+      <div id="dp-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text2);flex-shrink:0;overflow:hidden;position:relative"></div>
+      <div style="min-width:0">
+        <div style="font-size:13.5px;font-weight:700" id="dp-name">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)" id="dp-co">—</div>
+      </div>
     </div>
     <div class="dpclose" onclick="closeDP()">✕</div>
   </div>
@@ -831,6 +836,14 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         </div>
       </div>
       <div style="font-size:9.5px;color:var(--text3);font-family:var(--mono);margin-top:5px;line-height:1.5">Tap once = Tried &nbsp;&#183;&nbsp; Tap again = <span style="color:var(--green)">Connected &#x2713;</span> &nbsp;&#183;&nbsp; Tap again = Reset</div>
+    </div>
+
+    <div class="dp-edit-sec">
+      <div class="dp-edit-label">Company Name <span style="font-size:9px;color:var(--text3);font-family:var(--mono);font-weight:400">— edit if wrong</span></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="ci" type="text" id="dp-company-input" placeholder="e.g. Smith+Nephew India" style="flex:1">
+        <button class="btn" style="padding:5px 10px;font-size:11px;white-space:nowrap;color:var(--green);border-color:rgba(13,158,114,.3);font-weight:700" onclick="applyCompanyEdit()" title="Save company name">✓ Apply</button>
+      </div>
     </div>
 
     <div class="dp-edit-sec">
@@ -1647,6 +1660,175 @@ const COLS = ['#4f8ef7','#22d3a0','#f0a84a','#9d72f5','#f05b5b','#38bdf8','#fb71
 const avc = i => COLS[i % COLS.length];
 const ini = n => (n||'??').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+
+// ══════════════════════════════════════════════════════════════════
+// COMPANY LOGO ENGINE
+// Chain: email domain → name guess → Clearbit → Google favicon → initials
+// ══════════════════════════════════════════════════════════════════
+
+// In-memory logo cache — domain → 'logo_url' | 'initials'
+const logoCache = {};
+
+// Extract domain from email or post URL
+function domainFromEmail(email) {
+  if (!email) return null;
+  const m = email.match(/@([\w.-]+\.[a-z]{2,})/i);
+  if (!m) return null;
+  const d = m[1].toLowerCase();
+  // Skip free email providers
+  const free = ['gmail.com','yahoo.com','outlook.com','hotmail.com','rediffmail.com','icloud.com','protonmail.com','ymail.com','live.com'];
+  return free.includes(d) ? null : d;
+}
+
+// Guess domain from company name
+function domainFromName(company) {
+  if (!company || company === '—') return null;
+  return company
+    .toLowerCase()
+    .replace(/\s+(pvt|ltd|llc|inc|corp|private|limited|technologies|tech|solutions|services|india|global|group|international|enterprises|ventures|consulting|digital|software|systems|infotech|infosystems|innovations|innovation)\b/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim() + '.com';
+}
+
+// Fetch Clearbit logo — returns URL or null
+async function fetchClearbitLogo(domain) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve('https://logo.clearbit.com/' + domain + '?size=64');
+    img.onerror = () => resolve(null);
+    img.src = 'https://logo.clearbit.com/' + domain + '?size=64';
+    setTimeout(() => resolve(null), 3000); // 3s timeout
+  });
+}
+
+// Fetch Google favicon — always returns something but check it's not tiny
+async function fetchGoogleFavicon(domain) {
+  const url = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      // Google returns a 16x16 grey globe for unknown domains — skip those
+      if (img.naturalWidth <= 16) resolve(null);
+      else resolve(url);
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+    setTimeout(() => resolve(null), 3000);
+  });
+}
+
+// Main resolver — returns logo URL or null (null = use initials)
+async function resolveCompanyLogo(lead) {
+  // Try to get domain
+  const domain = domainFromEmail(lead.email) || domainFromName(lead.company);
+  if (!domain || domain === '.com') return null;
+
+  // Check cache first
+  if (logoCache[domain] !== undefined) return logoCache[domain] || null;
+
+  // Mark as pending so we don't fire multiple requests
+  logoCache[domain] = false;
+
+  // Try Clearbit first
+  let logoUrl = await fetchClearbitLogo(domain);
+
+  // Fallback to Google favicon
+  if (!logoUrl) logoUrl = await fetchGoogleFavicon(domain);
+
+  logoCache[domain] = logoUrl || false;
+  return logoUrl || null;
+}
+
+// Build avatar HTML — logo image if available, else colored initials
+function getAvatarBg(lead) {
+  const d = domainFromEmail(lead.email) || domainFromName(lead.company);
+  return (d && logoCache[d]) ? 'var(--bg3)' : (lead.color || '#4f8ef7');
+}
+
+function avatarHTML(lead) {
+  const domain = domainFromEmail(lead.email) || domainFromName(lead.company);
+  const cached = domain ? logoCache[domain] : false;
+  const initials = '<span class="la-txt">' + esc(ini(lead.name)) + '</span>';
+
+  if (cached) {
+    // Has a real logo URL
+    return '<img src="' + cached + '" alt="" onerror="this.style.display=&apos;none&apos;" loading="lazy">' + initials;
+  }
+  // No logo yet — show initials, kick off async resolution
+  if (domain && logoCache[domain] === undefined) {
+    resolveCompanyLogo(lead).then(url => {
+      if (url) {
+        // Re-render all avatars for this domain
+        rerenderAvatarsForDomain(domain, url);
+      }
+    });
+  }
+  return initials;
+}
+
+// Re-render all avatar cells for a given domain once logo loads
+function rerenderAvatarsForDomain(domain, logoUrl) {
+  allLeads.forEach(l => {
+    const d = domainFromEmail(l.email) || domainFromName(l.compName || l.company);
+    if (d !== domain) return;
+    // Update table row avatar
+    const row = document.querySelector('tr[data-name="' + CSS.escape(l.name + '|' + (l.compName||l.company||'')) + '"]');
+    if (row) {
+      const la = row.querySelector('.la');
+      if (la) applyLogoToAvatar(la, logoUrl, l.name);
+    }
+    // Update detail panel avatar if this lead is open
+    if (activeDetail && (activeDetail === l || activeDetail.name === l.name)) {
+      const dpAv = document.getElementById('dp-avatar');
+      if (dpAv) applyLogoToAvatar(dpAv, logoUrl, l.name, true);
+    }
+  });
+}
+
+// Single function to apply logo to any .la / dp-avatar element
+function applyLogoToAvatar(el, logoUrl, name, isLarge) {
+  const padding = isLarge ? '3px' : '2px';
+  el.style.background = 'var(--bg3)';
+  el.style.border = '1px solid var(--border2)';
+  el.style.color = 'var(--text2)';
+  // Use an Image to test load before injecting
+  const testImg = new Image();
+  testImg.onload = () => {
+    el.innerHTML =
+      '<img src="' + logoUrl + '" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:50%;padding:' + padding + '" loading="lazy">' +
+      '<span class="la-txt" style="display:none">' + esc(ini(name)) + '</span>';
+  };
+  testImg.onerror = () => {
+    // Logo URL broke — fall back to initials, keep color
+    el.style.background = '';
+    el.style.border = '';
+    el.innerHTML = '<span class="la-txt">' + esc(ini(name)) + '</span>';
+  };
+  testImg.src = logoUrl;
+}
+
+// Pre-warm logos for all loaded leads — batched to avoid rate limiting
+async function prewarmLogos(leads) {
+  // Deduplicate domains
+  const domains = new Set();
+  leads.forEach(l => {
+    const d = domainFromEmail(l.email) || domainFromName(l.company);
+    if (d && d !== '.com' && logoCache[d] === undefined) domains.add(d);
+  });
+  // Process in batches of 5 with 200ms gap to avoid hammering
+  const arr = [...domains];
+  for (let i = 0; i < arr.length; i += 5) {
+    const batch = arr.slice(i, i + 5);
+    await Promise.all(batch.map(async domain => {
+      let url = await fetchClearbitLogo(domain);
+      if (!url) url = await fetchGoogleFavicon(domain);
+      logoCache[domain] = url || false;
+      if (url) rerenderAvatarsForDomain(domain, url);
+    }));
+    if (i + 5 < arr.length) await new Promise(r => setTimeout(r, 200));
+  }
+}
 
 // ── localStorage persistence ──
 const STORE_KEY = 'vayuz_signal_cfg';
@@ -3997,7 +4179,7 @@ function renderTbl() {
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
       <td style="white-space:nowrap">${postedBadge(lead)}</td>
-      <td><div class="lc"><div class="la" style="background:${lead.color}">${esc(lead.avatar)}</div><div><div class="ln">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
+      <td><div class="lc"><div class="la" style="background:${getAvatarBg(lead)}">${avatarHTML(lead)}</div><div><div class="ln" ondblclick="event.stopPropagation();startInlineCompanyEdit(this,lead)" title="Double-click to edit company name" style="cursor:text">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
       <td style="text-align:center"><div style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:13px">${labelIcon(lbl)}</span><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:${lbl==='Hot'?'var(--green)':lbl==='Warm'?'var(--amber)':'var(--text3)'}">${lead.score}/10</span></div></td>
       <td>${stageBadge(lead.leadStage)}</td>
       <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
@@ -4093,7 +4275,33 @@ function openDP(lead) {
   }
   const lbl = lead.label || (lead.score>=8?'Hot':lead.score>=4?'Warm':'Cold');
   document.getElementById('dp-name').textContent = (lead.compName||lead.company||'—');
+  // Render logo in detail panel header
+  const dpAv = document.getElementById('dp-avatar');
+  if (dpAv) {
+    const dpDomain = domainFromEmail(lead.email) || domainFromName(lead.company);
+    const dpCached = dpDomain ? logoCache[dpDomain] : false;
+    dpAv.style.background = dpCached ? 'var(--bg3)' : lead.color;
+    dpAv.style.border = dpCached ? '1px solid var(--border2)' : 'none';
+    if (dpCached) {
+      dpAv.innerHTML = '<img src="' + dpCached + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;border-radius:50%" onerror="this.style.display=&apos;none&apos;">';
+    } else {
+      dpAv.textContent = ini(lead.name);
+      dpAv.style.color = '#fff';
+      // Async resolve
+      if (dpDomain) {
+        resolveCompanyLogo(lead).then(url => {
+          if (url && document.getElementById('dp-avatar') === dpAv) {
+            dpAv.style.background = 'var(--bg3)';
+            dpAv.style.border = '1px solid var(--border2)';
+            dpAv.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;border-radius:50%" onerror="this.style.display=&apos;none&apos;">';
+          }
+        });
+      }
+    }
+  }
   document.getElementById('dp-co').textContent = lead.name + ' · ' + lead.headline + ' · ' + lbl + ' · ' + lead.score + '/10';
+  const dpCoInput = document.getElementById('dp-company-input');
+  if (dpCoInput) dpCoInput.value = lead.compName || lead.company || '';
   document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel||'').split('/').pop() + ') · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
@@ -4551,6 +4759,124 @@ async function loadLeadsFromSupabase() {
 }
 
 // ── Save manual edits (email, phone, stage, remarks) ──
+
+
+// ── Inline company edit on table row (double-click) ──
+function startInlineCompanyEdit(el, lead) {
+  if (el.querySelector('input')) return; // already editing
+  const current = lead.compName || lead.company || '';
+  const origHTML = el.innerHTML;
+
+  // Replace text with input
+  el.innerHTML = '';
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = current;
+  inp.style.cssText = 'width:120px;padding:2px 6px;font-size:11px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--accent);border-radius:4px;color:var(--text);outline:none';
+  el.appendChild(inp);
+  inp.focus();
+  inp.select();
+
+  const commit = async () => {
+    const newVal = inp.value.trim();
+    if (!newVal || newVal === current) {
+      el.innerHTML = origHTML; return;
+    }
+    // Update lead object
+    const oldCompany = lead.compName || lead.company || '';
+    lead.compName = newVal; lead.company = newVal;
+
+    // If this is the currently open detail panel lead, sync it
+    if (activeDetail && (activeDetail === lead || activeDetail.name === lead.name)) {
+      activeDetail.compName = newVal; activeDetail.company = newVal;
+      document.getElementById('dp-name').textContent = newVal;
+      const dpCoInput = document.getElementById('dp-company-input');
+      if (dpCoInput) dpCoInput.value = newVal;
+    }
+
+    // Invalidate + re-resolve logo — await so cache is warm before doFilter re-renders
+    const oldDomain = domainFromName(oldCompany);
+    const newDomain = domainFromName(newVal);
+    if (oldDomain && oldDomain !== newDomain) delete logoCache[oldDomain];
+    if (newDomain) {
+      const logoUrl = await resolveCompanyLogo(lead);
+      if (logoUrl) rerenderAvatarsForDomain(newDomain, logoUrl);
+    }
+
+    // Save to Supabase
+    let q = _sb.from('leads').update({ company: newVal });
+    if (lead._dbid) q = q.eq('id', lead._dbid);
+    else if (lead.postUrl && lead.postUrl !== '—') q = q.eq('post_url', lead.postUrl);
+    else q = q.eq('name', lead.name || '').eq('company', oldCompany);
+    const { error } = await q;
+    if (error) toast('Company save failed: ' + error.message, 'e');
+    else toast('Company → ' + newVal, 'ok');
+
+    doFilter(); // re-render row with new company name
+  };
+
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { el.innerHTML = origHTML; }
+  });
+  inp.addEventListener('blur', commit);
+}
+
+// ── Company name inline edit ──
+async function applyCompanyEdit() {
+  if (!activeDetail) return;
+  const newCompany = (document.getElementById('dp-company-input').value || '').trim();
+  if (!newCompany) { toast('Company name cannot be empty', 'e'); return; }
+  if (newCompany === (activeDetail.compName || activeDetail.company)) { toast('No change', 'w'); return; }
+
+  const oldCompany = activeDetail.compName || activeDetail.company || '';
+
+  // Update in-memory
+  activeDetail.compName = newCompany;
+  activeDetail.company  = newCompany;
+
+  // Update detail panel header
+  document.getElementById('dp-name').textContent = newCompany;
+
+  // Invalidate logo cache for old domain so it re-resolves
+  const oldDomain = domainFromName(oldCompany);
+  const newDomain = domainFromName(newCompany);
+  if (oldDomain && oldDomain !== newDomain) delete logoCache[oldDomain];
+
+  // Re-resolve logo — await so cache is warm before doFilter re-renders the row
+  if (newDomain) {
+    const logoUrl = await resolveCompanyLogo(activeDetail);
+    if (logoUrl) rerenderAvatarsForDomain(newDomain, logoUrl);
+  }
+
+  // Save to Supabase
+  let q = _sb.from('leads').update({ company: newCompany, comp_name: newCompany });
+  if (activeDetail._dbid) {
+    q = q.eq('id', activeDetail._dbid);
+  } else if (activeDetail.postUrl && activeDetail.postUrl !== '—') {
+    q = q.eq('post_url', activeDetail.postUrl);
+  } else {
+    q = q.eq('name', activeDetail.name || '').eq('company', oldCompany);
+  }
+  const { error } = await q;
+  if (error) {
+    // comp_name column may not exist — retry with just company
+    let q2 = _sb.from('leads').update({ company: newCompany });
+    if (activeDetail._dbid) q2 = q2.eq('id', activeDetail._dbid);
+    else if (activeDetail.postUrl && activeDetail.postUrl !== '—') q2 = q2.eq('post_url', activeDetail.postUrl);
+    else q2 = q2.eq('name', activeDetail.name || '').eq('company', oldCompany);
+    const { error: e2 } = await q2;
+    if (e2) { toast('Save failed: ' + e2.message, 'e'); return; }
+  }
+
+  // Update allLeads array and re-render table row
+  const li = allLeads.findIndex(l => l === activeDetail || (l.name === activeDetail.name && (l.compName||l.company) === oldCompany));
+  if (li >= 0) { allLeads[li].company = newCompany; allLeads[li].compName = newCompany; }
+  doFilter();
+
+  toast('Company updated → ' + newCompany, 'ok');
+}
+
 async function saveLeadEdits() {
   if (!activeDetail) return;
   const email = document.getElementById('dp-email-input').value.trim();
