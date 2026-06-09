@@ -410,6 +410,15 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 .row-del{opacity:0;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(220,38,38,.25);background:var(--rdim);color:var(--red);transition:all .12s;white-space:nowrap;font-family:var(--font)}
 .row-del:hover{background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.45)}
 .lr:hover .row-del{opacity:1}
+.assign-badge{display:inline-flex;align-items:center;transition:all .12s;white-space:nowrap;vertical-align:middle;line-height:1.4}
+.assign-badge:hover{filter:brightness(1.15)}
+.assign-badge-empty{font-size:10px;font-weight:700;padding:0px 4px;border-radius:3px;cursor:pointer;border:1px dashed var(--border2);color:var(--text3);background:transparent;opacity:0}
+.lr:hover .assign-badge-empty{opacity:1}
+.assign-menu{position:fixed;z-index:9999;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:4px 0;min-width:160px}
+.assign-menu-item{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--text2);font-family:var(--font);transition:background .1s}
+.assign-menu-item:hover{background:var(--bg3);color:var(--text)}
+.assign-menu-item.active{color:var(--accent);font-weight:600}
+.assign-menu-sep{height:1px;background:var(--border);margin:3px 0}
 .row-scan-profile{opacity:0;padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(37,99,235,.2);background:var(--adim);color:var(--accent);transition:all .12s;white-space:nowrap;font-family:var(--font)}
 .row-scan-profile:hover{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.4)}
 .lr:hover .row-scan-profile{opacity:1}
@@ -702,6 +711,26 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <option value="score-asc">Score: Low→High</option>
       <option value="name">A→Z Name</option>
     </select>
+    <select class="dd-filter" id="dd-priority" onchange="doFilter()" title="Filter by priority tag">
+      <option value="">🏷 All Tags</option>
+      <option value="AI">AI</option>
+      <option value="Funded">Funded</option>
+      <option value="NSE">NSE</option>
+      <option value="ET500">ET500</option>
+      <option value="Enterprise">Enterprise</option>
+      <option value="GCC">GCC</option>
+    </select>
+    <select class="dd-filter" id="dd-assignee" onchange="doFilter()" title="Filter by assignee">
+      <option value="">👤 All Assignees</option>
+      <option value="unassigned">— Unassigned</option>
+      <option value="Chirag Sharma">Chirag</option>
+      <option value="Kartikeya Sharma">Kartikeya</option>
+      <option value="Ankit Sharma">Ankit</option>
+      <option value="Suhani Rana">Suhani</option>
+      <option value="Parth Upadhyay">Parth</option>
+      <option value="Harshita Dahiya">Harshita</option>
+      <option value="Shivam Bhargava">Shivam</option>
+    </select>
     <button class="btn" style="padding:6px 10px;font-size:11px;color:var(--text3)" onclick="resetAllFilters()" title="Clear all filters">✕ Clear</button>
     <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--green);border-color:rgba(13,158,114,.3);background:rgba(13,158,114,.07)" onclick="exportCSV()" title="Export visible leads to CSV">↓ Export CSV</button>
     <button class="btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--amber);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07)" onclick="filterLowScore()" title="Show leads scoring below 6 — bulk archive or review">⚡ Low Score</button>
@@ -844,6 +873,17 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <input class="ci" type="text" id="dp-company-input" placeholder="e.g. Smith+Nephew India" style="flex:1">
         <button class="btn" style="padding:5px 10px;font-size:11px;white-space:nowrap;color:var(--green);border-color:rgba(13,158,114,.3);font-weight:700" onclick="applyCompanyEdit()" title="Save company name">✓ Apply</button>
       </div>
+    </div>
+
+    <div class="dp-edit-sec">
+      <div class="dp-edit-label">Assigned To</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="dp-assign-btns">
+      </div>
+    </div>
+
+    <div class="dp-edit-sec">
+      <div class="dp-edit-label">Priority Tag</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="dp-priority-btns"></div>
     </div>
 
     <div class="dp-edit-sec">
@@ -3342,6 +3382,205 @@ function copyLeadInfo() {
     toast('Lead info copied', 'ok');
   });
 }
+
+
+// ══════════════════════════════════════════════════════════════════
+// COMPANY PRIORITY TAGS
+// ══════════════════════════════════════════════════════════════════
+const PRIORITY_TAGS = {
+  'AI':         { color: '#a855f7', bg: '#a855f711', border: '#a855f733', label: 'AI' },
+  'Funded':     { color: '#f59e0b', bg: '#f59e0b11', border: '#f59e0b33', label: 'Funded' },
+  'NSE':        { color: '#3b82f6', bg: '#3b82f611', border: '#3b82f633', label: 'NSE' },
+  'ET500':      { color: '#ef4444', bg: '#ef444411', border: '#ef444433', label: 'ET500' },
+  'Enterprise': { color: '#0ea5e9', bg: '#0ea5e911', border: '#0ea5e933', label: 'Enterprise' },
+  'GCC':        { color: '#10b981', bg: '#10b98111', border: '#10b98133', label: 'GCC' },
+};
+
+function priorityTagHTML(lead, onclick) {
+  const tags = lead.priorityTags || [];
+  return tags.map(t => {
+    const cfg = PRIORITY_TAGS[t];
+    if (!cfg) return '';
+    return `<span ${onclick ? 'onclick="'+onclick+'"' : ''} style="font-size:9px;font-weight:500;font-family:var(--mono);padding:1px 5px;border-radius:3px;border:1px solid ${cfg.border};background:${cfg.bg};color:${cfg.color};vertical-align:middle;margin-left:3px;letter-spacing:.01em">${cfg.label}</span>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// LEAD ASSIGNMENT SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+const TEAM_MEMBERS = [
+  'Chirag Sharma',
+  'Kartikeya Sharma',
+  'Ankit Sharma',
+  'Suhani Rana',
+  'Parth Upadhyay',
+  'Harshita Dahiya',
+  'Shivam Bhargava'
+];
+
+// Avatar colors per person — consistent across sessions
+const TEAM_COLORS = {
+  'Chirag Sharma':    '#4f8ef7',
+  'Kartikeya Sharma': '#22d3a0',
+  'Ankit Sharma':     '#f0a84a',
+  'Suhani Rana':      '#9d72f5',
+  'Parth Upadhyay':   '#f05b5b',
+  'Harshita Dahiya':  '#38bdf8',
+  'Shivam Bhargava':  '#34d399'
+};
+
+let _assignMenuEl = null;
+let _assignMenuLead = null;
+
+function showAssignMenu(e, lead) {
+  e.stopPropagation();
+  closeAssignMenu();
+
+  const menu = document.createElement('div');
+  menu.className = 'assign-menu';
+  menu.id = 'assign-menu-popup';
+
+  // Build menu items
+  let html = '';
+  TEAM_MEMBERS.forEach(name => {
+    const isActive = lead.assignedTo === name;
+    const initials = name.split(' ').map(w => w[0]).join('');
+    const color = TEAM_COLORS[name] || '#4f8ef7';
+    html += `<div class="assign-menu-item ${isActive ? 'active' : ''}" onclick="assignLead(event,'${name}')">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${color};color:#fff;font-size:8px;font-weight:700;font-family:var(--mono);margin-right:8px">${initials}</span>
+      ${name}${isActive ? ' ✓' : ''}
+    </div>`;
+  });
+
+  if (lead.assignedTo) {
+    html += '<div class="assign-menu-sep"></div>';
+    html += `<div class="assign-menu-item" style="color:var(--text3)" onclick="assignLead(event,null)">✕ Remove assignment</div>`;
+  }
+
+  menu.innerHTML = html;
+  document.body.appendChild(menu);
+  _assignMenuEl = menu;
+  _assignMenuLead = lead;
+
+  // Position near button
+  const rect = e.currentTarget.getBoundingClientRect();
+  let top = rect.bottom + 4;
+  let left = rect.left;
+  // Keep in viewport
+  if (left + 170 > window.innerWidth) left = window.innerWidth - 175;
+  if (top + 280 > window.innerHeight) top = rect.top - 284;
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+
+  // Close on outside click
+  setTimeout(() => document.addEventListener('click', closeAssignMenu, {once: true}), 50);
+}
+
+function closeAssignMenu() {
+  if (_assignMenuEl) { _assignMenuEl.remove(); _assignMenuEl = null; _assignMenuLead = null; }
+}
+
+async function assignLead(e, memberName) {
+  e.stopPropagation();
+  closeAssignMenu();
+  const lead = _assignMenuLead || activeDetail;
+  if (!lead) return;
+
+  const prev = lead.assignedTo || null;
+  lead.assignedTo = memberName || null;
+
+  // Sync activeDetail if same lead
+  if (activeDetail && (activeDetail === lead || activeDetail.name === lead.name)) {
+    activeDetail.assignedTo = memberName || null;
+    renderDpAssignBtns(activeDetail);
+  }
+
+  // Save to Supabase
+  let q = _sb.from('leads').update({ assigned_to: memberName || null });
+  if (lead._dbid) q = q.eq('id', lead._dbid);
+  else if (lead.postUrl && lead.postUrl !== '—') q = q.eq('post_url', lead.postUrl);
+  else q = q.eq('name', lead.name || '');
+  const { error } = await q;
+
+  if (error) {
+    // Column may not exist yet — show helpful message
+    lead.assignedTo = prev; // rollback
+    toast('assigned_to column missing in Supabase — add it as text type', 'e');
+    return;
+  }
+
+  doFilter();
+  toast(memberName ? ('Assigned → ' + memberName.split(' ')[0]) : 'Assignment removed', 'ok');
+}
+
+
+// ── Priority tag buttons in detail panel ──
+function renderDpPriorityBtns(lead) {
+  const container = document.getElementById('dp-priority-btns');
+  if (!container) return;
+  const tags = lead.priorityTags || [];
+  container.innerHTML = Object.entries(PRIORITY_TAGS).map(([key, cfg]) => {
+    const active = tags.includes(key);
+    return `<button onclick="togglePriorityTag('${key}')"
+      style="font-size:10px;font-weight:500;font-family:var(--mono);padding:3px 9px;border-radius:4px;cursor:pointer;transition:all .12s;
+      border:1px solid ${active ? cfg.color : 'var(--border2)'};
+      background:${active ? cfg.bg : 'transparent'};
+      color:${active ? cfg.color : 'var(--text3)'}"
+      title="${active ? 'Remove '+key+' tag' : 'Tag as '+key}">
+      ${cfg.label}${active ? ' ✓' : ''}
+    </button>`;
+  }).join('');
+}
+
+async function togglePriorityTag(key) {
+  if (!activeDetail) return;
+  if (!activeDetail.priorityTags) activeDetail.priorityTags = [];
+  const idx = activeDetail.priorityTags.indexOf(key);
+  if (idx >= 0) activeDetail.priorityTags.splice(idx, 1);
+  else activeDetail.priorityTags.push(key);
+
+  // Sync allLeads
+  const li = allLeads.findIndex(l => l === activeDetail || (l._dbid && l._dbid === activeDetail._dbid));
+  if (li >= 0) allLeads[li].priorityTags = [...activeDetail.priorityTags];
+
+  // Re-render panel buttons
+  renderDpPriorityBtns(activeDetail);
+
+  // Save to Supabase
+  const tagsJson = JSON.stringify(activeDetail.priorityTags);
+  let q = _sb.from('leads').update({ priority_tags: tagsJson });
+  if (activeDetail._dbid) q = q.eq('id', activeDetail._dbid);
+  else if (activeDetail.postUrl && activeDetail.postUrl !== '—') q = q.eq('post_url', activeDetail.postUrl);
+  else q = q.eq('name', activeDetail.name || '');
+  const { error } = await q;
+  if (error) {
+    toast('priority_tags column missing — run: ALTER TABLE leads ADD COLUMN priority_tags text;', 'e');
+    return;
+  }
+
+  doFilter();
+  const added = idx < 0;
+  toast((added ? '🏷 Tagged ' : '🏷 Removed ') + key + ' → ' + (activeDetail.compName || activeDetail.company || 'lead'), added ? 'ok' : 'w');
+}
+
+function renderDpAssignBtns(lead) {
+  const container = document.getElementById('dp-assign-btns');
+  if (!container) return;
+  container.innerHTML = TEAM_MEMBERS.map(name => {
+    const isActive = lead.assignedTo === name;
+    const color = TEAM_COLORS[name] || '#4f8ef7';
+    const initials = name.split(' ').map(w => w[0]).join('');
+    return `<button onclick="_assignMenuLead=activeDetail;assignLead(event,'${isActive ? '' : name}')" 
+      title="${name}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:12px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;border:1px solid ${isActive ? color : 'var(--border2)'};background:${isActive ? color + '22' : 'var(--bg3)'};color:${isActive ? color : 'var(--text3)'};transition:all .12s" 
+      onmouseover="this.style.borderColor='${color}';this.style.color='${color}'" 
+      onmouseout="this.style.borderColor='${lead.assignedTo === name ? color : 'var(--border2)'}';this.style.color='${lead.assignedTo === name ? color : 'var(--text3)'}'">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:${color};color:#fff;font-size:7px">${initials}</span>
+      ${name.split(' ')[0]}
+    </button>`;
+  }).join('');
+}
+
 // ── CSV Export ──
 function exportCSV() {
   const rows = getVisibleLeads();
@@ -3800,6 +4039,8 @@ function resetAllFilters() {
   document.getElementById('q').value = '';
   document.getElementById('dd-date').value = '';
   document.getElementById('dd-source').value = '';
+  const daEl = document.getElementById('dd-assignee'); if (daEl) daEl.value = '';
+  const dpEl = document.getElementById('dd-priority'); if (dpEl) dpEl.value = '';
   document.getElementById('dd-label').value = '';
   document.getElementById('dd-stage').value = '';
   document.getElementById('dd-cat').value = '';
@@ -4179,7 +4420,7 @@ function renderTbl() {
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
       <td style="white-space:nowrap">${postedBadge(lead)}</td>
-      <td><div class="lc"><div class="la" style="background:${getAvatarBg(lead)}">${avatarHTML(lead)}</div><div><div class="ln" ondblclick="event.stopPropagation();startInlineCompanyEdit(this,lead)" title="Double-click to edit company name" style="cursor:text">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
+      <td><div class="lc"><div class="la" style="background:${getAvatarBg(lead)}">${avatarHTML(lead)}</div><div><div class="ln" ondblclick="event.stopPropagation();startInlineCompanyEdit(this,lead)" title="Double-click to edit company name" style="cursor:text">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}${priorityTagHTML(lead)}${lead.assignedTo?('<span onclick="event.stopPropagation();showAssignMenu(event,lead)" style="margin-left:4px;font-size:9px;font-weight:500;font-family:var(--mono);padding:1px 5px;border-radius:3px;cursor:pointer;border:1px solid '+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+'33;background:'+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+'11;color:'+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+';letter-spacing:.01em;vertical-align:middle">'+lead.assignedTo.split(' ')[0]+'</span>'):'<span onclick="event.stopPropagation();showAssignMenu(event,lead)" style="margin-left:4px;font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:3px;cursor:pointer;border:1px dashed var(--border2);color:var(--text3);opacity:0;transition:opacity .15s" class="assign-badge-empty">+</span>'}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
       <td style="text-align:center"><div style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:13px">${labelIcon(lbl)}</span><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:${lbl==='Hot'?'var(--green)':lbl==='Warm'?'var(--amber)':'var(--text3)'}">${lead.score}/10</span></div></td>
       <td>${stageBadge(lead.leadStage)}</td>
       <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
@@ -4264,6 +4505,9 @@ function openDP(lead) {
   activeDetail = lead;
   window._currentDPLead = lead;
   // Update scan button state based on profile URL availability
+  // Render assignee + priority buttons
+  renderDpAssignBtns(lead);
+  renderDpPriorityBtns(lead);
   const scanBtn = document.getElementById('dp-scan-profile-btn');
   if (scanBtn) {
     const pUrl = getProfileUrl(lead);
@@ -4620,6 +4864,8 @@ async function saveLeadsToSupabase(leads) {
     hiring_type: l.hiringType || null,
     client_geo: l.geo || null,
     source: l.source === 'profile_scan' ? 'Profile Scan' : 'LinkedIn',
+      assigned_to: l.assignedTo || null,
+      priority_tags: JSON.stringify(l.priorityTags || []),
     email: l.email || null,
     phone: l.phone || null,
     posted_at: l.created || null,
@@ -4724,6 +4970,8 @@ async function loadLeadsFromSupabase() {
       created: l.posted_at || l.Posted || '—',
       scannedAt: l.scanned_at || l.created_at || null,
       source: l.source === 'Profile Scan' ? 'profile_scan' : 'post_search',
+      assignedTo: l.assigned_to || null,
+      priorityTags: (() => { try { return JSON.parse(l.priority_tags || '[]'); } catch(e) { return []; } })(),
       reasoning: l.qualification_reason || '',
       // ── UI ──
       avatar: ini(l.name || '—'),
