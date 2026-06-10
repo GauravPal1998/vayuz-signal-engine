@@ -713,12 +713,33 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </select>
     <select class="dd-filter" id="dd-priority" onchange="doFilter()" title="Filter by priority tag">
       <option value="">🏷 All Tags</option>
-      <option value="AI">AI</option>
-      <option value="Funded">Funded</option>
-      <option value="NSE">NSE</option>
-      <option value="ET500">ET500</option>
-      <option value="Enterprise">Enterprise</option>
-      <option value="GCC">GCC</option>
+      <optgroup label="Type">
+        <option value="AI">AI</option>
+        <option value="Funded">Funded</option>
+        <option value="NSE">NSE</option>
+        <option value="ET500">ET</option>
+        <option value="GCC">GCC</option>
+        <option value="Startup">Startup</option>
+        <option value="SMB">SMB</option>
+        <option value="Growth">Growth</option>
+        <option value="MidMarket">Mid-Market</option>
+        <option value="Enterprise">Enterprise</option>
+        <option value="LargeEnterprise">Large Enterprise</option>
+      </optgroup>
+      <optgroup label="By Revenue">
+        <option value="Rev_Lt10Cr">&lt;₹10Cr Revenue</option>
+        <option value="Rev_10Cr">₹10Cr+ Revenue</option>
+        <option value="Rev_50Cr">₹50Cr+ Revenue</option>
+        <option value="Rev_100Cr">₹100Cr+ Revenue</option>
+        <option value="Rev_500Cr">₹500Cr+ Revenue</option>
+      </optgroup>
+      <optgroup label="By Headcount">
+        <option value="HC_50">50+ Employees</option>
+        <option value="HC_200">200+ Employees</option>
+        <option value="HC_500">500+ Employees</option>
+        <option value="HC_1000">1,000+ Employees</option>
+        <option value="HC_5000">5,000+ Employees</option>
+      </optgroup>
     </select>
     <select class="dd-filter" id="dd-assignee" onchange="doFilter()" title="Filter by assignee">
       <option value="">👤 All Assignees</option>
@@ -3388,12 +3409,32 @@ function copyLeadInfo() {
 // COMPANY PRIORITY TAGS
 // ══════════════════════════════════════════════════════════════════
 const PRIORITY_TAGS = {
-  'AI':         { color: '#a855f7', bg: '#a855f711', border: '#a855f733', label: 'AI' },
-  'Funded':     { color: '#f59e0b', bg: '#f59e0b11', border: '#f59e0b33', label: 'Funded' },
-  'NSE':        { color: '#3b82f6', bg: '#3b82f611', border: '#3b82f633', label: 'NSE' },
-  'ET500':      { color: '#ef4444', bg: '#ef444411', border: '#ef444433', label: 'ET500' },
-  'Enterprise': { color: '#0ea5e9', bg: '#0ea5e911', border: '#0ea5e933', label: 'Enterprise' },
-  'GCC':        { color: '#10b981', bg: '#10b98111', border: '#10b98133', label: 'GCC' },
+  // Type / Category
+  'AI':         { color: '#a855f7', bg: '#a855f711', border: '#a855f733', label: 'AI', group: 'Type' },
+  'Funded':     { color: '#f59e0b', bg: '#f59e0b11', border: '#f59e0b33', label: 'Funded', group: 'Type' },
+  'NSE':        { color: '#3b82f6', bg: '#3b82f611', border: '#3b82f633', label: 'NSE', group: 'Type' },
+  'ET500':      { color: '#ef4444', bg: '#ef444411', border: '#ef444433', label: 'ET', group: 'Type' },
+  'GCC':        { color: '#10b981', bg: '#10b98111', border: '#10b98133', label: 'GCC', group: 'Type' },
+  'Startup':    { color: '#ec4899', bg: '#ec489911', border: '#ec489933', label: 'Startup', group: 'Type' },
+  'SMB':        { color: '#14b8a6', bg: '#14b8a611', border: '#14b8a633', label: 'SMB', group: 'Type' },
+  'Growth':     { color: '#84cc16', bg: '#84cc1611', border: '#84cc1633', label: 'Growth', group: 'Type' },
+  'MidMarket':  { color: '#6366f1', bg: '#6366f111', border: '#6366f133', label: 'Mid-Market', group: 'Type' },
+  'Enterprise': { color: '#0ea5e9', bg: '#0ea5e911', border: '#0ea5e933', label: 'Enterprise', group: 'Type' },
+  'LargeEnterprise': { color: '#8b5cf6', bg: '#8b5cf611', border: '#8b5cf633', label: 'Large Enterprise', group: 'Type' },
+
+  // By Revenue
+  'Rev_Lt10Cr': { color: '#65a30d', bg: '#65a30d11', border: '#65a30d33', label: '<₹10Cr Rev', group: 'Revenue' },
+  'Rev_10Cr':   { color: '#16a34a', bg: '#16a34a11', border: '#16a34a33', label: '₹10Cr+ Rev', group: 'Revenue' },
+  'Rev_50Cr':   { color: '#059669', bg: '#05966911', border: '#05966933', label: '₹50Cr+ Rev', group: 'Revenue' },
+  'Rev_100Cr':  { color: '#0d9488', bg: '#0d948811', border: '#0d948833', label: '₹100Cr+ Rev', group: 'Revenue' },
+  'Rev_500Cr':  { color: '#0f766e', bg: '#0f766e11', border: '#0f766e33', label: '₹500Cr+ Rev', group: 'Revenue' },
+
+  // By Headcount
+  'HC_50':      { color: '#d97706', bg: '#d9770611', border: '#d9770633', label: '50+ Emp', group: 'Headcount' },
+  'HC_200':     { color: '#c2410c', bg: '#c2410c11', border: '#c2410c33', label: '200+ Emp', group: 'Headcount' },
+  'HC_500':     { color: '#b45309', bg: '#b4530911', border: '#b4530933', label: '500+ Emp', group: 'Headcount' },
+  'HC_1000':    { color: '#9a3412', bg: '#9a341211', border: '#9a341233', label: '1,000+ Emp', group: 'Headcount' },
+  'HC_5000':    { color: '#7c2d12', bg: '#7c2d1211', border: '#7c2d1233', label: '5,000+ Emp', group: 'Headcount' },
 };
 
 function priorityTagHTML(lead, onclick) {
@@ -3520,16 +3561,26 @@ function renderDpPriorityBtns(lead) {
   const container = document.getElementById('dp-priority-btns');
   if (!container) return;
   const tags = lead.priorityTags || [];
-  container.innerHTML = Object.entries(PRIORITY_TAGS).map(([key, cfg]) => {
-    const active = tags.includes(key);
-    return `<button onclick="togglePriorityTag('${key}')"
-      style="font-size:10px;font-weight:500;font-family:var(--mono);padding:3px 9px;border-radius:4px;cursor:pointer;transition:all .12s;
-      border:1px solid ${active ? cfg.color : 'var(--border2)'};
-      background:${active ? cfg.bg : 'transparent'};
-      color:${active ? cfg.color : 'var(--text3)'}"
-      title="${active ? 'Remove '+key+' tag' : 'Tag as '+key}">
-      ${cfg.label}${active ? ' ✓' : ''}
-    </button>`;
+  const groups = {};
+  Object.entries(PRIORITY_TAGS).forEach(([key, cfg]) => {
+    (groups[cfg.group] ||= []).push([key, cfg]);
+  });
+  container.innerHTML = Object.entries(groups).map(([groupName, entries]) => {
+    const btns = entries.map(([key, cfg]) => {
+      const active = tags.includes(key);
+      return `<button onclick="togglePriorityTag('${key}')"
+        style="font-size:10px;font-weight:500;font-family:var(--mono);padding:3px 9px;border-radius:4px;cursor:pointer;transition:all .12s;
+        border:1px solid ${active ? cfg.color : 'var(--border2)'};
+        background:${active ? cfg.bg : 'transparent'};
+        color:${active ? cfg.color : 'var(--text3)'}"
+        title="${active ? 'Remove '+key+' tag' : 'Tag as '+key}">
+        ${cfg.label}${active ? ' ✓' : ''}
+      </button>`;
+    }).join('');
+    return `<div style="margin-bottom:6px">
+      <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">${groupName}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${btns}</div>
+    </div>`;
   }).join('');
 }
 
