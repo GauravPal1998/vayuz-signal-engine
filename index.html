@@ -4522,6 +4522,13 @@ function toggleChannel(ch) {
   activeDetail.channels[ch] = next;
   renderChannel(ch, next);
   updChannelStats();
+
+  // Sync allLeads
+  const li = allLeads.findIndex(l => l === activeDetail || (l._dbid && l._dbid === activeDetail._dbid));
+  if (li >= 0) allLeads[li].channels = { ...activeDetail.channels };
+
+  // Persist to localStorage (keyed by lead identity)
+  persistLeadMeta(activeDetail);
 }
 function renderChannel(ch, state) {
   const item = document.getElementById('oc-' + ch);
