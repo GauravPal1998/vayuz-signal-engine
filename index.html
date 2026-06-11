@@ -897,6 +897,14 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
     </div>
 
     <div class="dp-edit-sec">
+      <div class="dp-edit-label">Role Hiring For <span style="font-size:9px;color:var(--text3);font-family:var(--mono);font-weight:400">— add manually if system says "Not specified"</span></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="ci" type="text" id="dp-role-input" placeholder="e.g. Salesforce Developer, QA Engineer" style="flex:1">
+        <button class="btn" style="padding:5px 10px;font-size:11px;white-space:nowrap;color:var(--green);border-color:rgba(13,158,114,.3);font-weight:700" onclick="applyRoleEdit()" title="Save role hiring for">✓ Apply</button>
+      </div>
+    </div>
+
+    <div class="dp-edit-sec">
       <div class="dp-edit-label">Assigned To</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="dp-assign-btns">
       </div>
@@ -2497,9 +2505,52 @@ function vayuzScore(post, headline, category, hiringType) {
 
 function extractRole(post) {
   const t = post||'';
-  const roles = ['Flutter','iOS','Android','React Native','React','Node.js','Node','Python','.NET','Java','DevOps','WordPress','WooCommerce','Full Stack','Frontend','Backend','Mobile App','Web Developer','Software Engineer','Software Developer'];
-  const found = roles.filter(r => new RegExp(r,'i').test(t));
-  return found.length ? found.join(', ') : 'Not specified';
+  const roles = [
+    // Mobile / Frontend / Backend
+    'Flutter','iOS','Android','React Native','React','Angular','Vue','Next.js',
+    'Node.js','Node','Python','Django','.NET','C#','Java','Spring Boot','PHP','Laravel',
+    'Ruby on Rails','Ruby','Golang','Go Developer','Rust',
+    'WordPress','WooCommerce','Shopify','Magento',
+    'Full Stack','Frontend','Front-End','Backend','Back-End','MERN','MEAN',
+    // Mobile / Web generic
+    'Mobile App','Web Developer','Software Engineer','Software Developer','App Developer',
+    // Data / AI
+    'Data Engineer','Data Scientist','Data Analyst','Machine Learning','ML Engineer','AI Engineer',
+    'Generative AI','LLM','NLP','Computer Vision','Big Data','Power BI','Tableau',
+    // Cloud / DevOps / Infra
+    'DevOps','SRE','Cloud Engineer','AWS','Azure','GCP','Kubernetes','Docker','Terraform',
+    'Site Reliability',
+    // QA
+    'QA Engineer','QA','Test Engineer','SDET','Automation Tester','Manual Tester',
+    // Design
+    'UI/UX','UI Developer','UX Designer','Product Designer','Graphic Designer',
+    // Product / Project / Business
+    'Product Manager','Project Manager','Scrum Master','Business Analyst','Program Manager',
+    'Technical Lead','Tech Lead','Engineering Manager','Solution Architect','Architect',
+    // ERP / CRM
+    'Salesforce','SAP','Oracle','Workday','Dynamics 365','ServiceNow','HubSpot',
+    // QA/Security
+    'Cybersecurity','Security Engineer','Penetration Tester',
+    // Sales / Marketing / Ops / HR (non-dev hiring)
+    'Sales Executive','Business Development','BDM','BDE','Inside Sales','Account Manager',
+    'Digital Marketing','SEO','Content Writer','Social Media',
+    'HR Executive','HR Manager','Talent Acquisition','Recruiter','Recruitment',
+    'Customer Support','Operations Manager','Finance Manager','Accountant',
+    // Generic catch-alls
+    'Intern','Fresher','Trainee','Consultant','Engineer','Developer','Analyst','Manager',
+    'Designer','Specialist','Executive','Lead','Architect'
+  ];
+  const found = roles.filter(r => {
+    const esc = r.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const hasSpecial = /[^A-Za-z0-9 ]/.test(r);
+    const pattern = hasSpecial ? esc : ('\\b' + esc + '\\b');
+    return new RegExp(pattern, 'i').test(t);
+  });
+  // De-duplicate overlapping generic terms if a more specific one already matched (e.g. avoid "Developer" + "React Developer" both)
+  const specific = found.filter(r => !['Engineer','Developer','Analyst','Manager','Designer','Specialist','Executive','Lead','Architect','Consultant'].includes(r));
+  const generic = found.filter(r => ['Engineer','Developer','Analyst','Manager','Designer','Specialist','Executive','Lead','Architect','Consultant'].includes(r));
+  const result = specific.length ? specific : generic;
+  return result.length ? [...new Set(result)].slice(0,4).join(', ') : 'Not specified';
 }
 
 function extractGeo(post) {
@@ -4604,6 +4655,8 @@ function openDP(lead) {
   document.getElementById('dp-co').textContent = lead.name + ' · ' + lead.headline + ' · ' + lbl + ' · ' + lead.score + '/10';
   const dpCoInput = document.getElementById('dp-company-input');
   if (dpCoInput) dpCoInput.value = lead.compName || lead.company || '';
+  const dpRoleInput = document.getElementById('dp-role-input');
+  if (dpRoleInput) dpRoleInput.value = (lead.role && lead.role !== 'Not specified') ? lead.role : '';
   document.getElementById('dp-gtag').textContent = cfg.aiProvider === 'claude' && cfg.claudeKey ? 'Claude AI v2.1 · VAYUZ Logic' : cfg.aiProvider === 'openrouter' && cfg.openRouterKey ? 'OpenRouter (' + (cfg.openRouterModel||'').split('/').pop() + ') · VAYUZ Logic' : cfg.geminiKey ? 'Gemini AI v2.1 · VAYUZ Logic' : 'Rule-based · VAYUZ Logic';
   document.getElementById('dp-post').innerHTML = esc(lead.post||'—');
   document.getElementById('dp-reason').textContent = lead.reasoning || 'No reasoning available.';
@@ -5181,6 +5234,36 @@ async function applyCompanyEdit() {
   doFilter();
 
   toast('Company updated → ' + newCompany, 'ok');
+}
+
+// ── Role Hiring For — manual override ──
+async function applyRoleEdit() {
+  if (!activeDetail) return;
+  const newRole = (document.getElementById('dp-role-input').value || '').trim();
+  const finalRole = newRole || 'Not specified';
+  if (finalRole === (activeDetail.role || '')) { toast('No change', 'w'); return; }
+
+  // Update in-memory
+  activeDetail.role = finalRole;
+
+  // Re-render the Role row in detail panel
+  const roleRow = [...document.querySelectorAll('#dp-rows .dr')].find(r => r.querySelector('.dl')?.textContent === 'Role Hiring For');
+  if (roleRow) roleRow.querySelector('.dv').textContent = finalRole;
+
+  // Save to Supabase
+  let q = _sb.from('leads').update({ hiring_for: finalRole });
+  if (activeDetail._dbid) q = q.eq('id', activeDetail._dbid);
+  else if (activeDetail.postUrl && activeDetail.postUrl !== '—') q = q.eq('post_url', activeDetail.postUrl);
+  else q = q.eq('name', activeDetail.name || '');
+  const { error } = await q;
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+
+  // Sync allLeads + table
+  const li = allLeads.findIndex(l => l === activeDetail || (l._dbid && l._dbid === activeDetail._dbid));
+  if (li >= 0) allLeads[li].role = finalRole;
+  doFilter();
+
+  toast(newRole ? '🎯 Role updated → ' + finalRole : 'Role cleared', 'ok');
 }
 
 async function saveLeadEdits() {
