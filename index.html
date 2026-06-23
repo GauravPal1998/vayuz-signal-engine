@@ -3687,25 +3687,57 @@ function renderDpAssignBtns(lead) {
 function exportCSV() {
   const rows = getVisibleLeads();
   if (!rows.length) { toast('No leads to export — check your filters', 'w'); return; }
-  const cols = ['Name','Company','Headline','Score','Label','Stage','Category','Geo','Hiring Type','Email','Phone','Post URL','Profile URL','Remarks','Source','Scanned At'];
+  const cols = [
+    'First Name','Last Name','Email','Contact Number',
+    'Role Hiring For','LinkedIn Profile',
+    'Company','Designation','Score','Label','Stage',
+    'Assigned To','Priority Tags','Outreach Channels',
+    'Remarks','Post URL','Source','Scanned At'
+  ];
   const escape = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+
+  function splitName(full) {
+    const parts = (full||'').trim().split(/\s+/);
+    return [parts[0]||'', parts.slice(1).join(' ')||''];
+  }
+
+  function formatChannels(ch) {
+    if (!ch || typeof ch !== 'object') return '';
+    return Object.entries(ch).filter(([,v]) => v && v !== 'none')
+      .map(([k,v]) => k+':'+v).join(' | ');
+  }
+
   const lines = [cols.map(escape).join(',')];
   rows.forEach(l => {
+    const [first, last] = splitName(l.name);
     lines.push([
-      l.name, l.company, l.headline, l.score, l.label,
-      l.stage||'', l.category||'', l.geo||'', l.hiringType||'',
-      l.email||'', l.phone||'', l.postUrl||'', l.profileUrl||getProfileUrl(l)||'',
-      (l.remarks||'').replace(/\n/g,' '), l.source||'post_search',
+      first,
+      last,
+      l.email||'',
+      l.phone||'',
+      l.role||'',
+      l.profileUrl||getProfileUrl(l)||'',
+      l.company||'',
+      l.headline||'',
+      l.score||'',
+      l.label||'',
+      l.stage||'',
+      l.assignedTo||'',
+      (l.priorityTags||[]).join(', '),
+      formatChannels(l.channels),
+      (l.remarks||'').replace(/\n/g,' '),
+      l.postUrl||'',
+      l.source||'post_search',
       l.scannedAt ? new Date(l.scannedAt).toLocaleDateString('en-IN') : ''
     ].map(escape).join(','));
   });
   const csv = lines.join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = 'signal-leads-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click(); URL.revokeObjectURL(url);
-  toast('Exported ' + rows.length + ' leads to CSV', 'ok');
+  toast('Exported ' + rows.length + ' leads (' + cols.length + ' columns)', 'ok');
 }
 
 // ── Get currently visible/filtered leads ──
