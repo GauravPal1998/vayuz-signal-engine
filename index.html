@@ -660,6 +660,7 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       <option value="">📡 All Sources</option>
       <option value="post_search">🔍 Post Search</option>
       <option value="profile_scan">👤 Profile Scan</option>
+      <option value="theirstack_contract">📋 Contract Jobs</option>
     </select>
     <!-- Label filter -->
     <select class="dd-filter" id="dd-label" onchange="doFilter()">
@@ -1171,9 +1172,77 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <button id="toggle-profile-posts" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setApifyMode('profile-posts');saveToStorage()">
           👤 Profile Posts
         </button>
+        <button id="toggle-theirstack" class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="setApifyMode('theirstack-jobs');saveToStorage()">
+          📋 Contract Jobs
+        </button>
       </div>
       <div id="apify-mode-info" class="ch" style="margin-top:8px;padding:7px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border2)">
         Actor: <strong>harvestapi/linkedin-post-search</strong> — Keyword-based · No cookies · $2/1k posts
+      </div>
+    </div>
+
+    <div id="cfg-theirstack-extra" style="display:none">
+      <div class="cf">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <label class="cl" style="margin-bottom:0">TheirStack API Token <span style="color:var(--red)">*</span></label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="theirstack-saved" style="display:none;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);background:var(--gdim);border:1px solid rgba(13,158,114,.2);border-radius:4px;padding:2px 7px">✓ Saved</span>
+            <button class="btn" style="padding:3px 9px;font-size:10.5px;color:var(--red);border-color:rgba(220,38,38,.2)" onclick="clearKey('c-theirstack','theirstack-saved')">Clear</button>
+          </div>
+        </div>
+        <input class="ci" type="password" id="c-theirstack" placeholder="tsk_xxxxxxxxxxxxxxxxxxxx" oninput="document.getElementById('theirstack-saved').style.display='none'">
+        <div class="ch">Get from → <a href="https://app.theirstack.com" target="_blank">app.theirstack.com → API keys</a>. Pulls open <strong>contract</strong> job postings — a direct hiring signal for RAPYD.</div>
+      </div>
+      <div class="cf">
+        <label class="cl">Technology slugs <span style="color:var(--text3)">(optional, narrows results)</span></label>
+        <input class="ci" type="text" id="c-theirstack-tech" placeholder="react-native, node-js, flutter">
+        <div class="ch">Comma-separated. Combined with your Search Keywords (used as job titles) below — jobs must match a keyword title AND (if set) one of these technologies. Slugs must match TheirStack's catalog exactly.</div>
+      </div>
+
+      <div class="ch" style="margin:2px 0 8px">Everything below is optional. Leave blank to apply no filter on that field — nothing is excluded unless you set it.</div>
+
+      <div class="cf">
+        <label class="cl">Company type</label>
+        <select class="ci" id="c-theirstack-companytype">
+          <option value="all">All (agencies + direct employers)</option>
+          <option value="direct_employer">Direct employers only</option>
+          <option value="recruiting_agency">Recruiting/staffing agencies only</option>
+        </select>
+        <div class="ch">Agencies can be valid RAPYD subcontracting targets — default is All, nothing is excluded unless you pick one.</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Company size (employees)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="ci" type="number" id="c-theirstack-minemp" min="0" placeholder="Min" style="width:100px">
+          <span style="font-size:11px;color:var(--text3)">to</span>
+          <input class="ci" type="number" id="c-theirstack-maxemp" min="0" placeholder="Max" style="width:100px">
+        </div>
+        <div class="ch">Blank = no size filter.</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Target countries <span style="color:var(--text3)">(ISO2 codes)</span></label>
+        <input class="ci" type="text" id="c-theirstack-countries" placeholder="IN, US, GB">
+        <div class="ch">Comma-separated. Blank = all countries.</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Funding stage</label>
+        <input class="ci" type="text" id="c-theirstack-funding" placeholder="seed, series_a, series_b">
+        <div class="ch">Comma-separated, from TheirStack's funding_stage list. Blank = no funding filter.</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Min. salary (USD) <span style="color:var(--text3)">(role budget quality signal)</span></label>
+        <input class="ci" type="number" id="c-theirstack-minsalary" min="0" placeholder="e.g. 40000" style="width:140px">
+        <div class="ch">Blank = no salary filter. Many contract postings don't disclose salary — a strict filter here can shrink results a lot.</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Min. annual revenue (USD)</label>
+        <input class="ci" type="number" id="c-theirstack-minrevenue" min="0" placeholder="e.g. 1000000" style="width:180px">
+        <div class="ch">Blank = no revenue filter.</div>
       </div>
     </div>
 
@@ -1417,6 +1486,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
 // ── Config ──
 let cfg = {
   apifyToken: '', apifyMode: 'post-search', maxPosts: 50, postAge: 'week', sortBy: 'date',
+  theirstackToken: '', theirstackTech: [],
+  theirstackCompanyType: 'all', theirstackMinEmp: null, theirstackMaxEmp: null,
+  theirstackCountries: [], theirstackFunding: [], theirstackMinSalary: null, theirstackMinRevenue: null,
   geminiKey: '', claudeKey: '', openRouterKey: '', openRouterModel: 'meta-llama/llama-3.3-70b-instruct:free',
   aiProvider: 'gemini', minScore: 7, skipGate: false,
   batchSize: 50, backgroundProcessing: true, profileMaxPosts: 20,
@@ -1908,6 +1980,7 @@ function saveSessionSecrets() {
   try {
     sessionStorage.setItem(SESSION_SECRET_KEY, JSON.stringify({
       apifyToken: cfg.apifyToken,
+      theirstackToken: cfg.theirstackToken,
       geminiKey: cfg.geminiKey,
       claudeKey: cfg.claudeKey,
       openRouterKey: cfg.openRouterKey
@@ -1921,6 +1994,7 @@ function loadSessionSecrets() {
     if (!saved) return;
     const d = JSON.parse(saved);
     cfg.apifyToken = d.apifyToken || '';
+    cfg.theirstackToken = d.theirstackToken || '';
     cfg.geminiKey = d.geminiKey || '';
     cfg.claudeKey = d.claudeKey || '';
     cfg.openRouterKey = d.openRouterKey || '';
@@ -1993,6 +2067,14 @@ function saveToStorage() {
       profileMaxPosts: cfg.profileMaxPosts,
       apifyMode: cfg.apifyMode,
       profileUrls: cfg.profileUrls || [],
+      theirstackTech: cfg.theirstackTech || [],
+      theirstackCompanyType: cfg.theirstackCompanyType || 'all',
+      theirstackMinEmp: cfg.theirstackMinEmp,
+      theirstackMaxEmp: cfg.theirstackMaxEmp,
+      theirstackCountries: cfg.theirstackCountries || [],
+      theirstackFunding: cfg.theirstackFunding || [],
+      theirstackMinSalary: cfg.theirstackMinSalary,
+      theirstackMinRevenue: cfg.theirstackMinRevenue,
       keywords: cfg.keywords,
       titles: cfg.titles
     }));
@@ -2005,33 +2087,47 @@ function setApifyMode(mode) {
   cfg.apifyMode = mode;
   const psBtn = document.getElementById('toggle-post-search');
   const ppBtn = document.getElementById('toggle-profile-posts');
+  const tsBtn = document.getElementById('toggle-theirstack');
   const infoEl = document.getElementById('apify-mode-info');
   const kwSec = document.getElementById('cfg-kw-section');
   const titleSec = document.getElementById('cfg-title-section');
   const profileSec = document.getElementById('cfg-profile-section');
   const psScraping = document.getElementById('cfg-postsearch-extra');
+  const tsExtra = document.getElementById('cfg-theirstack-extra');
 
   const modePill = document.getElementById('tb-mode-pill');
+  [psBtn, ppBtn, tsBtn].forEach(b => { if (b) b.className = 'btn'; });
+
   if (mode === 'post-search') {
     if (modePill) modePill.textContent = '🔍 Post Search';
     const eh = document.getElementById('empty-actor-hint'); if (eh) eh.textContent = 'Actor: harvestapi/linkedin-post-search · No cookies needed';
-    if (psBtn) { psBtn.classList.add('bp'); psBtn.classList.remove('btn'); psBtn.className = 'btn bp'; }
-    if (ppBtn) { ppBtn.className = 'btn'; }
+    if (psBtn) psBtn.className = 'btn bp';
     if (infoEl) infoEl.innerHTML = 'Actor: <strong>harvestapi/linkedin-post-search</strong> — Keyword-based · No cookies · $2/1k posts';
     if (kwSec) kwSec.style.display = '';
     if (titleSec) titleSec.style.display = '';
     if (profileSec) profileSec.style.display = 'none';
     if (psScraping) psScraping.style.display = '';
+    if (tsExtra) tsExtra.style.display = 'none';
+  } else if (mode === 'theirstack-jobs') {
+    if (modePill) modePill.textContent = '📋 Contract Jobs';
+    const eh = document.getElementById('empty-actor-hint'); if (eh) eh.textContent = 'Source: TheirStack Jobs API · Contract postings · No cookies needed';
+    if (tsBtn) tsBtn.className = 'btn bp';
+    if (infoEl) infoEl.innerHTML = 'Source: <strong>TheirStack Jobs API</strong> — Open contract job postings, filtered by title + technology · 1 credit/job';
+    if (kwSec) kwSec.style.display = '';
+    if (titleSec) titleSec.style.display = 'none';
+    if (profileSec) profileSec.style.display = 'none';
+    if (psScraping) psScraping.style.display = '';
+    if (tsExtra) tsExtra.style.display = '';
   } else {
     if (modePill) modePill.textContent = '👤 Profile Posts';
     const ehp = document.getElementById('empty-actor-hint'); if (ehp) ehp.textContent = 'Actor: harvestapi/linkedin-profile-posts · Add profile URLs in Configure';
-    if (ppBtn) { ppBtn.classList.add('bp'); ppBtn.className = 'btn bp'; }
-    if (psBtn) { psBtn.className = 'btn'; }
+    if (ppBtn) ppBtn.className = 'btn bp';
     if (infoEl) infoEl.innerHTML = 'Actor: <strong>harvestapi/linkedin-profile-posts</strong> — Profile-based · No cookies · $1.50/1k posts · Includes reposts';
     if (kwSec) kwSec.style.display = 'none';
     if (titleSec) titleSec.style.display = 'none';
     if (profileSec) profileSec.style.display = '';
     if (psScraping) psScraping.style.display = 'none';
+    if (tsExtra) tsExtra.style.display = 'none';
   }
 }
 
@@ -2107,6 +2203,14 @@ function loadFromStorage() {
     if (d.profileMaxPosts) cfg.profileMaxPosts = d.profileMaxPosts;
     if (d.apifyMode) cfg.apifyMode = d.apifyMode;
     if (d.profileUrls) cfg.profileUrls = d.profileUrls;
+    if (d.theirstackTech) cfg.theirstackTech = d.theirstackTech;
+    if (d.theirstackCompanyType) cfg.theirstackCompanyType = d.theirstackCompanyType;
+    if (d.theirstackMinEmp !== undefined) cfg.theirstackMinEmp = d.theirstackMinEmp;
+    if (d.theirstackMaxEmp !== undefined) cfg.theirstackMaxEmp = d.theirstackMaxEmp;
+    if (d.theirstackCountries) cfg.theirstackCountries = d.theirstackCountries;
+    if (d.theirstackFunding) cfg.theirstackFunding = d.theirstackFunding;
+    if (d.theirstackMinSalary !== undefined) cfg.theirstackMinSalary = d.theirstackMinSalary;
+    if (d.theirstackMinRevenue !== undefined) cfg.theirstackMinRevenue = d.theirstackMinRevenue;
     if (d.keywords?.length) cfg.keywords = d.keywords;
     if (d.titles?.length) cfg.titles = d.titles;
   } catch(e) { console.warn('Storage load failed:', e); }
@@ -2183,6 +2287,15 @@ function applyBulkTitle() {
 // ── Config modal ──
 function showCfg() {
   document.getElementById('c-apify').value = cfg.apifyToken;
+  document.getElementById('c-theirstack').value = cfg.theirstackToken;
+  document.getElementById('c-theirstack-tech').value = (cfg.theirstackTech || []).join(', ');
+  document.getElementById('c-theirstack-companytype').value = cfg.theirstackCompanyType || 'all';
+  document.getElementById('c-theirstack-minemp').value = cfg.theirstackMinEmp ?? '';
+  document.getElementById('c-theirstack-maxemp').value = cfg.theirstackMaxEmp ?? '';
+  document.getElementById('c-theirstack-countries').value = (cfg.theirstackCountries || []).join(', ');
+  document.getElementById('c-theirstack-funding').value = (cfg.theirstackFunding || []).join(', ');
+  document.getElementById('c-theirstack-minsalary').value = cfg.theirstackMinSalary ?? '';
+  document.getElementById('c-theirstack-minrevenue').value = cfg.theirstackMinRevenue ?? '';
   document.getElementById('c-maxposts').value = cfg.maxPosts;
   document.getElementById('c-age').value = cfg.postAge;
   document.getElementById('c-sort').value = cfg.sortBy;
@@ -2206,6 +2319,7 @@ function showCfg() {
   document.getElementById('c-batchsize').value = cfg.batchSize;
   document.getElementById('c-background').checked = cfg.backgroundProcessing;
   if (cfg.apifyToken) showSavedBadge('apify-saved');
+  if (cfg.theirstackToken) showSavedBadge('theirstack-saved');
   if (cfg.geminiKey) showSavedBadge('gemini-saved');
   if (cfg.claudeKey) showSavedBadge('claude-saved');
   if (cfg.openRouterKey) showSavedBadge('or-saved');
@@ -2219,6 +2333,21 @@ function showCfg() {
 }
 function saveCfg() {
   cfg.apifyToken = document.getElementById('c-apify').value.trim();
+  cfg.theirstackToken = document.getElementById('c-theirstack').value.trim();
+  cfg.theirstackTech = document.getElementById('c-theirstack-tech').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  cfg.theirstackCompanyType = document.getElementById('c-theirstack-companytype').value || 'all';
+  {
+    const minEmpV = document.getElementById('c-theirstack-minemp').value.trim();
+    const maxEmpV = document.getElementById('c-theirstack-maxemp').value.trim();
+    const minSalV = document.getElementById('c-theirstack-minsalary').value.trim();
+    const minRevV = document.getElementById('c-theirstack-minrevenue').value.trim();
+    cfg.theirstackMinEmp = minEmpV ? parseInt(minEmpV) : null;
+    cfg.theirstackMaxEmp = maxEmpV ? parseInt(maxEmpV) : null;
+    cfg.theirstackMinSalary = minSalV ? parseFloat(minSalV) : null;
+    cfg.theirstackMinRevenue = minRevV ? parseInt(minRevV) : null;
+  }
+  cfg.theirstackCountries = document.getElementById('c-theirstack-countries').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+  cfg.theirstackFunding = document.getElementById('c-theirstack-funding').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   cfg.maxPosts = Math.min(100, Math.max(10, parseInt(document.getElementById('c-maxposts').value)||50));
   cfg.postAge = document.getElementById('c-age').value;
   cfg.sortBy = document.getElementById('c-sort').value;
@@ -2987,6 +3116,98 @@ async function fetchApify() {
   const items = await dr.json();
   if (!Array.isArray(items) || items.length === 0) throw new Error('Apify returned 0 posts. Try different keywords or a wider date range.');
   return items;
+}
+
+// ── TheirStack: contract job postings (direct hiring signal, not LinkedIn posts) ──
+// Filters: job_title_or (reuses Search Keywords as title terms) + job_technology_slug_or (Configure → Contract Jobs)
+// employment_statuses_or is hard-locked to ['contract'] — this source exists specifically to surface
+// companies hiring contract/bench talent for RAPYD, not full-time roles.
+// Each job is reshaped by theirStackToPseudoItem() into the same {author, text, postUrl, numLikes,
+// numComments, postedAt} shape Apify returns, so it flows through mapItem() + Gate 1 + Gate 2 unchanged.
+async function fetchTheirStack() {
+  if (!cfg.theirstackToken) throw new Error('NO_TOKEN');
+
+  const titleTerms = (cfg.keywords || []).slice(0, 8);
+  const techTerms = (cfg.theirstackTech || []);
+  if (!titleTerms.length && !techTerms.length) {
+    throw new Error('Add Search Keywords (used as job titles) or technology slugs in Configure → Contract Jobs.');
+  }
+
+  const ageDays = cfg.postAge === '24h' ? 1 : cfg.postAge === 'week' ? 7 : cfg.postAge === 'month' ? 30 : 90;
+
+  const body = {
+    employment_statuses_or: ['contract'],
+    posted_at_max_age_days: ageDays,
+    limit: Math.min(cfg.maxPosts || 50, 100),
+    page: 0,
+    order_by: [{ field: 'date_posted', desc: true }]
+  };
+  if (titleTerms.length) body.job_title_or = titleTerms;
+  if (techTerms.length) body.job_technology_slug_or = techTerms;
+  // ── Optional filters — every one below is left off the request entirely unless you set it.
+  // Nothing is excluded by default; these only narrow results if configured in Configure → Contract Jobs. ──
+  if (cfg.theirstackCompanyType && cfg.theirstackCompanyType !== 'all') body.company_type = cfg.theirstackCompanyType;
+  if (cfg.theirstackMinEmp != null) body.min_employee_count = cfg.theirstackMinEmp;
+  if (cfg.theirstackMaxEmp != null) body.max_employee_count = cfg.theirstackMaxEmp;
+  if ((cfg.theirstackCountries || []).length) body.company_country_code_or = cfg.theirstackCountries;
+  if ((cfg.theirstackFunding || []).length) body.funding_stage_or = cfg.theirstackFunding;
+  if (cfg.theirstackMinSalary != null) body.min_salary_usd = cfg.theirstackMinSalary;
+  if (cfg.theirstackMinRevenue != null) body.min_revenue_usd = cfg.theirstackMinRevenue;
+
+  const res = await fetch('https://api.theirstack.com/v1/jobs/search', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + cfg.theirstackToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.description || data?.error?.title || 'TheirStack request failed. Check your API token.');
+  if (!Array.isArray(data.data) || data.data.length === 0) {
+    throw new Error('TheirStack returned 0 contract jobs. Try different keywords/tech slugs or widen the date range.');
+  }
+  return data.data.map(theirStackToPseudoItem);
+}
+
+// ── Reshape one TheirStack job object into the Apify-item shape mapItem() already understands ──
+function theirStackToPseudoItem(job) {
+  const co = job.company_object || {};
+  const contact = (job.hiring_team && job.hiring_team[0]) || {};
+  const techs = (job.technology_slugs || job.keyword_slugs || []).slice(0, 8).join(', ');
+  const companyName = co.name || job.company || '—';
+
+  const synth = `${companyName} is hiring on a CONTRACT basis for ${job.job_title || 'a technical role'}`
+    + (job.seniority ? ` (${String(job.seniority).replace(/_/g, ' ')})` : '')
+    + (job.short_location || job.location ? ` — ${job.short_location || job.location}` : '')
+    + '.'
+    + (job.salary_string ? ` Salary: ${job.salary_string}.` : '')
+    + (techs ? ` Technologies: ${techs}.` : '')
+    + (job.description ? ' ' + String(job.description).replace(/\n+/g, ' ').slice(0, 500) : '');
+
+  return {
+    author: {
+      name: contact.full_name || companyName,
+      headline: contact.role || job.job_title || '—',
+      company: companyName,
+      linkedinUrl: contact.linkedin_url || co.linkedin_url || ''
+    },
+    text: synth,
+    postUrl: job.url || job.final_url || job.source_url || '',
+    numLikes: 0,
+    numComments: 0,
+    postedAt: { postedAgoText: job.date_posted ? theirStackRelDate(job.date_posted) : '—' }
+  };
+}
+
+function theirStackRelDate(iso) {
+  try {
+    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (days <= 0) return 'today';
+    if (days === 1) return '1 day ago';
+    if (days < 30) return days + ' days ago';
+    return Math.floor(days / 30) + ' months ago';
+  } catch (e) { return '—'; }
 }
 
 // ── fetchApifyProfiles — batch fetch posts from all configured profile URLs ──
@@ -3767,6 +3988,7 @@ async function runPipeline() {
 
   document.getElementById('pipe-mb').classList.add('show');
   const isProfileMode = cfg.apifyMode === 'profile-posts';
+  const isTheirStackMode = cfg.apifyMode === 'theirstack-jobs';
   // Update stage labels for profile mode
   {
     const st1el = document.getElementById('st1');
@@ -3774,10 +3996,13 @@ async function runPipeline() {
     const st2lbl = document.getElementById('st2-label');
     if (st2lbl) st2lbl.textContent = isProfileMode ? 'Gate 2: Profile scoring (designation + clarity + seriousness)' : 'Gate 2: ' + providerName + ' intent + signal scoring';
   }
-  document.getElementById('pipe-src').textContent = cfg.apifyToken
-    ? (isProfileMode
-        ? 'Actor: harvestapi/linkedin-profile-posts · Profiles: ' + (cfg.profileUrls||[]).length
-        : 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5))
+  const hasSourceToken = isTheirStackMode ? !!cfg.theirstackToken : !!cfg.apifyToken;
+  document.getElementById('pipe-src').textContent = hasSourceToken
+    ? (isTheirStackMode
+        ? 'TheirStack Jobs API · Contract postings · Titles: ' + Math.min((cfg.keywords||[]).length, 8) + ' · Tech: ' + (cfg.theirstackTech||[]).length
+        : isProfileMode
+          ? 'Actor: harvestapi/linkedin-profile-posts · Profiles: ' + (cfg.profileUrls||[]).length
+          : 'Actor: harvestapi/linkedin-post-search · Queries: ' + Math.min(cfg.keywords.length,5))
     : 'Demo mode (no token set)';
   let isDemo = false;
 
@@ -3785,14 +4010,16 @@ async function runPipeline() {
     // Stage 0: Fetch
     stgRun(0);
     let raw = [];
-    if (!cfg.apifyToken) {
+    if (!hasSourceToken) {
       isDemo = true;
       await new Promise(r => setTimeout(r, 1000));
       raw = demoRaw();
       stgDone(0, raw.length + ' posts (demo)');
       document.getElementById('dn').classList.add('show');
     } else {
-      if (isProfileMode) {
+      if (isTheirStackMode) {
+        raw = await fetchTheirStack();
+      } else if (isProfileMode) {
         if (!(cfg.profileUrls||[]).length) throw new Error('No profile URLs set. Open Configure → Profile Posts and add LinkedIn profile URLs.');
         raw = await fetchApifyProfiles();
       } else {
@@ -3802,10 +4029,11 @@ async function runPipeline() {
       if (isProfileMode && !cfg.skipGate) {
         console.log('[ProfileMode] Auto-bypassing Gate 1 keyword filter — profile posts scored directly by AI');
       }
-      stgDone(0, raw.length + ' posts fetched');
+      stgDone(0, raw.length + (isTheirStackMode ? ' contract jobs fetched' : ' posts fetched'));
     }
 
     const mapped = raw.map((item, i) => mapItem(item, i));
+    if (isTheirStackMode) mapped.forEach(l => { l.source = 'theirstack_contract'; });
 
     // Stage 1: Rule filter
     stgRun(1);
@@ -3994,7 +4222,9 @@ async function runPipeline() {
     }, 800);
   } catch (e) {
     if (e.message === 'NO_TOKEN') {
-      showErr('No Apify token set. Open Configure and add your token. Or click Cancel and use "Load Demo Data".');
+      showErr(isTheirStackMode
+        ? 'No TheirStack token set. Open Configure and add your token. Or click Cancel and use "Load Demo Data".'
+        : 'No Apify token set. Open Configure and add your token. Or click Cancel and use "Load Demo Data".');
     } else {
       showErr(e.message);
     }
@@ -4554,7 +4784,7 @@ function renderTbl() {
     tr.innerHTML = `
       <td><input type="checkbox" class="rchk" data-dbid="${lead._dbid}" style="accent-color:var(--accent)" onclick="event.stopPropagation();updBulkBar()" onchange="updBulkBar()"></td>
       <td style="white-space:nowrap">${postedBadge(lead)}</td>
-      <td><div class="lc"><div class="la" style="background:${getAvatarBg(lead)}">${avatarHTML(lead)}</div><div><div class="ln" ondblclick="event.stopPropagation();startInlineCompanyEdit(this,lead)" title="Double-click to edit company name" style="cursor:text">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}${priorityTagHTML(lead)}${lead.assignedTo?('<span onclick="event.stopPropagation();showAssignMenu(event,lead)" style="margin-left:4px;font-size:9px;font-weight:500;font-family:var(--mono);padding:1px 5px;border-radius:3px;cursor:pointer;border:1px solid '+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+'33;background:'+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+'11;color:'+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+';letter-spacing:.01em;vertical-align:middle">'+lead.assignedTo.split(' ')[0]+'</span>'):'<span onclick="event.stopPropagation();showAssignMenu(event,lead)" style="margin-left:4px;font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:3px;cursor:pointer;border:1px dashed var(--border2);color:var(--text3);opacity:0;transition:opacity .15s" class="assign-badge-empty">+</span>'}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
+      <td><div class="lc"><div class="la" style="background:${getAvatarBg(lead)}">${avatarHTML(lead)}</div><div><div class="ln" ondblclick="event.stopPropagation();startInlineCompanyEdit(this,lead)" title="Double-click to edit company name" style="cursor:text">${lead.company&&lead.company!=='—'?esc(lead.company):'—'}${lead.isNew?'<span class="new-badge">NEW</span>':''}${lead.source==='profile_scan'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--purple);background:var(--pdim);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:1px 5px;margin-left:4px">👤 PROFILE</span>':''}${lead.source==='theirstack_contract'?'<span style="font-size:8px;font-weight:700;font-family:var(--mono);color:var(--amber);background:var(--ydim);border:1px solid rgba(192,123,16,.2);border-radius:3px;padding:1px 5px;margin-left:4px">📋 CONTRACT</span>':''}${priorityTagHTML(lead)}${lead.assignedTo?('<span onclick="event.stopPropagation();showAssignMenu(event,lead)" style="margin-left:4px;font-size:9px;font-weight:500;font-family:var(--mono);padding:1px 5px;border-radius:3px;cursor:pointer;border:1px solid '+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+'33;background:'+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+'11;color:'+(TEAM_COLORS[lead.assignedTo]||'#4f8ef7')+';letter-spacing:.01em;vertical-align:middle">'+lead.assignedTo.split(' ')[0]+'</span>'):'<span onclick="event.stopPropagation();showAssignMenu(event,lead)" style="margin-left:4px;font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:3px;cursor:pointer;border:1px dashed var(--border2);color:var(--text3);opacity:0;transition:opacity .15s" class="assign-badge-empty">+</span>'}</div><div class="lsub">${esc(lead.name)} · ${esc(lead.headline)}</div></div></div></td>
       <td style="text-align:center"><div style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:13px">${labelIcon(lbl)}</span><span style="font-size:11px;font-weight:700;font-family:var(--mono);color:${lbl==='Hot'?'var(--green)':lbl==='Warm'?'var(--amber)':'var(--text3)'}">${lead.score}/10</span></div></td>
       <td>${stageBadge(lead.leadStage)}</td>
       <td><span style="font-size:11.5px;color:var(--text2);font-weight:500">${esc(lead.category||'—')}</span></td>
@@ -4713,7 +4943,7 @@ function openDP(lead) {
     <div class="dr"><span class="dl">Client Geo</span><span class="dv">${esc(lead.geo||'—')}</span></div>
     <div class="dr"><span class="dl">Low Outreach Context</span><span class="dv" style="color:${lead.lowOutreachContext?'var(--amber)':'var(--green)'}">${lead.lowOutreachContext?'⚠ Yes — needs enrichment':'✓ Good context'}</span></div>
     ${lead.disqualifyReason?`<div class="dr"><span class="dl">DQ Reason</span><span class="dv" style="color:var(--red);font-size:10.5px">${esc(lead.disqualifyReason)}</span></div>`:''}
-    <div class="dr"><span class="dl">Source</span><span class="dv">${lead.source==='profile_scan'?'👤 Profile Scan (harvestapi/linkedin-profile-posts)':'🔍 Post Search (harvestapi/linkedin-post-search)'}${cfg.apifyToken?'':' · Demo'}</span></div>
+    <div class="dr"><span class="dl">Source</span><span class="dv">${lead.source==='profile_scan'?'👤 Profile Scan (harvestapi/linkedin-profile-posts)':lead.source==='theirstack_contract'?'📋 Contract Job (TheirStack Jobs API)':'🔍 Post Search (harvestapi/linkedin-post-search)'}${(cfg.apifyToken||cfg.theirstackToken)?'':' · Demo'}</span></div>
     <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
     <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
     <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
@@ -5006,7 +5236,7 @@ async function saveLeadsToSupabase(leads) {
     hiring_for: l.role || null,
     hiring_type: l.hiringType || null,
     client_geo: l.geo || null,
-    source: l.source === 'profile_scan' ? 'Profile Scan' : 'LinkedIn',
+    source: l.source === 'profile_scan' ? 'Profile Scan' : l.source === 'theirstack_contract' ? 'TheirStack Contract' : 'LinkedIn',
       assigned_to: l.assignedTo || null,
       priority_tags: JSON.stringify(l.priorityTags || []),
     email: l.email || null,
@@ -5109,10 +5339,9 @@ async function loadLeadsFromSupabase() {
       email: l.email || l.Email || '',
       phone: l.phone || (l.Phone ? String(l.Phone) : ''),
       // ── Meta ──
-      source: l.source || 'LinkedIn',
       created: l.posted_at || l.Posted || '—',
       scannedAt: l.scanned_at || l.created_at || null,
-      source: l.source === 'Profile Scan' ? 'profile_scan' : 'post_search',
+      source: l.source === 'Profile Scan' ? 'profile_scan' : l.source === 'TheirStack Contract' ? 'theirstack_contract' : 'post_search',
       assignedTo: l.assigned_to || null,
       priorityTags: (() => { try { return JSON.parse(l.priority_tags || '[]'); } catch(e) { return []; } })(),
       reasoning: l.qualification_reason || '',
@@ -5817,6 +6046,7 @@ function clearKey(inputId, badgeId) {
   document.getElementById(inputId).value = '';
   document.getElementById(badgeId).style.display = 'none';
   if (inputId === 'c-apify') cfg.apifyToken = '';
+  if (inputId === 'c-theirstack') cfg.theirstackToken = '';
   if (inputId === 'c-gemini') cfg.geminiKey = '';
   if (inputId === 'c-claude') cfg.claudeKey = '';
   if (inputId === 'c-openrouter') cfg.openRouterKey = '';
