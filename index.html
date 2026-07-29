@@ -1222,9 +1222,9 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
       </div>
 
       <div class="cf">
-        <label class="cl">Target countries <span style="color:var(--text3)">(ISO2 codes)</span></label>
+        <label class="cl">Target countries — job location <span style="color:var(--text3)">(ISO2 codes)</span></label>
         <input class="ci" type="text" id="c-theirstack-countries" placeholder="IN, US, GB">
-        <div class="ch">Comma-separated. Blank = all countries.</div>
+        <div class="ch">Comma-separated. Filters by where the JOB is located, not the company's HQ. Strictly enforced client-side too — jobs with no confirmed country match (e.g. ambiguous "Remote — Worldwide" listings) are dropped rather than risk leaking through. Blank = all countries.</div>
       </div>
 
       <div class="cf">
@@ -1243,6 +1243,18 @@ select.ci{appearance:none;-webkit-appearance:none;cursor:pointer}
         <label class="cl">Min. annual revenue (USD)</label>
         <input class="ci" type="number" id="c-theirstack-minrevenue" min="0" placeholder="e.g. 1000000" style="width:180px">
         <div class="ch">Blank = no revenue filter.</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Posted within (days)</label>
+        <input class="ci" type="number" id="c-theirstack-maxage" min="1" max="365" placeholder="uses shared Posts From setting" style="width:200px">
+        <div class="ch">Overrides the shared "Posts From" dropdown below for TheirStack only. Blank = fall back to that dropdown (24h→1, week→7, month→30, 3 months→90 days).</div>
+      </div>
+
+      <div class="cf">
+        <label class="cl">Results per page</label>
+        <input class="ci" type="number" id="c-theirstack-pagesize" min="1" max="100" placeholder="25" style="width:100px">
+        <div class="ch">Free TheirStack plans cap this at 25 — the pipeline auto-pages through multiple requests to still reach your "Posts per keyword" total either way. Raise this only if you've upgraded your TheirStack plan.</div>
       </div>
     </div>
 
@@ -1489,6 +1501,7 @@ let cfg = {
   theirstackToken: '', theirstackTech: [],
   theirstackCompanyType: 'all', theirstackMinEmp: null, theirstackMaxEmp: null,
   theirstackCountries: [], theirstackFunding: [], theirstackMinSalary: null, theirstackMinRevenue: null,
+  theirstackPageSize: 25, theirstackMaxAgeDays: null,
   geminiKey: '', claudeKey: '', openRouterKey: '', openRouterModel: 'meta-llama/llama-3.3-70b-instruct:free',
   aiProvider: 'gemini', minScore: 7, skipGate: false,
   batchSize: 50, backgroundProcessing: true, profileMaxPosts: 20,
@@ -2075,6 +2088,8 @@ function saveToStorage() {
       theirstackFunding: cfg.theirstackFunding || [],
       theirstackMinSalary: cfg.theirstackMinSalary,
       theirstackMinRevenue: cfg.theirstackMinRevenue,
+      theirstackPageSize: cfg.theirstackPageSize,
+      theirstackMaxAgeDays: cfg.theirstackMaxAgeDays,
       keywords: cfg.keywords,
       titles: cfg.titles
     }));
@@ -2211,6 +2226,8 @@ function loadFromStorage() {
     if (d.theirstackFunding) cfg.theirstackFunding = d.theirstackFunding;
     if (d.theirstackMinSalary !== undefined) cfg.theirstackMinSalary = d.theirstackMinSalary;
     if (d.theirstackMinRevenue !== undefined) cfg.theirstackMinRevenue = d.theirstackMinRevenue;
+    if (d.theirstackPageSize) cfg.theirstackPageSize = d.theirstackPageSize;
+    if (d.theirstackMaxAgeDays !== undefined) cfg.theirstackMaxAgeDays = d.theirstackMaxAgeDays;
     if (d.keywords?.length) cfg.keywords = d.keywords;
     if (d.titles?.length) cfg.titles = d.titles;
   } catch(e) { console.warn('Storage load failed:', e); }
@@ -2296,6 +2313,8 @@ function showCfg() {
   document.getElementById('c-theirstack-funding').value = (cfg.theirstackFunding || []).join(', ');
   document.getElementById('c-theirstack-minsalary').value = cfg.theirstackMinSalary ?? '';
   document.getElementById('c-theirstack-minrevenue').value = cfg.theirstackMinRevenue ?? '';
+  document.getElementById('c-theirstack-pagesize').value = cfg.theirstackPageSize || 25;
+  document.getElementById('c-theirstack-maxage').value = cfg.theirstackMaxAgeDays ?? '';
   document.getElementById('c-maxposts').value = cfg.maxPosts;
   document.getElementById('c-age').value = cfg.postAge;
   document.getElementById('c-sort').value = cfg.sortBy;
@@ -2345,6 +2364,10 @@ function saveCfg() {
     cfg.theirstackMaxEmp = maxEmpV ? parseInt(maxEmpV) : null;
     cfg.theirstackMinSalary = minSalV ? parseFloat(minSalV) : null;
     cfg.theirstackMinRevenue = minRevV ? parseInt(minRevV) : null;
+    const pageSizeV = document.getElementById('c-theirstack-pagesize').value.trim();
+    cfg.theirstackPageSize = pageSizeV ? Math.max(1, Math.min(100, parseInt(pageSizeV))) : 25;
+    const maxAgeV = document.getElementById('c-theirstack-maxage').value.trim();
+    cfg.theirstackMaxAgeDays = maxAgeV ? Math.max(1, parseInt(maxAgeV)) : null;
   }
   cfg.theirstackCountries = document.getElementById('c-theirstack-countries').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
   cfg.theirstackFunding = document.getElementById('c-theirstack-funding').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
@@ -3124,6 +3147,10 @@ async function fetchApify() {
 // companies hiring contract/bench talent for RAPYD, not full-time roles.
 // Each job is reshaped by theirStackToPseudoItem() into the same {author, text, postUrl, numLikes,
 // numComments, postedAt} shape Apify returns, so it flows through mapItem() + Gate 1 + Gate 2 unchanged.
+//
+// NOTE — Free TheirStack plans cap `limit` at 25 results per request ("Upgrade to any plan for
+// unlimited results per page"). Rather than fail or silently truncate, this pages through multiple
+// requests (using `page`) to still reach your desired total (cfg.maxPosts), at 1 credit per job either way.
 async function fetchTheirStack() {
   if (!cfg.theirstackToken) throw new Error('NO_TOKEN');
 
@@ -3133,41 +3160,83 @@ async function fetchTheirStack() {
     throw new Error('Add Search Keywords (used as job titles) or technology slugs in Configure → Contract Jobs.');
   }
 
-  const ageDays = cfg.postAge === '24h' ? 1 : cfg.postAge === 'week' ? 7 : cfg.postAge === 'month' ? 30 : 90;
+  const sharedAgeDays = cfg.postAge === '24h' ? 1 : cfg.postAge === 'week' ? 7 : cfg.postAge === 'month' ? 30 : 90;
+  const ageDays = (cfg.theirstackMaxAgeDays != null && cfg.theirstackMaxAgeDays > 0) ? cfg.theirstackMaxAgeDays : sharedAgeDays;
+  const pageSize = Math.max(1, Math.min(cfg.theirstackPageSize || 25, 100)); // 25 default = free-plan safe
+  const wanted = Math.min(cfg.maxPosts || 50, 500); // total jobs desired across all pages
 
-  const body = {
+  const baseBody = {
     employment_statuses_or: ['contract'],
     posted_at_max_age_days: ageDays,
-    limit: Math.min(cfg.maxPosts || 50, 100),
-    page: 0,
     order_by: [{ field: 'date_posted', desc: true }]
   };
-  if (titleTerms.length) body.job_title_or = titleTerms;
-  if (techTerms.length) body.job_technology_slug_or = techTerms;
+  if (titleTerms.length) baseBody.job_title_or = titleTerms;
+  if (techTerms.length) baseBody.job_technology_slug_or = techTerms;
   // ── Optional filters — every one below is left off the request entirely unless you set it.
   // Nothing is excluded by default; these only narrow results if configured in Configure → Contract Jobs. ──
-  if (cfg.theirstackCompanyType && cfg.theirstackCompanyType !== 'all') body.company_type = cfg.theirstackCompanyType;
-  if (cfg.theirstackMinEmp != null) body.min_employee_count = cfg.theirstackMinEmp;
-  if (cfg.theirstackMaxEmp != null) body.max_employee_count = cfg.theirstackMaxEmp;
-  if ((cfg.theirstackCountries || []).length) body.company_country_code_or = cfg.theirstackCountries;
-  if ((cfg.theirstackFunding || []).length) body.funding_stage_or = cfg.theirstackFunding;
-  if (cfg.theirstackMinSalary != null) body.min_salary_usd = cfg.theirstackMinSalary;
-  if (cfg.theirstackMinRevenue != null) body.min_revenue_usd = cfg.theirstackMinRevenue;
+  if (cfg.theirstackCompanyType && cfg.theirstackCompanyType !== 'all') baseBody.company_type = cfg.theirstackCompanyType;
+  if (cfg.theirstackMinEmp != null) baseBody.min_employee_count = cfg.theirstackMinEmp;
+  if (cfg.theirstackMaxEmp != null) baseBody.max_employee_count = cfg.theirstackMaxEmp;
+  if ((cfg.theirstackCountries || []).length) baseBody.job_country_code_or = cfg.theirstackCountries;
+  if ((cfg.theirstackFunding || []).length) baseBody.funding_stage_or = cfg.theirstackFunding;
+  if (cfg.theirstackMinSalary != null) baseBody.min_salary_usd = cfg.theirstackMinSalary;
+  if (cfg.theirstackMinRevenue != null) baseBody.min_revenue_usd = cfg.theirstackMinRevenue;
 
-  const res = await fetch('https://api.theirstack.com/v1/jobs/search', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + cfg.theirstackToken,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error?.description || data?.error?.title || 'TheirStack request failed. Check your API token.');
-  if (!Array.isArray(data.data) || data.data.length === 0) {
-    throw new Error('TheirStack returned 0 contract jobs. Try different keywords/tech slugs or widen the date range.');
+  const wantedCountries = (cfg.theirstackCountries || []).length
+    ? new Set(cfg.theirstackCountries.map(c => c.toUpperCase()))
+    : null;
+
+  let collected = [];
+  let page = 0;
+  const maxPages = 20; // hard safety cap — 20 × 100 = 2000 jobs scanned, well above `wanted` ceiling
+  let sawAny = false;
+  while (collected.length < wanted && page < maxPages) {
+    const body = { ...baseBody, page, limit: pageSize };
+    const res = await fetch('https://api.theirstack.com/v1/jobs/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + cfg.theirstackToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      // Free-plan per-page cap — retry once at 25/page instead of failing outright
+      const msg = data?.error?.description || data?.error?.title || '';
+      if (/25 results per page|per page/i.test(msg) && pageSize > 25) {
+        cfg.theirstackPageSize = 25;
+        return fetchTheirStack();
+      }
+      throw new Error(msg || 'TheirStack request failed. Check your API token.');
+    }
+    if (!Array.isArray(data.data) || data.data.length === 0) break;
+    sawAny = true;
+
+    // ── Strict country safety net ──
+    // TheirStack's job_country_code_or filter can still let ambiguous/worldwide-remote jobs through
+    // (jobs with no clean country tag). If a target country is set, only keep jobs whose own
+    // country_code(s) actually match — better to under-return than leak jobs from the wrong country.
+    let pageItems = data.data;
+    if (wantedCountries) {
+      pageItems = pageItems.filter(j => {
+        const codes = (Array.isArray(j.country_codes) && j.country_codes.length) ? j.country_codes
+          : (j.country_code ? [j.country_code] : []);
+        return codes.length > 0 && codes.some(c => wantedCountries.has(String(c).toUpperCase()));
+      });
+    }
+    collected = collected.concat(pageItems);
+    if (data.data.length < pageSize) break; // fewer than requested = last page from API
+    page++;
   }
-  return data.data.map(theirStackToPseudoItem);
+  collected = collected.slice(0, wanted);
+
+  if (!collected.length) {
+    throw new Error(sawAny && wantedCountries
+      ? 'TheirStack found jobs matching your keywords/tech, but none had a confirmed match for your target countries (many remote listings lack a clean country tag). Try widening the date range or removing the country filter.'
+      : 'TheirStack returned 0 contract jobs. Try different keywords/tech slugs or widen the date range.');
+  }
+  return collected.map(theirStackToPseudoItem);
 }
 
 // ── Reshape one TheirStack job object into the Apify-item shape mapItem() already understands ──
