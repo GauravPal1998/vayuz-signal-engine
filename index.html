@@ -3262,7 +3262,8 @@ function theirStackToPseudoItem(job) {
       linkedinUrl: contact.linkedin_url || co.linkedin_url || ''
     },
     text: synth,
-    postUrl: job.url || job.final_url || job.source_url || '',
+    postUrl: job.url || job.final_url || job.source_url
+      || `theirstack://job/${job.id || (companyName + '|' + (job.job_title||'') + '|' + (job.date_posted||''))}`,
     numLikes: 0,
     numComments: 0,
     postedAt: { postedAgoText: job.date_posted ? theirStackRelDate(job.date_posted) : '—' }
@@ -4840,7 +4841,8 @@ function renderTbl() {
     const sc = lead.score>=7?'h':lead.score>=4?'m':'l';
     const lbl = lead.label || (lead.score>=7?'Hot':lead.score>=4?'Warm':'Cold');
     let urlCell = '<span class="nu">—</span>';
-    if (lead.postUrl) {
+    const hasRealUrl = lead.postUrl && !lead.postUrl.startsWith('theirstack://');
+    if (hasRealUrl) {
       const disp = lead.postUrl.replace(/^https?:\/\/(www\.)?/,'').slice(0,28)+'…';
       urlCell = `<a class="ul" href="${lead.postUrl}" target="_blank" onclick="event.stopPropagation()" title="${esc(lead.postUrl)}">${disp}</a>`;
     }
@@ -5015,7 +5017,7 @@ function openDP(lead) {
     <div class="dr"><span class="dl">Source</span><span class="dv">${lead.source==='profile_scan'?'👤 Profile Scan (harvestapi/linkedin-profile-posts)':lead.source==='theirstack_contract'?'📋 Contract Job (TheirStack Jobs API)':'🔍 Post Search (harvestapi/linkedin-post-search)'}${(cfg.apifyToken||cfg.theirstackToken)?'':' · Demo'}</span></div>
     <div class="dr"><span class="dl">Posted</span><span class="dv">${esc(lead.created)}</span></div>
     <div class="dr"><span class="dl">Engagement</span><span class="dv">${lead.likes} likes · ${lead.comments} comments</span></div>
-    <div class="dr"><span class="dl">Post URL</span>${lead.postUrl?`<a class="dpurl" href="${lead.postUrl}" target="_blank">Open on LinkedIn ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
+    <div class="dr"><span class="dl">Post URL</span>${(lead.postUrl && !lead.postUrl.startsWith('theirstack://'))?`<a class="dpurl" href="${lead.postUrl}" target="_blank">${lead.source==='theirstack_contract'?'Open Job Posting ↗':'Open on LinkedIn ↗'}</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
     <div class="dr"><span class="dl">Profile</span>${lead.profileUrl?`<a class="dpurl" href="${lead.profileUrl}" target="_blank">View Profile ↗</a>`:'<span class="dv" style="color:var(--text3)">Not available</span>'}</div>
   `;
   // Pain points section — remove old before inserting to prevent duplication
